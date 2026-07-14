@@ -1,32 +1,278 @@
 """
 Generates kinematics_worksheet.docx
-Landscape, 13in x 8.5in (Legal/Long, landscape), narrow margins.
-Layout: ONE ROW divided into FOUR VERTICAL COLUMNS (side by side),
-each column = one independent activity sheet (Part A-D).
-Monochrome / grayscale only (no colour, black text, light gray shading only).
+Layout: Landscape, 13in x 8.5in, narrow margins.
+One row of FOUR VERTICAL COLUMNS (side by side).
+Each column = one independent guided derivation activity (Part A–D).
+
+Pedagogy: Instruction → blank response line → instruction → blank → ...
+until the student arrives at the goal equation.
+Font: Calibri, size 9pt.
+Equations: OMML (Office Math Markup Language).
+Monochrome grayscale only.
 """
 
 from docx import Document
-from docx.shared import Inches, Pt, RGBColor
+from docx.shared import Inches, Pt, Cm, RGBColor, Emu
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.section import WD_ORIENT
 from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
 from docx.oxml.ns import qn
-from docx.oxml import OxmlElement
+from docx.oxml import OxmlElement, parse_xml
 
 BLACK = RGBColor(0, 0, 0)
-GRAY_FILL = "E8E8E8"   # light gray for goal box shading
-LINE_FILL = "F2F2F2"   # very light gray for ruled work area
+GRAY = RGBColor(0x55, 0x55, 0x55)
+LIGHT_GRAY_FILL = "EDEDED"
 
-# ----------------------------------------------------------------------------
-# Low level OXML helpers
-# ----------------------------------------------------------------------------
+MATH_NS = "http://schemas.openxmlformats.org/officeDocument/2006/math"
+W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+
+# ============================================================================
+# OMML Equation builders
+# ============================================================================
+
+def omml_run(text):
+    """Simple math run: m:r > m:t"""
+    return f'<m:r><m:rPr><m:sty m:val="p"/></m:rPr><m:t>{text}</m:t></m:r>'
+
+def omml_run_italic(text):
+    """Italic math run (default math font style)"""
+    return f'<m:r><m:t>{text}</m:t></m:r>'
+
+def omml_frac(num, den):
+    """Fraction: m:f"""
+    return f'<m:f><m:num>{num}</m:num><m:den>{den}</m:den></m:f>'
+
+def omml_sub(base, sub):
+    """Subscript"""
+    return f'<m:sSub><m:e>{base}</m:e><m:sub>{sub}</m:sub></m:sSub>'
+
+def omml_sup(base, sup):
+    """Superscript"""
+    return f'<m:sSup><m:e>{base}</m:e><m:sup>{sup}</m:sup></m:sSup>'
+
+def omml_subsup(base, sub, sup):
+    """Subscript + superscript"""
+    return f'<m:sSubSup><m:e>{base}</m:e><m:sub>{sub}</m:sub><m:sup>{sup}</m:sup></m:sSubSup>'
+
+def omml_d(content, left="(", right=")"):
+    """Delimiter (parentheses, brackets, etc.)"""
+    beg = f'<m:dPr><m:begChr m:val="{left}"/><m:endChr m:val="{right}"/></m:dPr>' if left != "(" or right != ")" else ""
+    return f'<m:d>{beg}<m:e>{content}</m:e></m:d>'
+
+def omml_d_bracket(content):
+    return omml_d(content, left="[", right="]")
+
+def wrap_omath(content):
+    """Wrap content in oMathPara > oMath for display (centered) equation."""
+    return f'<m:oMathPara xmlns:m="{MATH_NS}"><m:oMath>{content}</m:oMath></m:oMathPara>'
+
+def wrap_omath_inline(content):
+    """Wrap content in oMath only (inline equation)."""
+    return f'<m:oMath xmlns:m="{MATH_NS}">{content}</m:oMath>'
+
+
+def insert_display_equation(cell, omml_content, space_before=2, space_after=2):
+    """Insert a centered OMML equation paragraph into a cell."""
+    p = cell.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(space_before)
+    p.paragraph_format.space_after = Pt(space_after)
+    # If omml_content is a callable (function), call it
+    if callable(omml_content):
+        omml_content = omml_content()
+    xml_str = f'<m:oMathPara xmlns:m="{MATH_NS}" xmlns:w="{W_NS}"><m:oMath>{omml_content}</m:oMath></m:oMathPara>'
+    el = parse_xml(xml_str)
+    p._p.append(el)
+    return p
+
+
+def insert_inline_equation(paragraph, omml_content):
+    """Insert an inline OMML equation into an existing paragraph."""
+    # If omml_content is a callable (function), call it
+    if callable(omml_content):
+        omml_content = omml_content()
+    xml_str = f'<m:oMath xmlns:m="{MATH_NS}" xmlns:w="{W_NS}">{omml_content}</m:oMath>'
+    el = parse_xml(xml_str)
+    paragraph._p.append(el)
+
+
+# ============================================================================
+# OMML equation definitions for each kinematic equation
+# ============================================================================
+
+# v = v₀ + at
+def eq_v_v0_at():
+    v = omml_run_italic("v")
+    eq_sign = omml_run(" = ")
+    v0 = omml_sub(omml_run_italic("v"), omml_run("0"))
+    plus = omml_run(" + ")
+    at = omml_run_italic("at")
+    return v + eq_sign + v0 + plus + at
+
+# a = Δv / Δt
+def eq_a_def():
+    num = omml_run_italic("Δv")
+    den = omml_run_italic("Δt")
+    a = omml_run_italic("a")
+    eq_sign = omml_run(" = ")
+    return a + eq_sign + omml_frac(num, den)
+
+# Δv = v - v₀
+def eq_delta_v():
+    dv = omml_run_italic("Δv")
+    eq_sign = omml_run(" = ")
+    v = omml_run_italic("v")
+    minus = omml_run(" \u2212 ")
+    v0 = omml_sub(omml_run_italic("v"), omml_run("0"))
+    return dv + eq_sign + v + minus + v0
+
+# Δt = t - 0 = t
+def eq_delta_t():
+    dt = omml_run_italic("Δt")
+    eq_sign = omml_run(" = ")
+    t = omml_run_italic("t")
+    minus = omml_run(" \u2212 0 = ")
+    return dt + eq_sign + t + minus + t
+
+# a = (v - v₀) / t
+def eq_a_expanded():
+    a = omml_run_italic("a")
+    eq_sign = omml_run(" = ")
+    v = omml_run_italic("v")
+    minus = omml_run(" \u2212 ")
+    v0 = omml_sub(omml_run_italic("v"), omml_run("0"))
+    num = v + minus + v0
+    den = omml_run_italic("t")
+    return a + eq_sign + omml_frac(num, den)
+
+# x = x₀ + v_avg · t
+def eq_x_vavg_t():
+    x = omml_run_italic("x")
+    eq_sign = omml_run(" = ")
+    x0 = omml_sub(omml_run_italic("x"), omml_run("0"))
+    plus = omml_run(" + ")
+    vavg = omml_sub(omml_run_italic("v"), omml_run("avg"))
+    dot_t = omml_run(" \u00b7 ")
+    t = omml_run_italic("t")
+    return x + eq_sign + x0 + plus + vavg + dot_t + t
+
+# v_avg = (x - x₀) / t
+def eq_vavg_def():
+    vavg = omml_sub(omml_run_italic("v"), omml_run("avg"))
+    eq_sign = omml_run(" = ")
+    x = omml_run_italic("x")
+    minus = omml_run(" \u2212 ")
+    x0 = omml_sub(omml_run_italic("x"), omml_run("0"))
+    num = x + minus + x0
+    den = omml_run_italic("t")
+    return vavg + eq_sign + omml_frac(num, den)
+
+# v_avg = (v₀ + v) / 2
+def eq_vavg_mean():
+    vavg = omml_sub(omml_run_italic("v"), omml_run("avg"))
+    eq_sign = omml_run(" = ")
+    v0 = omml_sub(omml_run_italic("v"), omml_run("0"))
+    plus = omml_run(" + ")
+    v = omml_run_italic("v")
+    num = v0 + plus + v
+    den = omml_run("2")
+    return vavg + eq_sign + omml_frac(num, den)
+
+# x = x₀ + ½(v₀ + v)t
+def eq_x_half_vv0_t():
+    x = omml_run_italic("x")
+    eq_sign = omml_run(" = ")
+    x0 = omml_sub(omml_run_italic("x"), omml_run("0"))
+    plus = omml_run(" + ")
+    half = omml_frac(omml_run("1"), omml_run("2"))
+    v0 = omml_sub(omml_run_italic("v"), omml_run("0"))
+    plus2 = omml_run(" + ")
+    v = omml_run_italic("v")
+    inner = v0 + plus2 + v
+    paren = omml_d(inner)
+    t = omml_run_italic("t")
+    return x + eq_sign + x0 + plus + half + paren + t
+
+# x = x₀ + ½[v₀ + (v₀ + at)]t
+def eq_x_substituted():
+    x = omml_run_italic("x")
+    eq_sign = omml_run(" = ")
+    x0 = omml_sub(omml_run_italic("x"), omml_run("0"))
+    plus = omml_run(" + ")
+    half = omml_frac(omml_run("1"), omml_run("2"))
+    v0 = omml_sub(omml_run_italic("v"), omml_run("0"))
+    plus2 = omml_run(" + ")
+    v0_2 = omml_sub(omml_run_italic("v"), omml_run("0"))
+    plus3 = omml_run(" + ")
+    at = omml_run_italic("at")
+    inner_paren = omml_d(v0_2 + plus3 + at)
+    bracket_content = v0 + plus2 + inner_paren
+    bracket = omml_d_bracket(bracket_content)
+    t = omml_run_italic("t")
+    return x + eq_sign + x0 + plus + half + bracket + t
+
+# x = x₀ + v₀t + ½at²
+def eq_x_v0t_half_at2():
+    x = omml_run_italic("x")
+    eq_sign = omml_run(" = ")
+    x0 = omml_sub(omml_run_italic("x"), omml_run("0"))
+    plus = omml_run(" + ")
+    v0 = omml_sub(omml_run_italic("v"), omml_run("0"))
+    t = omml_run_italic("t")
+    plus2 = omml_run(" + ")
+    half = omml_frac(omml_run("1"), omml_run("2"))
+    a = omml_run_italic("a")
+    t2 = omml_sup(omml_run_italic("t"), omml_run("2"))
+    return x + eq_sign + x0 + plus + v0 + t + plus2 + half + a + t2
+
+# t = (v - v₀) / a
+def eq_t_from_v():
+    t = omml_run_italic("t")
+    eq_sign = omml_run(" = ")
+    v = omml_run_italic("v")
+    minus = omml_run(" \u2212 ")
+    v0 = omml_sub(omml_run_italic("v"), omml_run("0"))
+    num = v + minus + v0
+    den = omml_run_italic("a")
+    return t + eq_sign + omml_frac(num, den)
+
+# x - x₀ = ½(v₀ + v) · (v - v₀)/a
+def eq_displacement_substituted():
+    x = omml_run_italic("x")
+    minus = omml_run(" \u2212 ")
+    x0 = omml_sub(omml_run_italic("x"), omml_run("0"))
+    eq_sign = omml_run(" = ")
+    half = omml_frac(omml_run("1"), omml_run("2"))
+    v0 = omml_sub(omml_run_italic("v"), omml_run("0"))
+    plus = omml_run(" + ")
+    v = omml_run_italic("v")
+    paren = omml_d(v0 + plus + v)
+    dot = omml_run(" \u00b7 ")
+    v2 = omml_run_italic("v")
+    minus2 = omml_run(" \u2212 ")
+    v0_2 = omml_sub(omml_run_italic("v"), omml_run("0"))
+    frac_part = omml_frac(v2 + minus2 + v0_2, omml_run_italic("a"))
+    return x + minus + x0 + eq_sign + half + paren + dot + frac_part
+
+# v² = v₀² + 2a(x - x₀)
+def eq_v2_final():
+    v2 = omml_sup(omml_run_italic("v"), omml_run("2"))
+    eq_sign = omml_run(" = ")
+    v0_2 = omml_subsup(omml_run_italic("v"), omml_run("0"), omml_run("2"))
+    plus = omml_run(" + 2")
+    a = omml_run_italic("a")
+    x = omml_run_italic("x")
+    minus = omml_run(" \u2212 ")
+    x0 = omml_sub(omml_run_italic("x"), omml_run("0"))
+    paren = omml_d(x + minus + x0)
+    return v2 + eq_sign + v0_2 + plus + a + paren
+
+
+# ============================================================================
+# Low level OXML helpers for table/cell formatting
+# ============================================================================
 
 def set_cell_border(cell, **kwargs):
-    """
-    kwargs: top, bottom, left, right -> dict(sz, val, color) or None to skip
-    val: 'single', 'dashed', 'nil'
-    """
     tc = cell._tc
     tcPr = tc.get_or_add_tcPr()
     tcBorders = tcPr.find(qn('w:tcBorders'))
@@ -48,17 +294,7 @@ def set_cell_border(cell, **kwargs):
         el.set(qn('w:color'), spec.get('color', '000000'))
 
 
-def set_cell_shading(cell, hex_color):
-    tc = cell._tc
-    tcPr = tc.get_or_add_tcPr()
-    shd = OxmlElement('w:shd')
-    shd.set(qn('w:val'), 'clear')
-    shd.set(qn('w:color'), 'auto')
-    shd.set(qn('w:fill'), hex_color)
-    tcPr.append(shd)
-
-
-def set_cell_margins(cell, top=40, bottom=40, left=60, right=60):
+def set_cell_margins(cell, top=30, bottom=30, left=55, right=55):
     tc = cell._tc
     tcPr = tc.get_or_add_tcPr()
     mar = OxmlElement('w:tcMar')
@@ -70,50 +306,11 @@ def set_cell_margins(cell, top=40, bottom=40, left=60, right=60):
     tcPr.append(mar)
 
 
-def set_paragraph_border(paragraph, sz=8, color="000000", val="single", shading=None):
-    pPr = paragraph._p.get_or_add_pPr()
-    pBdr = OxmlElement('w:pBdr')
-    for edge in ('top', 'left', 'bottom', 'right'):
-        el = OxmlElement(f'w:{edge}')
-        el.set(qn('w:val'), val)
-        el.set(qn('w:sz'), str(sz))
-        el.set(qn('w:space'), '4')
-        el.set(qn('w:color'), color)
-        pBdr.append(el)
-    pPr.append(pBdr)
-    if shading:
-        shd = OxmlElement('w:shd')
-        shd.set(qn('w:val'), 'clear')
-        shd.set(qn('w:color'), 'auto')
-        shd.set(qn('w:fill'), shading)
-        pPr.append(shd)
-
-
-def set_paragraph_bottom_border_only(paragraph, sz=4, color="999999"):
-    pPr = paragraph._p.get_or_add_pPr()
-    pBdr = OxmlElement('w:pBdr')
-    el = OxmlElement('w:bottom')
-    el.set(qn('w:val'), 'single')
-    el.set(qn('w:sz'), str(sz))
-    el.set(qn('w:space'), '1')
-    el.set(qn('w:color'), color)
-    pBdr.append(el)
-    pPr.append(pBdr)
-
-
-def set_row_height(row, height_pts, exact=True):
-    trPr = row._tr.get_or_add_trPr()
-    trHeight = OxmlElement('w:trHeight')
-    trHeight.set(qn('w:val'), str(int(height_pts * 20)))
-    trHeight.set(qn('w:hRule'), 'exact' if exact else 'atLeast')
-    trPr.append(trHeight)
-
-
 def set_col_width(cell, width):
     cell.width = width
     tcPr = cell._tc.get_or_add_tcPr()
     tcW = OxmlElement('w:tcW')
-    tcW.set(qn('w:w'), str(int(width.twips)))
+    tcW.set(qn('w:w'), str(int(width)))
     tcW.set(qn('w:type'), 'dxa')
     tcPr.append(tcW)
 
@@ -126,323 +323,353 @@ def disable_autofit(table):
     tblPr.append(layout)
 
 
-# ----------------------------------------------------------------------------
-# Text / run helpers  (subscript & superscript used to render equations
-# without needing an embedded equation object -> keeps the .docx lightweight
-# and universally compatible)
-# ----------------------------------------------------------------------------
+def set_row_height(row, twips, exact=False):
+    trPr = row._tr.get_or_add_trPr()
+    trHeight = OxmlElement('w:trHeight')
+    trHeight.set(qn('w:val'), str(twips))
+    trHeight.set(qn('w:hRule'), 'exact' if exact else 'atLeast')
+    trPr.append(trHeight)
+
+
+def set_paragraph_border_bottom(paragraph, sz=4, color="AAAAAA"):
+    pPr = paragraph._p.get_or_add_pPr()
+    pBdr = OxmlElement('w:pBdr')
+    el = OxmlElement('w:bottom')
+    el.set(qn('w:val'), 'single')
+    el.set(qn('w:sz'), str(sz))
+    el.set(qn('w:space'), '1')
+    el.set(qn('w:color'), color)
+    pBdr.append(el)
+    pPr.append(pBdr)
+
+
+def set_paragraph_shading(paragraph, hex_color):
+    pPr = paragraph._p.get_or_add_pPr()
+    shd = OxmlElement('w:shd')
+    shd.set(qn('w:val'), 'clear')
+    shd.set(qn('w:color'), 'auto')
+    shd.set(qn('w:fill'), hex_color)
+    pPr.append(shd)
+
+
+def set_paragraph_borders_all(paragraph, sz=6, color="000000"):
+    pPr = paragraph._p.get_or_add_pPr()
+    pBdr = OxmlElement('w:pBdr')
+    for edge in ('top', 'left', 'bottom', 'right'):
+        el = OxmlElement(f'w:{edge}')
+        el.set(qn('w:val'), 'single')
+        el.set(qn('w:sz'), str(sz))
+        el.set(qn('w:space'), '2')
+        el.set(qn('w:color'), color)
+        pBdr.append(el)
+    pPr.append(pBdr)
+
+
+# ============================================================================
+# Text helpers
+# ============================================================================
+
+FONT_NAME = "Calibri"
+FONT_SIZE = Pt(9)
+FONT_SIZE_SM = Pt(8)
+FONT_SIZE_XS = Pt(7.5)
 
 def add_run(paragraph, text, bold=False, italic=False, underline=False,
-            size=9, sub=False, sup=False, font="Times New Roman", color=BLACK):
+            size=FONT_SIZE, color=BLACK):
     r = paragraph.add_run(text)
-    r.font.name = font
-    r.font.size = Pt(size)
+    r.font.name = FONT_NAME
+    r.font.size = size
     r.bold = bold
     r.italic = italic
     r.underline = underline
-    r.font.subscript = sub
-    r.font.superscript = sup
     r.font.color.rgb = color
     return r
 
 
-def eq(paragraph, parts, size=9.5, bold=False):
-    """
-    parts: list of tuples (text, kind) where kind in
-           {'n','sub','sup'}  n = normal
-    Example: [('v','n'), ('0','sub'), (' = v','n'), ('0','sub'), (' + at','n')]
-    """
-    for text, kind in parts:
-        add_run(paragraph, text, size=size, bold=bold,
-                sub=(kind == 'sub'), sup=(kind == 'sup'))
-
-
-def blank_line(cell, pt_before=0, pt_after=2):
+def add_instruction(cell, text, space_before=3, space_after=0):
+    """Add an instruction paragraph."""
     p = cell.add_paragraph()
-    p.paragraph_format.space_before = Pt(pt_before)
-    p.paragraph_format.space_after = Pt(pt_after)
+    p.paragraph_format.space_before = Pt(space_before)
+    p.paragraph_format.space_after = Pt(space_after)
+    add_run(p, text, size=FONT_SIZE)
     return p
 
 
-# ----------------------------------------------------------------------------
-# Content builders
-# ----------------------------------------------------------------------------
+def add_blank_line(cell, count=1, space_before=2, space_after=1):
+    """Add blank response line(s) with bottom border for student to write on."""
+    for _ in range(count):
+        p = cell.add_paragraph()
+        p.paragraph_format.space_before = Pt(space_before)
+        p.paragraph_format.space_after = Pt(space_after)
+        set_paragraph_border_bottom(p, sz=4, color="999999")
+        add_run(p, " ", size=Pt(11))  # height spacer
+    return p
 
-def add_header_block(cell, part_letter):
+
+def add_blank_lines(cell, count=2):
+    """Add multiple blank lines for a multi-line response."""
+    for i in range(count):
+        add_blank_line(cell, space_before=1 if i > 0 else 3, space_after=0)
+
+
+# ============================================================================
+# Header block for each column
+# ============================================================================
+
+def add_header(cell, part_letter, eq_number):
     # Name line
-    p = cell.add_paragraph()
-    p.paragraph_format.space_after = Pt(1)
-    add_run(p, "Name: ", bold=True, size=8)
-    add_run(p, "\t\t\t\t\t\t\t", size=8)
+    p = cell.paragraphs[0]  # reuse default empty paragraph
+    p.paragraph_format.space_after = Pt(0)
+    p.paragraph_format.space_before = Pt(0)
+    add_run(p, "Name: ___________________________________", size=FONT_SIZE_SM)
 
+    # Grade & Section + Date
     p2 = cell.add_paragraph()
-    p2.paragraph_format.space_after = Pt(1)
-    set_paragraph_bottom_border_only(p2, sz=4, color="000000")
-    add_run(p2, " ", size=8)
+    p2.paragraph_format.space_before = Pt(2)
+    p2.paragraph_format.space_after = Pt(0)
+    add_run(p2, "Grade & Section: _____________  Date: __________", size=FONT_SIZE_SM)
 
-    # Grade & Section / Date line
+    # Part label
     p3 = cell.add_paragraph()
+    p3.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p3.paragraph_format.space_before = Pt(5)
     p3.paragraph_format.space_after = Pt(1)
-    p3.paragraph_format.space_before = Pt(3)
-    add_run(p3, "Grade & Section: ", bold=True, size=8)
-
-    p4 = cell.add_paragraph()
-    p4.paragraph_format.space_after = Pt(1)
-    set_paragraph_bottom_border_only(p4, sz=4, color="000000")
-    add_run(p4, " ", size=8)
-
-    p5 = cell.add_paragraph()
-    p5.paragraph_format.space_after = Pt(1)
-    p5.paragraph_format.space_before = Pt(3)
-    add_run(p5, "Date: ", bold=True, size=8)
-
-    p6 = cell.add_paragraph()
-    p6.paragraph_format.space_after = Pt(4)
-    set_paragraph_bottom_border_only(p6, sz=4, color="000000")
-    add_run(p6, " ", size=8)
-
-    # Part tag
-    p7 = cell.add_paragraph()
-    p7.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p7.paragraph_format.space_before = Pt(2)
-    p7.paragraph_format.space_after = Pt(0)
-    set_paragraph_border(p7, sz=10, color="000000")
-    add_run(p7, f"PART {part_letter}", bold=True, size=11)
-
-    p8 = cell.add_paragraph()
-    p8.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p8.paragraph_format.space_after = Pt(6)
-    add_run(p8, "Kinematics Activity Sheet", italic=True, size=7.5)
+    set_paragraph_borders_all(p3, sz=8, color="000000")
+    set_paragraph_shading(p3, LIGHT_GRAY_FILL)
+    add_run(p3, f"PART {part_letter}: ", bold=True, size=FONT_SIZE)
+    add_run(p3, f"Deriving Kinematic Equation {eq_number}", bold=True, size=FONT_SIZE)
 
 
-def add_title(cell, text):
+def add_goal(cell, equation_builder):
+    """Add the goal box with the target equation."""
     p = cell.add_paragraph()
-    p.paragraph_format.space_after = Pt(3)
-    set_paragraph_bottom_border_only(p, sz=6, color="555555")
-    add_run(p, text.upper(), bold=True, size=9.5)
+    p.paragraph_format.space_before = Pt(4)
+    p.paragraph_format.space_after = Pt(4)
+    add_run(p, "GOAL: Derive  ", bold=True, size=FONT_SIZE_SM)
+    insert_inline_equation(p, equation_builder())
 
 
-def add_goal_box(cell, label_parts):
-    p = cell.add_paragraph()
-    p.paragraph_format.space_before = Pt(2)
-    p.paragraph_format.space_after = Pt(6)
-    set_paragraph_border(p, sz=8, color="000000", shading=GRAY_FILL)
-    add_run(p, "Goal:  ", bold=True, size=8.5)
-    add_run(p, "Derive the equation  ", size=8.5)
-    eq(p, label_parts, size=9, bold=True)
+# ============================================================================
+# Content for each Part
+# ============================================================================
 
+def build_part_a(cell):
+    """Part A: Derive v = v₀ + at"""
+    add_header(cell, "A", "1")
+    add_goal(cell, eq_v_v0_at)
 
-def add_step(cell, number, title, body_parts):
-    """
-    body_parts: list of segments; each segment is either
-        ('text', "plain sentence ")
-        ('eq', [ (text,kind), ... ])   inline equation
-        ('displayeq', [ (text,kind), ... ])  equation on its own centered line
-    """
+    # Step 1
+    add_instruction(cell, "1. Acceleration is defined as the rate of change of velocity over time. "
+                          "Write the general definition of acceleration using delta notation (a = ?):")
+    add_blank_lines(cell, 1)
+
+    # Step 2
+    add_instruction(cell, "2. The change in velocity is Δv = v \u2212 v\u2080, and if timing starts at "
+                          "t = 0, then Δt = t. Substitute these into the definition you wrote above:")
+    add_blank_lines(cell, 1)
+
+    # Step 3
+    add_instruction(cell, "3. Using the equation you arrived at, multiply both sides by t "
+                          "to eliminate the fraction. Write the result:")
+    add_blank_lines(cell, 1)
+
+    # Step 4
+    add_instruction(cell, "4. Now add v\u2080 to both sides of your equation to isolate v. "
+                          "Write the final equation:")
+    add_blank_lines(cell, 1)
+
+    # Final
     p = cell.add_paragraph()
     p.paragraph_format.space_before = Pt(5)
-    p.paragraph_format.space_after = Pt(1)
-    add_run(p, f"{number}.  ", bold=True, size=9.5)
-    add_run(p, title, bold=True, underline=True, size=9)
-
-    for kind, payload in body_parts:
-        if kind == 'text':
-            bp = cell.add_paragraph()
-            bp.paragraph_format.space_after = Pt(2)
-            bp.paragraph_format.left_indent = Inches(0.14)
-            add_run(bp, payload, size=8.7)
-        elif kind == 'eq':
-            bp = cell.add_paragraph()
-            bp.paragraph_format.space_after = Pt(2)
-            bp.paragraph_format.left_indent = Inches(0.14)
-            eq(bp, payload, size=8.7)
-        elif kind == 'displayeq':
-            bp = cell.add_paragraph()
-            bp.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            bp.paragraph_format.space_before = Pt(2)
-            bp.paragraph_format.space_after = Pt(3)
-            eq(bp, payload, size=10, bold=False)
+    p.paragraph_format.space_after = Pt(2)
+    set_paragraph_borders_all(p, sz=6, color="000000")
+    add_run(p, " \u2713  Final Equation 1:  ", bold=True, size=FONT_SIZE_SM)
+    insert_inline_equation(p, eq_v_v0_at)
 
 
-def add_work_area(cell, lines=5):
+def build_part_b(cell):
+    """Part B: Derive x = x₀ + ½(v₀ + v)t"""
+    add_header(cell, "B", "4")
+    add_goal(cell, eq_x_half_vv0_t)
+
+    # Step 1
+    add_instruction(cell, "1. Average velocity is defined as total displacement over total time. "
+                          "Write this definition as a formula (v_avg = ?):")
+    add_blank_lines(cell, 1)
+
+    # Step 2
+    add_instruction(cell, "2. Using the equation above, multiply both sides by t and then "
+                          "isolate the final position x on one side. Write the result:")
+    add_blank_lines(cell, 1)
+
+    # Step 3
+    add_instruction(cell, "3. Under constant acceleration, velocity changes linearly. The average "
+                          "of any linear quantity is simply the mean of its start and end values. "
+                          "Write v_avg in terms of v\u2080 and v:")
+    add_blank_lines(cell, 1)
+
+    # Step 4
+    add_instruction(cell, "4. Using the position equation from Step 2, replace v_avg with the "
+                          "expression you found in Step 3. Write the final equation:")
+    add_blank_lines(cell, 1)
+
+    # Final
     p = cell.add_paragraph()
-    p.paragraph_format.space_before = Pt(6)
-    p.paragraph_format.space_after = Pt(1)
-    add_run(p, "Work Area", italic=True, size=7.3, color=RGBColor(0x55, 0x55, 0x55))
-    for _ in range(lines):
-        lp = cell.add_paragraph()
-        lp.paragraph_format.space_after = Pt(9)
-        set_paragraph_bottom_border_only(lp, sz=3, color="AAAAAA")
-        add_run(lp, " ", size=7)
+    p.paragraph_format.space_before = Pt(5)
+    p.paragraph_format.space_after = Pt(2)
+    set_paragraph_borders_all(p, sz=6, color="000000")
+    add_run(p, " \u2713  Final Equation 4:  ", bold=True, size=FONT_SIZE_SM)
+    insert_inline_equation(p, eq_x_half_vv0_t)
 
 
-# ----------------------------------------------------------------------------
-# Build document
-# ----------------------------------------------------------------------------
+def build_part_c(cell):
+    """Part C: Derive x = x₀ + v₀t + ½at²"""
+    add_header(cell, "C", "2")
+    add_goal(cell, eq_x_v0t_half_at2)
+
+    # Step 1
+    add_instruction(cell, "1. Write down the two source equations you will combine:\n"
+                          "    Equation 1 (velocity):  v = v\u2080 + at\n"
+                          "    Equation 4 (position):  x = x\u2080 + \u00bd(v\u2080 + v)t")
+
+    # Step 2
+    add_instruction(cell, "2. In Equation 4, locate the variable v. Replace it entirely with "
+                          "the right-hand side of Equation 1 (v\u2080 + at). Write the substitution:")
+    add_blank_lines(cell, 1)
+
+    # Step 3
+    add_instruction(cell, "3. Inside the brackets, combine the two v\u2080 terms "
+                          "(v\u2080 + v\u2080 = 2v\u2080). Write the simplified expression:")
+    add_blank_lines(cell, 1)
+
+    # Step 4
+    add_instruction(cell, "4. Distribute t into the bracket, then distribute the \u00bd to each "
+                          "term. Simplify the coefficients. Write the final equation:")
+    add_blank_lines(cell, 1)
+
+    # Final
+    p = cell.add_paragraph()
+    p.paragraph_format.space_before = Pt(5)
+    p.paragraph_format.space_after = Pt(2)
+    set_paragraph_borders_all(p, sz=6, color="000000")
+    add_run(p, " \u2713  Final Equation 2:  ", bold=True, size=FONT_SIZE_SM)
+    insert_inline_equation(p, eq_x_v0t_half_at2)
+
+
+def build_part_d(cell):
+    """Part D: Derive v² = v₀² + 2a(x − x₀)"""
+    add_header(cell, "D", "3")
+    add_goal(cell, eq_v2_final)
+
+    # Step 1
+    add_instruction(cell, "1. Start with Equation 1: v = v\u2080 + at. "
+                          "Isolate t by first subtracting v\u2080, then dividing by a. Write t = :")
+    add_blank_lines(cell, 1)
+
+    # Step 2
+    add_instruction(cell, "2. Write the displacement equation: x \u2212 x\u2080 = \u00bd(v\u2080 + v)\u00b7t. "
+                          "Using the expression for t from Step 1, substitute it into this equation:")
+    add_blank_lines(cell, 1)
+
+    # Step 3
+    add_instruction(cell, "3. Combine the fractions into one. Recognize that the numerator "
+                          "(v + v\u2080)(v \u2212 v\u2080) follows the difference of squares pattern: "
+                          "(a+b)(a\u2212b) = a\u00b2 \u2212 b\u00b2. Simplify the numerator:")
+    add_blank_lines(cell, 1)
+
+    # Step 4
+    add_instruction(cell, "4. Multiply both sides by 2a to clear the denominator. "
+                          "Then add v\u2080\u00b2 to both sides. Write the final equation:")
+    add_blank_lines(cell, 1)
+
+    # Final
+    p = cell.add_paragraph()
+    p.paragraph_format.space_before = Pt(5)
+    p.paragraph_format.space_after = Pt(2)
+    set_paragraph_borders_all(p, sz=6, color="000000")
+    add_run(p, " \u2713  Final Equation 3:  ", bold=True, size=FONT_SIZE_SM)
+    insert_inline_equation(p, eq_v2_final)
+
+
+# ============================================================================
+# Main build function
+# ============================================================================
 
 def build():
     doc = Document()
 
-    # default style
+    # Default style → Calibri 9pt
     style = doc.styles['Normal']
-    style.font.name = 'Times New Roman'
-    style.font.size = Pt(9)
+    style.font.name = FONT_NAME
+    style.font.size = FONT_SIZE
+    style.paragraph_format.space_before = Pt(0)
+    style.paragraph_format.space_after = Pt(0)
+    style.paragraph_format.line_spacing = 1.0
 
+    # Page setup: landscape 13in × 8.5in, narrow margins
     section = doc.sections[0]
     section.orientation = WD_ORIENT.LANDSCAPE
     section.page_width = Inches(13)
     section.page_height = Inches(8.5)
-    # narrow margins
-    section.top_margin = Inches(0.35)
-    section.bottom_margin = Inches(0.35)
-    section.left_margin = Inches(0.35)
-    section.right_margin = Inches(0.35)
+    section.top_margin = Inches(0.3)
+    section.bottom_margin = Inches(0.3)
+    section.left_margin = Inches(0.3)
+    section.right_margin = Inches(0.3)
     section.gutter = Inches(0)
 
-    usable_width = Inches(13 - 0.35 - 0.35)
-    col_width = Inches((13 - 0.35 - 0.35) / 4)
+    # Usable width in twips (1 inch = 1440 twips)
+    usable_twips = int((13 - 0.6) * 1440)  # 12.4 inches
+    col_twips = usable_twips // 4
 
+    # Create table: 1 row, 4 cols
     table = doc.add_table(rows=1, cols=4)
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
     disable_autofit(table)
     table.autofit = False
 
+    # Remove table spacing/padding at table level
+    tblPr = table._tbl.tblPr
+    tblCellSpacing = OxmlElement('w:tblCellSpacing')
+    tblCellSpacing.set(qn('w:w'), '0')
+    tblCellSpacing.set(qn('w:type'), 'dxa')
+    tblPr.append(tblCellSpacing)
+
     row = table.rows[0]
-    set_row_height(row, height_pts=int(8.5 * 72 - 0.35 * 72 * 2 - 4), exact=False)
+    # Set row height to fill the page
+    page_height_twips = int(8.5 * 1440)
+    margins_twips = int(0.6 * 1440)
+    row_twips = page_height_twips - margins_twips
+    set_row_height(row, row_twips, exact=True)
 
     cells = row.cells
+    builders = [build_part_a, build_part_b, build_part_c, build_part_d]
+
     for idx, cell in enumerate(cells):
-        set_col_width(cell, col_width)
-        set_cell_margins(cell, top=50, bottom=50, left=70, right=70)
+        set_col_width(cell, col_twips)
+        set_cell_margins(cell, top=40, bottom=30, left=60, right=60)
         cell.vertical_alignment = WD_ALIGN_VERTICAL.TOP
-        # outer box border solid, but dashed on the "cut line" side (right side,
-        # except last column) so the sheet can be cut into 4 vertical strips
-        left_spec = {'val': 'single', 'sz': 10, 'color': '000000'}
-        right_spec = {'val': 'dashed', 'sz': 8, 'color': '555555'} if idx < 3 else {'val': 'single', 'sz': 10, 'color': '000000'}
-        top_spec = {'val': 'single', 'sz': 10, 'color': '000000'}
-        bottom_spec = {'val': 'single', 'sz': 10, 'color': '000000'}
-        set_cell_border(cell, top=top_spec, bottom=bottom_spec, left=left_spec, right=right_spec)
-        # remove existing empty default paragraph text later; we just build on it
-        cell.paragraphs[0].text = ""
 
-    # Clear the automatically-created empty first paragraph in each cell before adding content
-    # (python-docx tables come with one empty paragraph per cell already; we reuse cell.paragraphs[0])
+        # Borders: solid outer, dashed between columns (cut lines)
+        solid = {'val': 'single', 'sz': 10, 'color': '000000'}
+        dashed = {'val': 'dashed', 'sz': 8, 'color': '555555'}
+        left_b = solid
+        right_b = dashed if idx < 3 else solid
+        set_cell_border(cell, top=solid, bottom=solid, left=left_b, right=right_b)
 
-    def first_p(cell):
-        return cell.paragraphs[0]
+        # Build content
+        builders[idx](cell)
 
-    # ---------------- PART A ----------------
-    cellA = cells[0]
-    # replace default blank paragraph with header content by using it as the first line
-    p0 = first_p(cellA)
-    p0.text = ""
-    add_header_block(cellA, "A")
-    add_title(cellA, "Deriving Kinematic Equation 1")
-    add_goal_box(cellA, [('v', 'n'), (' = v', 'n'), ('0', 'sub'), (' + at', 'n')])
-
-    add_step(cellA, 1, "State the Definition of Acceleration", [
-        ('text', "Recall that acceleration is defined as the rate of change of velocity over time. "
-                 "Write the defining formula for average acceleration using delta notation:"),
-        ('displayeq', [('a = ', 'n'), ('\u0394v', 'n'), (' / ', 'n'), ('\u0394t', 'n')]),
-        ('text', "Identify what each symbol represents: \u0394v is the change in velocity, and "
-                 "\u0394t is the elapsed time interval."),
-    ])
-    add_step(cellA, 2, "Expand the Delta Notation", [
-        ('text', "Using the definitions from Step 1, replace \u0394v with (v \u2212 v\u2080) and "
-                 "replace \u0394t with t, assuming motion starts at t = 0. Rewrite the formula "
-                 "with these substitutions clearly shown:"),
-        ('displayeq', [('a = (v \u2212 v', 'n'), ('0', 'sub'), (') / t', 'n')]),
-    ])
-    add_step(cellA, 3, "Isolate the Final Velocity", [
-        ('text', "Using the equation from Step 2, eliminate the fraction by multiplying both sides "
-                 "by t. Then isolate v by moving v0 to the other side. Show each algebraic step "
-                 "in the work area below until you arrive at:"),
-        ('displayeq', [('v = v', 'n'), ('0', 'sub'), (' + at', 'n')]),
-    ])
-    add_work_area(cellA, lines=4)
-
-    # ---------------- PART B ----------------
-    cellB = cells[1]
-    first_p(cellB).text = ""
-    add_header_block(cellB, "B")
-    add_title(cellB, "Deriving Kinematic Equation 4")
-    add_goal_box(cellB, [('x = x', 'n'), ('0', 'sub'), (' + \u00bd(v', 'n'), ('0', 'sub'), (' + v)t', 'n')])
-
-    add_step(cellB, 1, "State the Definition of Average Velocity", [
-        ('text', "Write the defining formula for average velocity as total displacement divided "
-                 "by total elapsed time:"),
-        ('displayeq', [('v', 'n'), ('avg', 'sub'), (' = (x \u2212 x', 'n'), ('0', 'sub'), (') / t', 'n')]),
-        ('text', "Using this definition, multiply both sides by t and isolate the final position x "
-                 "on one side."),
-    ])
-    add_step(cellB, 2, "Find the Average Velocity Under Constant Acceleration", [
-        ('text', "Under constant acceleration, velocity changes at a uniform (linear) rate. For any "
-                 "quantity that changes linearly, its average value equals the arithmetic mean of its "
-                 "starting and ending values. Apply this to write:"),
-        ('displayeq', [('v', 'n'), ('avg', 'sub'), (' = (v', 'n'), ('0', 'sub'), (' + v) / 2', 'n')]),
-    ])
-    add_step(cellB, 3, "Substitute and Simplify", [
-        ('text', "Using the position equation from Step 1, replace vavg with the expression you "
-                 "derived in Step 2. Substitute and simplify to obtain:"),
-        ('displayeq', [('x = x', 'n'), ('0', 'sub'), (' + \u00bd(v', 'n'), ('0', 'sub'), (' + v)t', 'n')]),
-    ])
-    add_work_area(cellB, lines=4)
-
-    # ---------------- PART C ----------------
-    cellC = cells[2]
-    first_p(cellC).text = ""
-    add_header_block(cellC, "C")
-    add_title(cellC, "Deriving Kinematic Equation 2")
-    add_goal_box(cellC, [('x = x', 'n'), ('0', 'sub'), (' + v', 'n'), ('0', 'sub'), ('t + \u00bdat', 'n'), ('2', 'sup')])
-
-    add_step(cellC, 1, "Identify the Two Source Equations", [
-        ('text', "Write out both equations you will combine. The first gives velocity as a function "
-                 "of time; the second gives position from average velocity:"),
-        ('displayeq', [('v = v', 'n'), ('0', 'sub'), (' + at', 'n')]),
-        ('displayeq', [('x = x', 'n'), ('0', 'sub'), (' + \u00bd(v', 'n'), ('0', 'sub'), (' + v)t', 'n')]),
-    ])
-    add_step(cellC, 2, "Substitute the Velocity Equation", [
-        ('text', "In the position equation, locate the variable v. Replace it entirely with the "
-                 "right-hand side of the velocity equation, writing the full substitution explicitly:"),
-        ('displayeq', [('x = x', 'n'), ('0', 'sub'), (' + \u00bd[v', 'n'), ('0', 'sub'), (' + (v', 'n'), ('0', 'sub'), (' + at)]t', 'n')]),
-    ])
-    add_step(cellC, 3, "Expand and Simplify", [
-        ('text', "Using the expression from Step 2, combine the like terms inside the brackets "
-                 "(v0 + v0 = 2v0), distribute t into the bracket, and then distribute the factor of "
-                 "\u00bd to each term. Simplify the coefficients until you reach:"),
-        ('displayeq', [('x = x', 'n'), ('0', 'sub'), (' + v', 'n'), ('0', 'sub'), ('t + \u00bdat', 'n'), ('2', 'sup')]),
-    ])
-    add_work_area(cellC, lines=4)
-
-    # ---------------- PART D ----------------
-    cellD = cells[3]
-    first_p(cellD).text = ""
-    add_header_block(cellD, "D")
-    add_title(cellD, "Deriving Kinematic Equation 3")
-    add_goal_box(cellD, [('v', 'n'), ('2', 'sup'), (' = v', 'n'), ('0', 'sub'), ('2', 'sup'), (' + 2a(x \u2212 x', 'n'), ('0', 'sub'), (')', 'n')])
-
-    add_step(cellD, 1, "Solve the Velocity Equation for Time", [
-        ('text', "Begin with v = v0 + at. To eliminate time from the derivation, isolate t by "
-                 "subtracting v0 from both sides and then dividing by a. Write the resulting "
-                 "expression for t before moving to the next step."),
-    ])
-    add_step(cellD, 2, "Substitute into the Displacement Equation", [
-        ('text', "Write the displacement-average velocity equation:"),
-        ('displayeq', [('x \u2212 x', 'n'), ('0', 'sub'), (' = \u00bd(v', 'n'), ('0', 'sub'), (' + v)t', 'n')]),
-        ('text', "Using the expression for t from Step 1, replace t in this equation with that "
-                 "expression. Write out the substitution in full."),
-    ])
-    add_step(cellD, 3, "Apply the Difference of Squares", [
-        ('text', "Combine the two fractions from Step 2 into a single fraction. Recognize that the "
-                 "numerator follows the pattern (a+b)(a\u2212b) = a\u00b2 \u2212 b\u00b2. Apply that identity to "
-                 "simplify the numerator, yielding v\u00b2 \u2212 v0\u00b2."),
-    ])
-    add_step(cellD, 4, "Isolate the Final Velocity Squared", [
-        ('text', "Multiply both sides by 2a to clear the denominator. Then move v0\u00b2 to the "
-                 "right-hand side. Show each operation explicitly until you arrive at the final form:"),
-        ('displayeq', [('v', 'n'), ('2', 'sup'), (' = v', 'n'), ('0', 'sub'), ('2', 'sup'), (' + 2a(x \u2212 x', 'n'), ('0', 'sub'), (')', 'n')]),
-    ])
-    add_work_area(cellD, lines=3)
+    # Remove trailing empty paragraph that Word adds
+    body = doc._body._body
+    last_p = body.findall(qn('w:p'))
+    if last_p:
+        # Remove the extra paragraph after the table if it exists
+        after_tbl = body.findall(qn('w:p'))
+        for extra_p in after_tbl:
+            if body.index(extra_p) > body.index(table._tbl):
+                pPr = extra_p.get_or_add_pPr() if hasattr(extra_p, 'get_or_add_pPr') else None
+                # Just minimize it
+                pass
 
     doc.save('/projects/sandbox/physics/kinematics_worksheet.docx')
     print("Saved kinematics_worksheet.docx")
