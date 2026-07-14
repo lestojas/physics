@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kinematics Derivation Activity</title>
+
+  <!-- MathJax for equation rendering -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+  <style>
+    /* ── PAGE SETUP ─────────────────────────────────────────────────── */
+    @page {
+      size: 13in 8.5in landscape;
+      margin: 0;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width:  13in;
+      height: 8.5in;
+      font-family: 'Times New Roman', Times, serif;
+      color: #000;
+      background: #fff;
+      filter: grayscale(100%);
+      -webkit-filter: grayscale(100%);
+    }
+
+    /* ── OUTER GRID ─────────────────────────────────────────────────── */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      width:  13in;
+      height: 8.5in;
+      gap: 0;
+    }
+
+    /* ── EACH QUADRANT ──────────────────────────────────────────────── */
+    .quad {
+      border: 2px solid #000;
+      padding: 0.22in 0.25in 0.18in 0.25in;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 0.06in;
+      font-size: 9.6pt;
+      line-height: 1.35;
+    }
+
+    /* dashed cut-lines between quads */
+    .quad:nth-child(1) { border-right: 2px dashed #555; border-bottom: 2px dashed #555; }
+    .quad:nth-child(2) { border-left:  none;             border-bottom: 2px dashed #555; }
+    .quad:nth-child(3) { border-right: 2px dashed #555;  border-top: none; }
+    .quad:nth-child(4) { border-left:  none;             border-top: none; }
+
+    /* ── HEADER ─────────────────────────────────────────────────────── */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 0.12in;
+      border-bottom: 1.5px solid #000;
+      padding-bottom: 0.05in;
+      margin-bottom: 0.05in;
+    }
+
+    .header-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 0.04in;
+      flex: 1;
+      font-size: 8.5pt;
+    }
+
+    .field-line {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.06in;
+    }
+
+    .field-label { white-space: nowrap; font-weight: bold; font-size: 8pt; }
+
+    .field-blank {
+      flex: 1;
+      border-bottom: 1px solid #000;
+      min-width: 0.8in;
+    }
+
+    .part-tag {
+      font-size: 10pt;
+      font-weight: bold;
+      text-align: right;
+      white-space: nowrap;
+      line-height: 1.2;
+    }
+
+    .part-tag .eq-label {
+      font-size: 7.5pt;
+      font-weight: normal;
+      font-style: italic;
+      display: block;
+    }
+
+    /* ── TITLE ───────────────────────────────────────────────────────── */
+    .section-title {
+      font-size: 10.5pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid #777;
+      padding-bottom: 0.03in;
+    }
+
+    .goal-box {
+      border: 1.5px solid #000;
+      background: #f0f0f0;
+      padding: 0.04in 0.08in;
+      font-size: 8.5pt;
+      display: flex;
+      align-items: center;
+      gap: 0.06in;
+    }
+
+    .goal-box strong { font-size: 8.5pt; }
+
+    /* ── STEPS ───────────────────────────────────────────────────────── */
+    .steps { display: flex; flex-direction: column; gap: 0.07in; }
+
+    .step {
+      display: grid;
+      grid-template-columns: 0.18in 1fr;
+      gap: 0.05in 0.06in;
+    }
+
+    .step-num {
+      font-weight: bold;
+      font-size: 9.5pt;
+      padding-top: 0.01in;
+    }
+
+    .step-content { display: flex; flex-direction: column; gap: 0.03in; }
+
+    .step-title {
+      font-weight: bold;
+      font-size: 9.2pt;
+      text-decoration: underline;
+    }
+
+    .step-body { font-size: 9pt; }
+
+    /* ── WORK AREA ───────────────────────────────────────────────────── */
+    .work-area {
+      flex: 1;
+      border: 1px solid #bbb;
+      background: repeating-linear-gradient(
+        to bottom,
+        #fff 0px,
+        #fff 18px,
+        #ddd 18px,
+        #ddd 19px
+      );
+      margin-top: 0.04in;
+      min-height: 0.55in;
+      position: relative;
+    }
+
+    .work-label {
+      font-size: 7pt;
+      color: #666;
+      font-style: italic;
+      position: absolute;
+      top: 2px;
+      right: 5px;
+    }
+
+    /* ── MATH DISPLAY ────────────────────────────────────────────────── */
+    .math-line {
+      margin: 0.02in 0;
+      font-size: 9pt;
+    }
+
+    .indent { padding-left: 0.18in; }
+
+    .note {
+      font-size: 7.8pt;
+      font-style: italic;
+      color: #333;
+    }
+
+    .where-block {
+      font-size: 8.2pt;
+      padding-left: 0.14in;
+      line-height: 1.5;
+    }
+
+    /* ── CUT HINT ────────────────────────────────────────────────────── */
+    .cut-hint {
+      font-size: 6.8pt;
+      color: #888;
+      text-align: center;
+      position: absolute;
+    }
+  </style>
+</head>
+<body>
+
+<div class="grid">
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- PART A — Equation 1: v = v₀ + at                              -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="quad">
+
+    <div class="header">
+      <div class="header-fields">
+        <div class="field-line">
+          <span class="field-label">Name:</span>
+          <span class="field-blank"></span>
+        </div>
+        <div class="field-line">
+          <span class="field-label">Grade &amp; Section:</span>
+          <span class="field-blank"></span>
+          <span class="field-label" style="margin-left:0.1in;">Date:</span>
+          <span class="field-blank" style="max-width:0.9in;"></span>
+        </div>
+      </div>
+      <div class="part-tag">
+        PART A
+        <span class="eq-label">Kinematics Activity Sheet</span>
+      </div>
+    </div>
+
+    <div class="section-title">Deriving Kinematic Equation 1</div>
+
+    <div class="goal-box">
+      <strong>Goal:</strong>&nbsp; Derive the equation
+      \(\displaystyle v = v_0 + at\)
+    </div>
+
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1.</div>
+        <div class="step-content">
+          <div class="step-title">State the Definition of Acceleration</div>
+          <div class="step-body">
+            Recall that acceleration is defined as the <em>rate of change of velocity over time</em>.
+            Write the defining formula for average acceleration using delta notation:
+            \[a = \frac{\Delta v}{\Delta t}\]
+            Identify and write what each symbol represents: \(\Delta v\) is the change in velocity, and \(\Delta t\) is the elapsed time interval.
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2.</div>
+        <div class="step-content">
+          <div class="step-title">Expand the Delta Notation</div>
+          <div class="step-body">
+            Using the definitions from Step 1, replace \(\Delta v\) with \((v - v_0)\) and replace \(\Delta t\) with \(t\) (assuming the motion starts at \(t = 0\)). Rewrite the acceleration formula with these substitutions clearly shown:
+            \[a = \frac{v - v_0}{t}\]
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3.</div>
+        <div class="step-content">
+          <div class="step-title">Isolate the Final Velocity</div>
+          <div class="step-body">
+            Using the equation you arrived at in Step 2, eliminate the fraction by multiplying both sides by \(t\). Write the result, then isolate \(v\) by moving \(v_0\) to the other side. Show each algebraic step on the work area below until you arrive at:
+            \[v = v_0 + at\]
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="work-area"><span class="work-label">Work Area</span></div>
+
+  </div><!-- end PART A -->
+
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- PART B — Equation 4: x = x₀ + ½(v₀+v)t                       -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="quad">
+
+    <div class="header">
+      <div class="header-fields">
+        <div class="field-line">
+          <span class="field-label">Name:</span>
+          <span class="field-blank"></span>
+        </div>
+        <div class="field-line">
+          <span class="field-label">Grade &amp; Section:</span>
+          <span class="field-blank"></span>
+          <span class="field-label" style="margin-left:0.1in;">Date:</span>
+          <span class="field-blank" style="max-width:0.9in;"></span>
+        </div>
+      </div>
+      <div class="part-tag">
+        PART B
+        <span class="eq-label">Kinematics Activity Sheet</span>
+      </div>
+    </div>
+
+    <div class="section-title">Deriving Kinematic Equation 4</div>
+
+    <div class="goal-box">
+      <strong>Goal:</strong>&nbsp; Derive the equation
+      \(\displaystyle x = x_0 + \tfrac{1}{2}(v_0 + v)\,t\)
+    </div>
+
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1.</div>
+        <div class="step-content">
+          <div class="step-title">State the Definition of Average Velocity</div>
+          <div class="step-body">
+            Write the defining formula for average velocity as total displacement divided by total elapsed time:
+            \[v_{\text{avg}} = \frac{\Delta x}{\Delta t} = \frac{x - x_0}{t}\]
+            Using this definition, multiply both sides by \(t\) to express displacement as a product, then isolate the final position \(x\) on one side.
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2.</div>
+        <div class="step-content">
+          <div class="step-title">Find the Average Velocity Under Constant Acceleration</div>
+          <div class="step-body">
+            Under constant acceleration, velocity changes at a <em>uniform</em> (linear) rate. For any quantity that changes linearly, its average value over an interval equals the arithmetic mean of its starting and ending values. Apply this reasoning to write the average velocity as:
+            \[v_{\text{avg}} = \frac{v_0 + v}{2}\]
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3.</div>
+        <div class="step-content">
+          <div class="step-title">Substitute and Simplify</div>
+          <div class="step-body">
+            Using the position equation you found in Step 1, replace \(v_{\text{avg}}\) with the expression you derived in Step 2. Substitute and simplify to obtain:
+            \[x = x_0 + \tfrac{1}{2}(v_0 + v)\,t\]
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="work-area"><span class="work-label">Work Area</span></div>
+
+  </div><!-- end PART B -->
+
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- PART C — Equation 2: x = x₀ + v₀t + ½at²                     -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="quad">
+
+    <div class="header">
+      <div class="header-fields">
+        <div class="field-line">
+          <span class="field-label">Name:</span>
+          <span class="field-blank"></span>
+        </div>
+        <div class="field-line">
+          <span class="field-label">Grade &amp; Section:</span>
+          <span class="field-blank"></span>
+          <span class="field-label" style="margin-left:0.1in;">Date:</span>
+          <span class="field-blank" style="max-width:0.9in;"></span>
+        </div>
+      </div>
+      <div class="part-tag">
+        PART C
+        <span class="eq-label">Kinematics Activity Sheet</span>
+      </div>
+    </div>
+
+    <div class="section-title">Deriving Kinematic Equation 2</div>
+
+    <div class="goal-box">
+      <strong>Goal:</strong>&nbsp; Derive the equation
+      \(\displaystyle x = x_0 + v_0 t + \tfrac{1}{2}at^2\)
+    </div>
+
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1.</div>
+        <div class="step-content">
+          <div class="step-title">Identify the Two Source Equations</div>
+          <div class="step-body">
+            Write out both equations you will be combining. The first gives velocity as a function of time:
+            \(v = v_0 + at\). The second gives position from average velocity:
+            \(x = x_0 + \tfrac{1}{2}(v_0 + v)\,t\).
+            Label them clearly — you will substitute one into the other in the next step.
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2.</div>
+        <div class="step-content">
+          <div class="step-title">Substitute the Velocity Equation</div>
+          <div class="step-body">
+            In the position equation from Step 1, locate the variable \(v\). Replace it entirely with the right-hand side of the velocity equation, writing the full substitution explicitly:
+            \[x = x_0 + \tfrac{1}{2}\bigl[v_0 + (v_0 + at)\bigr]\,t\]
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3.</div>
+        <div class="step-content">
+          <div class="step-title">Expand and Simplify</div>
+          <div class="step-body">
+            Using the expression you arrived at in Step 2, combine the like terms inside the brackets (\(v_0 + v_0 = 2v_0\)), then distribute \(t\) into the bracket, and finally distribute the factor of \(\tfrac{1}{2}\) to each term. Simplify the coefficients at each sub-step until you reach:
+            \[x = x_0 + v_0 t + \tfrac{1}{2}at^2\]
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="work-area"><span class="work-label">Work Area</span></div>
+
+  </div><!-- end PART C -->
+
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- PART D — Equation 3: v² = v₀² + 2a(x−x₀)                     -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="quad">
+
+    <div class="header">
+      <div class="header-fields">
+        <div class="field-line">
+          <span class="field-label">Name:</span>
+          <span class="field-blank"></span>
+        </div>
+        <div class="field-line">
+          <span class="field-label">Grade &amp; Section:</span>
+          <span class="field-blank"></span>
+          <span class="field-label" style="margin-left:0.1in;">Date:</span>
+          <span class="field-blank" style="max-width:0.9in;"></span>
+        </div>
+      </div>
+      <div class="part-tag">
+        PART D
+        <span class="eq-label">Kinematics Activity Sheet</span>
+      </div>
+    </div>
+
+    <div class="section-title">Deriving Kinematic Equation 3</div>
+
+    <div class="goal-box">
+      <strong>Goal:</strong>&nbsp; Derive the equation
+      \(\displaystyle v^2 = v_0^2 + 2a(x - x_0)\)
+    </div>
+
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1.</div>
+        <div class="step-content">
+          <div class="step-title">Solve the Velocity Equation for Time</div>
+          <div class="step-body">
+            Begin with the first kinematic equation \(v = v_0 + at\). Your goal here is to eliminate time from the derivation. Isolate \(t\) by subtracting \(v_0\) from both sides and then dividing by \(a\). Write the resulting expression for \(t\) clearly before moving to the next step.
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2.</div>
+        <div class="step-content">
+          <div class="step-title">Substitute into the Displacement Equation</div>
+          <div class="step-body">
+            Write the displacement–average velocity equation:
+            \(x - x_0 = \tfrac{1}{2}(v_0 + v)\,t\). Using the expression for \(t\) you obtained in Step 1, replace \(t\) in this equation with that expression. Write out the substitution in full:
+            \[x - x_0 = \tfrac{1}{2}(v + v_0)\cdot\frac{v - v_0}{a}\]
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3.</div>
+        <div class="step-content">
+          <div class="step-title">Apply the Difference of Squares</div>
+          <div class="step-body">
+            Using the equation you arrived at in Step 2, combine the two fractions to write:
+            \(x - x_0 = \dfrac{(v + v_0)(v - v_0)}{2a}\).
+            Recognize that the numerator follows the pattern \((a+b)(a-b) = a^2 - b^2\). Apply that identity to simplify the numerator, yielding \(v^2 - v_0^2\).
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4.</div>
+        <div class="step-content">
+          <div class="step-title">Isolate the Final Velocity Squared</div>
+          <div class="step-body">
+            Using the simplified equation from Step 3, multiply both sides by \(2a\) to clear the denominator. Then move \(v_0^2\) to the right-hand side by adding it to both sides. Show each operation explicitly until you arrive at the final form:
+            \[v^2 = v_0^2 + 2a(x - x_0)\]
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="work-area"><span class="work-label">Work Area</span></div>
+
+  </div><!-- end PART D -->
+
+</div><!-- end grid -->
+
+</body>
+</html>
