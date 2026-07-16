@@ -1,0 +1,366 @@
+================================================================================
+CURATED PROBLEM BANK — UNIFORMLY ACCELERATED MOTION (HORIZONTAL), PHYSICS 1
+Reference: "3 Physics_UAM Horizontal.pptx" (Prepared by Engr. Philip Jayson L. Lestojas)
+Source Textbook: Hugh D. Young, Roger A. Freedman, A. Lewis Ford —
+Sears & Zemansky's University Physics with Modern Physics, Pearson, 2020
+================================================================================
+
+METHODOLOGY / IMPORTANT NOTE ON SOURCE FILE
+--------------------------------------------------------------------------------
+The Young & Freedman PDF provided in the repository is NOT the full textbook.
+It is a 9-page excerpt containing only the END-OF-CHAPTER material for
+Chapter 2, "Motion Along a Straight Line" (printed textbook pages 57-65):
+  - Key Example Variation ("Guided Practice") Problems VP2.5.1-VP2.5.4,
+    VP2.7.1-VP2.7.4, VP2.8.1-VP2.8.4
+  - Discussion Questions Q2.1-Q2.22
+  - Exercises 2.1-2.52 (grouped by section 2.1 through 2.6)
+  - Problems 2.53-2.86
+  - Challenge Problems 2.87-2.89
+  - MCAT-style Passage Problems 2.90-2.92
+Every single item in this excerpt was reviewed ("deep checking" as requested).
+No problems were skipped. One item (Q2.91, about aortic-branch diameter/area)
+was excluded because it is not a kinematics/motion problem at all.
+
+REFERENCE BASELINE — WHAT THE SLIDES ACTUALLY COVER
+--------------------------------------------------------------------------------
+The slide deck derives and applies FOUR kinematic equations for HORIZONTAL,
+one-dimensional, constant-acceleration motion only:
+  Eq. 1:  v  = v0 + at                    (no x)
+  Eq. 2:  x  = x0 + v0 t + (1/2) a t^2     (no v)
+  Eq. 3:  v^2 = v0^2 + 2a(x - x0)          (no t)
+  Eq. 4:  x  = x0 + (1/2)(v0 + v) t        (no a)
+  plus the intermediate relation  v_avg = (v0 + v) / 2  (valid ONLY for
+  constant acceleration).
+Four guided examples model the expected problem style: single-object,
+one or two "phases" at most, direct algebraic substitution/rearrangement,
+careful sign convention (e.g., negative acceleration = deceleration).
+The slides do NOT cover: free fall / vertical motion with g, projectile
+motion, two-object relative motion or pursuit problems, graphical (x-t,
+v-t, a-t) analysis/sketching, or calculus (derivatives/integrals) for
+non-constant acceleration.
+
+CLASSIFICATION CRITERIA USED BELOW
+--------------------------------------------------------------------------------
+EASY          - Single-phase, single (horizontal) object; solved by direct
+                substitution into one (or a simple immediate two-step chain
+                of) the four equations, same structure/method as the four
+                Guided Examples or the explicit vavg=(v0+v)/2 relation.
+INTERMEDIATE  - Still only the four equations / vavg relation and still
+                horizontal/single "object system," BUT requires multiple
+                phases of motion, an intermediate unknown, quadratic
+                root handling, or symbolic derivation - i.e., a multi-step
+                approach not directly modeled by a single Guided Example.
+CHALLENGING   - Requires a concept or technique NOT covered on the slides:
+                free fall / vertical motion (uses g), two independently
+                moving objects (relative motion, pursuit, collision),
+                graph reading or sketching as the core task, calculus
+                (explicit CALC problems or non-constant acceleration),
+                or experimental/DATA curve-fitting.
+
+Each entry below lists the item number, a short description (NOT solved),
+and the one-line justification for its category. Page references are to
+the printed textbook page numbers appearing in the PDF footer.
+
+================================================================================
+TEXTBOOK: YOUNG & FREEDMAN — Chapter 2, Motion Along a Straight Line
+================================================================================
+
+--------------------------------------------------------------------------------
+EASY  (12 items)
+--------------------------------------------------------------------------------
+1. Q2.1 - Does a car's speedometer measure speed or velocity? Explain.
+   [Direct conceptual check on velocity vs. sign/direction, mirrors slides'
+   emphasis on sign conventions (Learning Objective 3).]
+
+2. Q2.12 - Can a car have velocity toward the west and acceleration toward
+   the east at the same time? Under what circumstances?
+   [Directly matches the slides' negative-acceleration/deceleration concept
+   used in Guided Example 1 (parcel of air, a = -4.00 m/s^2) and slide 8's
+   "car braking" bullet.]
+
+3. Q2.14 - Under constant acceleration, avg. velocity is half the sum of
+   initial and final velocities. Is this still true if acceleration is not
+   constant? Explain.
+   [This is essentially the slide's own vavg=(v0+v)/2 caveat, stated almost
+   verbatim in the slide 6 notes ("valid only because acceleration is
+   constant").]
+
+4. Exercise 2.1 (p.59) - Car travels +x at avg. velocity 6.25 m/s for 4.00 s;
+   find distance traveled.
+   [Single direct use of x = x0 + v_avg*t, the same sub-equation used in
+   slide 13's derivation of Equation 4.]
+
+5. Exercise 2.3 (p.59) - "Trip Home": compare travel times for two different
+   average speeds over the same distance.
+   [Single-step rearrangement of distance = speed x time, same algebraic
+   level as the Guided Examples.]
+
+6. Exercise 2.16 (p.60) - Astronaut's velocity changes over a 10 s interval;
+   find magnitude, sign, and direction of average acceleration for three
+   cases.
+   [Directly a = (v-v0)/t, the exact defining equation used to derive
+   Equation 1 in slide 10; also reinforces sign-convention learning
+   objective.]
+
+7. Exercise 2.19 (p.60) - Antelope covers 70.0 m in 6.00 s with constant
+   acceleration; final speed 15.0 m/s. Find initial speed and acceleration.
+   [Same structure as Guided Example 3/4: combine Eq.4 (or vavg) with Eq.1,
+   single horizontal phase.]
+
+8. Exercise 2.20 (p.60) - Tennis serve: ball leaves racquet at 73.14 m/s
+   after 30.0 ms constant acceleration from rest. Find acceleration and
+   distance traveled.
+   [Direct v=v0+at then x from average-velocity relation - identical
+   method to Guided Example 3.]
+
+9. Exercise 2.21 (p.60) - Fastest pitch: ball reaches 45.0 m/s over 1.50 m
+   with constant acceleration. Find acceleration and time.
+   [Direct application of v^2=v0^2+2a(x-x0) then v=v0+at - identical
+   method to Guided Example 4.]
+
+10. Exercise 2.23 (p.60) - BIO Airbags: max survivable acceleration is
+    250 m/s^2; initial speed 105 km/h. Find minimum stopping distance.
+    [Single direct solve of v^2=v0^2+2a(x-x0) for distance.]
+
+11. Exercise 2.25 (p.60) - BIO Airbag injuries: constant acceleration 60g
+    for 36 ms; find stopping distance.
+    [Two direct chained steps (find v0 implied by a & t, then x) - same
+    length/style as a Guided Example.]
+
+12. MCAT Passage Problem 2.90 (p.65) - Contraction of the heart's left
+    ventricle lasts 250 ms; blood speed 0.80 m/s at end of contraction
+    (starts from rest). Find average acceleration.
+    [Direct a=(v-v0)/t, identical in form to Exercise 2.16 and the
+    Equation-1 derivation basis.]
+
+--------------------------------------------------------------------------------
+INTERMEDIATE  (20 items)
+--------------------------------------------------------------------------------
+1. Q2.3 - Can an object with constant acceleration reverse its direction of
+   travel? Can it reverse direction twice? Explain reasoning.
+   [Requires deeper reasoning about the linear nature of v(t)=v0+at beyond
+   the single sign-flip shown in Guided Example 1.]
+
+2. Q2.4 - Under what conditions is average velocity equal to instantaneous
+   velocity?
+   [Conceptual extension of vavg beyond the constant-acceleration midpoint
+   case explicitly given on the slides.]
+
+3. Q2.6 - Under what conditions does the magnitude of average velocity equal
+   average speed?
+   [Requires reasoning about direction consistency, not explicitly on the
+   slides but solvable using only slide-level concepts.]
+
+4. Q2.7 - Comparative reasoning about two cars' average velocities between
+   two crossing events (Dodge Viper / BMW puzzle).
+   [Requires relational algebraic reasoning about average velocity over the
+   same interval; no free fall/graphs/calculus needed.]
+
+5. Exercise 2.2 (p.59) - Shearwater seabird flown 5150 km, returns to nest in
+   13.5 days; find average velocity for (a) return flight and (b) whole
+   round-trip episode.
+   [Two-part, requires recognizing that net displacement for the round trip
+   is different from one-way — an extra reasoning step beyond direct
+   substitution.]
+
+6. Exercise 2.4 (p.59) - "Pillar to Post": 200 m east at 5.0 m/s then 280 m
+   west at 4.0 m/s; find average speed and average velocity.
+   [Two-segment motion, opposite directions — requires combining two
+   distance/time relations, more than a single substitution.]
+
+7. Exercise 2.5 (p.59) - Walk 60.0 m east then 40.0 m west with different
+   times for each leg; find average velocity and average speed for entire
+   trip.
+   [Two-segment displacement/time problem, same intermediate complexity as
+   Exercise 2.4.]
+
+8. Exercise 2.18 (p.60) - Estimate freeway on-ramp distance for a car
+   accelerating 30 mph to 70 mph; find the average acceleration.
+   [Open-ended estimation requiring the student to set up and use the UAM
+   equations, an extra layer beyond direct plug-in.]
+
+9. Exercise 2.22 (p.60) - Highway braking from 70 mph to 30 mph: estimate
+   time, find average acceleration, and extend the analysis to a full stop
+   and total stopping distance.
+   [Multi-part with an estimation step plus a second calculation building
+   on the first result.]
+
+10. Exercise 2.24 (p.60) - Car enters freeway ramp from rest, reaches 20 m/s
+    over 120 m; find acceleration and time; then relate to freeway traffic
+    moving at constant 20 m/s during that same time.
+    [Parts (a)-(b) are Easy; part (c) requires combining the UAM result
+    with a separate constant-velocity relation — pushes the whole item to
+    Intermediate.]
+
+11. Exercise 2.27 (p.60) - BIO Mars rock ejection: constant acceleration to
+    reach escape velocity 5.0 km/s over 4.0 m; find acceleration (in m/s^2
+    and g's) and duration, then relate to given bacterial-survival data.
+    [Core physics is Easy (two direct equations), but the added
+    interpretive/comparative step with the 450,000g survival data makes
+    the overall problem Intermediate.]
+
+12. Exercise 2.30 (p.61) - Block slides down frictionless incline, released
+    from rest; speed is 3.80 m/s after 6.80 m. Find speed after only 3.40 m.
+    [Requires first solving for the unknown constant acceleration, then
+    reapplying it to a different distance — a two-stage derivation.]
+
+13. Problem 2.53 (p.61) - BIO Sprinter accelerates for 2.0 s to reach a
+    maximum speed of 10 m/s, then runs at constant speed; find distance to
+    reach max speed and average velocity over races of three different
+    lengths.
+    [Two-phase motion (accelerate, then constant velocity) combined for a
+    total-race average velocity — matches Intermediate criteria exactly.]
+
+14. Problem 2.57 (p.62) - Rocket clears launch platform (63 m) at 1.15 s,
+    then reaches 1.00 km after an additional 4.75 s; find average velocity
+    for two different sub-intervals.
+    [Requires careful bookkeeping of two overlapping time/position
+    intervals using only the basic average-velocity relation, vertical
+    orientation aside — no free-fall/g needed since engine is still firing.]
+
+15. Problem 2.58 (p.62) - Block moving east at 12.0 m/s decelerates west at
+    2.00 m/s^2; find time it returns to x=0, and the maximum eastward
+    distance reached and the time to reach it.
+    [Directly extends Guided Example 1's direction-reversal idea, but
+    requires solving a quadratic for two roots (Eq.2) and separately
+    applying v=0 (Eq.1) to find the turning point — clearly two combined
+    multi-step derivations.]
+
+16. Problem 2.59 (p.62) - Block sliding down an incline with constant
+    acceleration reaches 3.00 m/s after 8.00 m from rest; find speed and
+    time to reach 16.0 m.
+    [Same two-stage method as Exercise 2.30 — solve for unknown
+    acceleration first, then reapply.]
+
+17. Problem 2.60 (p.62) - Subway train: accelerates for 14.0 s, constant
+    speed for 70.0 s, decelerates to stop; find total distance covered.
+    [Three-phase motion problem requiring three separate distance
+    calculations that are then summed — still only the four slide
+    equations, but clearly multi-step.]
+
+18. Problem 2.63 (p.63) - Ball rolls down a hill with uniform acceleration
+    from rest, covering 200 m during the "second 5.0 s" of motion; find the
+    distance covered during the first 5.0 s.
+    [Requires the "interval subtraction" technique — using x(10s)-x(5s)=200 m
+    to solve for acceleration — a clever but purely algebraic extension of
+    Equation 2, no new physics concept.]
+
+19. Problem 2.64 (p.63) - Rock moving +x at 16.0 m/s undergoes constant
+    -x acceleration of 4.00 m/s^2; find the three times at which the rock is
+    24.0 m from its t=0 position, and its velocity at each time.
+    [Requires solving |x|=24 as two separate quadratics and interpreting
+    multiple valid roots/directions — more elaborate than a single
+    Guided-Example substitution but uses only Equation 2 and Equation 1.]
+
+20. Problem 2.67 (p.63) - Sprinter runs 100 m dash in 12.0 s: accelerates
+    from rest for 3.0 s, then constant speed for the remainder; find the
+    acceleration.
+    [Two-phase motion requiring a system of equations linking the phases
+    through the common velocity at the 3.0 s mark — same style as Problem
+    2.53 but solved in reverse (find acceleration, not distance).]
+
+--------------------------------------------------------------------------------
+CHALLENGING  (item count noted per group; concept NOT on the slides indicated)
+--------------------------------------------------------------------------------
+A) Requires FREE FALL / VERTICAL MOTION WITH g (not covered - slides are
+   horizontal-motion only):
+   - Discussion Q2.15, Q2.16, Q2.17, Q2.19, Q2.21, Q2.22
+   - Exercise 2.31, 2.32
+   - Exercise 2.33, 2.34, 2.35, 2.36, 2.37, 2.38, 2.39, 2.40, 2.41, 2.42,
+     2.43, 2.44, 2.45, 2.46, 2.47 (entire Section 2.5 "Freely Falling
+     Objects")
+   - Problem 2.56, 2.72, 2.73, 2.74, 2.75, 2.76 (rocket has a free-fall
+     phase after fuel exhaustion), 2.77, 2.78, 2.79
+   - Challenge Problem 2.87, 2.89
+   [All of these require the acceleration due to gravity, g, and/or
+   vertical-motion sign conventions for rising/falling bodies — a distinct
+   physical scenario never introduced in the slide deck.]
+
+B) Requires TWO INDEPENDENTLY MOVING OBJECTS (relative motion / pursuit /
+   collision - not covered - slides use only one object per problem):
+   - Discussion Q2.8
+   - Key Example Variation Problems VP2.5.1, VP2.5.2, VP2.5.3, VP2.5.4
+   - Problem 2.62 ("Collision"), 2.65, 2.66, 2.70 (egg-drop timed against a
+     walking professor), 2.80 (falling rock timed against sound travel),
+     2.82 (two balls colliding in midair), 2.83 (Cars A and B), 2.88
+     ("Catching the Bus"), 2.89 (also free fall)
+   [Each needs setting two independent position functions equal to each
+   other and solving simultaneously — a technique never modeled by the
+   single-object Guided Examples.]
+
+C) Requires FREE FALL specifically for THROWN objects (Key Example Variation
+   problems building on textbook Examples 2.7/2.8, all vertical):
+   - VP2.7.1, VP2.7.2, VP2.7.3, VP2.7.4, VP2.8.1, VP2.8.2, VP2.8.3, VP2.8.4
+
+D) Requires GRAPH READING OR SKETCHING as the core task (not covered - the
+   slides use only one non-graded intro table, no formal graph analysis):
+   - Discussion Q2.2, Q2.9, Q2.10, Q2.11, Q2.13
+   - Exercise 2.9, 2.10, 2.11, 2.12, 2.26, 2.28, 2.29
+   - Exercise 2.13 (also CALC; explicit graph-sketch requirement in part e)
+   - Exercise 2.17 (also CALC; requires x-t, v-t, a-t graphs)
+   - Exercise 2.48 (area-under-curve plus comparison)
+   - Problem 2.61, 2.92 (blood-velocity graph interpretation)
+
+E) Requires CALCULUS or NON-CONSTANT ACCELERATION (explicitly labeled CALC,
+   or position/velocity/acceleration given as higher-order or non-linear
+   functions of t - not covered - slides use only algebraic derivation for
+   constant a):
+   - Exercise 2.6 (cubic position function), 2.7, 2.8, 2.14, 2.15, 2.49,
+     2.50, 2.51, 2.52
+   - Problem 2.54, 2.68, 2.69, 2.71, 2.81, 2.83 (also two-object)
+
+F) Requires EXPERIMENTAL DATA / CURVE FITTING (not covered - no statistical
+   or graphical-fit methodology on the slides):
+   - Problem 2.84 (DATA), 2.85 (DATA, also free fall), 2.86 (DATA, also
+     calculus)
+
+G) Requires RELATIVE MOTION BETWEEN TWO DIFFERENT PHENOMENA AT DIFFERENT
+   CONSTANT SPEEDS (not covered - no wave/relative-timing concept on
+   slides):
+   - Problem 2.55 (earthquake P-wave/S-wave time delay)
+
+H) Discussion questions requiring reasoning about NON-CONSTANT or
+   direction-ambiguous acceleration/velocity relationships beyond the
+   slides' scope:
+   - Discussion Q2.5 (speeding up/slowing down while acceleration magnitude
+     changes - implies non-constant acceleration)
+   - Discussion Q2.18 (acceleration known "at each instant" implies
+     variable acceleration - requires integration concept)
+   - Discussion Q2.20 (weighted average velocity for two unequal-distance,
+     unequal-speed constant-velocity legs - a technique never shown on the
+     slides, since the slides' vavg formula applies only to two DIFFERENT
+     TIMES of the SAME constantly accelerating object, not two different
+     constant-speed legs)
+
+--------------------------------------------------------------------------------
+EXCLUDED (not a kinematics/UAM problem)
+--------------------------------------------------------------------------------
+- MCAT Passage Problem 2.91 (p.65) - Asks about the diameter of a branching
+  artery given the aorta's diameter. This is a geometry/fluid-continuity
+  question unrelated to motion, velocity, or acceleration, so it does not
+  belong in a kinematics quiz/exam/problem-set drawn from these slides.
+
+================================================================================
+SUMMARY COUNTS (Young & Freedman excerpt only)
+================================================================================
+EASY:            12 items  (3 Discussion Q + 8 Exercises + 1 MCAT)
+INTERMEDIATE:    20 items  (4 Discussion Q + 8 Exercises + 8 Problems)
+CHALLENGING:     93 items  (15 Discussion Q + 12 Key-Example-Variation +
+                             36 Exercises + 26 Problems + 3 Challenge
+                             Problems + 1 MCAT) - see groups A-H above
+EXCLUDED:         1 item   (Q2.91 - not a kinematics problem)
+
+Total items reviewed from the provided PDF excerpt: 126
+(22 Discussion Questions + 12 Key-Example-Variation Problems + 52 Exercises
+[2.1-2.52] + 34 Problems [2.53-2.86] + 3 Challenge Problems [2.87-2.89]
++ 3 MCAT Passage Problems [2.90-2.92])
+Every item above sums correctly: 12 + 20 + 93 + 1 (excluded) = 126.
+
+NOTE: This PDF excerpt only covers Chapter 2 end-of-chapter material
+(textbook pages 57-65). If the workspace later provides additional pages
+of Young & Freedman (e.g., the full Chapter 2 worked examples/narrative,
+or other chapters), those should be re-scanned and appended to this file
+following the same methodology.
+================================================================================
+END OF YOUNG & FREEDMAN CURATED LIST
+================================================================================
