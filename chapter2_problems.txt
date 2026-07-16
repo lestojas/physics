@@ -1,0 +1,284 @@
+CHAPTER 2 - MOTION ALONG A STRAIGHT LINE
+Discussion Questions and Problems (Q2.1 - 2.92)
+
+Difficulty levels: •, ••, •••
+CP: Cumulative problems incorporating material from earlier chapters.
+CALC: Problems requiring calculus.
+DATA: Problems involving real data, scientific evidence, experimental design, and/or statistical reasoning.
+BIO: Biosciences problems.
+
+============================================================
+DISCUSSION QUESTIONS
+============================================================
+
+Q2.1 Does the speedometer of a car measure speed or velocity? Explain.
+
+Q2.2 The black dots at the top of Fig. Q2.2 represent a series of high-speed photographs of an insect flying in a straight line from left to right (in the positive x-direction). Which of the graphs in Fig. Q2.2 most plausibly depicts this insect's motion?
+
+Q2.3 Can an object with constant acceleration reverse its direction of travel? Can it reverse its direction twice? In both cases, explain your reasoning.
+
+Q2.4 Under what conditions is average velocity equal to instantaneous velocity?
+
+Q2.5 Is it possible for an object to be (a) slowing down while its acceleration is increasing in magnitude; (b) speeding up while its acceleration is decreasing? In both cases, explain your reasoning.
+
+Q2.6 Under what conditions does the magnitude of the average velocity equal the average speed?
+
+Q2.7 When a Dodge Viper is at Elwood's Car Wash, a BMW Z3 is at Elm and Main. Later, when the Dodge reaches Elm and Main, the BMW reaches Elwood's Car Wash. How are the cars' average velocities between these two times related?
+
+Q2.8 A driver in Massachusetts was sent to traffic court for speeding. The evidence against the driver was that a policewoman observed the driver's car alongside a second car at a certain moment, and the policewoman had already clocked the second car going faster than the speed limit. The driver argued, "The second car was passing me. I was not speeding." The judge ruled against the driver because, in the judge's words, "If two cars were side by side, both of you were speeding." If you were a lawyer representing the accused driver, how would you argue this case?
+
+Q2.9 Can you have zero displacement and nonzero average velocity? Zero displacement and nonzero velocity? Illustrate your answers on an x-t graph.
+
+Q2.10 Can you have zero acceleration and nonzero velocity? Use a vx-t graph to explain.
+
+Q2.11 Can you have zero velocity and nonzero average acceleration? Zero velocity and nonzero acceleration? Use a vx-t graph to explain, and give an example of such motion.
+
+Q2.12 An automobile is traveling west. Can it have a velocity toward the west and at the same time have an acceleration toward the east? Under what circumstances?
+
+Q2.13 The official's truck in Fig. 2.2 is at x1 = 277 m at t1 = 16.0 s and is at x2 = 19 m at t2 = 25.0 s. (a) Sketch two different possible x-t graphs for the motion of the truck. (b) Does the average velocity vav-x during the time interval from t1 to t2 have the same value for both of your graphs? Why or why not?
+
+Q2.14 Under constant acceleration the average velocity of a particle is half the sum of its initial and final velocities. Is this still true if the acceleration is not constant? Explain.
+
+Q2.15 You throw a baseball straight up in the air so that it rises to a maximum height much greater than your height. Is the magnitude of the ball's acceleration greater while it is being thrown or after it leaves your hand? Explain.
+
+Q2.16 Prove these statements: (a) As long as you can ignore the effects of the air, if you throw anything vertically upward, it will have the same speed when it returns to the release point as when it was released. (b) The time of flight will be twice the time it takes to get to its highest point.
+
+Q2.17 A dripping water faucet steadily releases drops 1.0 s apart. As these drops fall, does the distance between them increase, decrease, or remain the same? Prove your answer.
+
+Q2.18 If you know the initial position and initial velocity of a vehicle and have a record of the acceleration at each instant, can you compute the vehicle's position after a certain time? If so, explain how this might be done.
+
+Q2.19 From the top of a tall building, you throw one ball straight up with speed v0 and one ball straight down with speed v0. (a) Which ball has the greater speed when it reaches the ground? (b) Which ball gets to the ground first? (c) Which ball has a greater displacement when it reaches the ground? (d) Which ball has traveled the greater distance when it hits the ground?
+
+Q2.20 You run due east at a constant speed of 3.00 m/s for a distance of 120.0 m and then continue running east at a constant speed of 5.00 m/s for another 120.0 m. For the total 240.0 m run, is your average velocity 4.00 m/s, greater than 4.00 m/s, or less than 4.00 m/s? Explain.
+
+Q2.21 An object is thrown straight up into the air and feels no air resistance. How can the object have an acceleration when it has stopped moving at its highest point?
+
+Q2.22 When you drop an object from a certain height, it takes time T to reach the ground with no air resistance. If you dropped it from three times that height, how long (in terms of T) would it take to reach the ground?
+
+============================================================
+EXERCISES
+============================================================
+
+--- Section 2.1 Displacement, Time, and Average Velocity ---
+
+2.1 • A car travels in the +x-direction on a straight and level road. For the first 4.00 s of its motion, the average velocity of the car is vav-x = 6.25 m/s. How far does the car travel in 4.00 s?
+
+2.2 •• In an experiment, a shearwater (a seabird) was taken from its nest, flown 5150 km away, and released. The bird found its way back to its nest 13.5 days after release. If we place the origin at the nest and extend the +x-axis to the release point, what was the bird's average velocity in m/s (a) for the return flight and (b) for the whole episode, from leaving the nest to returning?
+
+2.3 •• Trip Home. You normally drive on the freeway between San Diego and Los Angeles at an average speed of 105 km/h (65 mi/h), and the trip takes 1 h and 50 min. On a Friday afternoon, however, heavy traffic slows you down and you drive the same distance at an average speed of only 70 km/h (43 mi/h). How much longer does the trip take?
+
+2.4 •• From Pillar to Post. Starting from a pillar, you run 200 m east (the +x-direction) at an average speed of 5.0 m/s and then run 280 m west at an average speed of 4.0 m/s to a post. Calculate (a) your average speed from pillar to post and (b) your average velocity from pillar to post.
+
+2.5 • Starting from the front door of a ranch house, you walk 60.0 m due east to a windmill, turn around, and then slowly walk 40.0 m west to a bench, where you sit and watch the sunrise. It takes you 28.0 s to walk from the house to the windmill and then 36.0 s to walk from the windmill to the bench. For the entire trip from the front door to the bench, what are your (a) average velocity and (b) average speed?
+
+2.6 •• A Honda Civic travels in a straight line along a road. The car's distance x from a stop sign is given as a function of time t by the equation x(t) = at^2 - bt^3, where a = 1.50 m/s^2 and b = 0.0500 m/s^3. Calculate the average velocity of the car for each time interval: (a) t = 0 to t = 2.00 s; (b) t = 0 to t = 4.00 s; (c) t = 2.00 s to t = 4.00 s.
+
+--- Section 2.2 Instantaneous Velocity ---
+
+2.7 • CALC A car is stopped at a traffic light. It then travels along a straight road such that its distance from the light is given by x(t) = bt^2 - ct^3, where b = 2.40 m/s^2 and c = 0.120 m/s^3. (a) Calculate the average velocity of the car for the time interval t = 0 to t = 10.0 s. (b) Calculate the instantaneous velocity of the car at t = 0, t = 5.0 s, and t = 10.0 s. (c) How long after starting from rest is the car again at rest?
+
+2.8 • CALC A bird is flying due east. Its distance from a tall building is given by x(t) = 28.0 m + (12.4 m/s)t - (0.0450 m/s^3)t^3. What is the instantaneous velocity of the bird when t = 8.00 s?
+
+2.9 •• A ball moves in a straight line (the x-axis). The graph in Fig. E2.9 shows this ball's velocity as a function of time. (a) What are the ball's average speed and average velocity during the first 3.0 s? (b) Suppose that the ball moved in such a way that the graph segment after 2.0 s was -3.0 m/s instead of +3.0 m/s. Find the ball's average speed and average velocity in this case.
+
+2.10 •• A physics professor leaves her house and walks along the sidewalk toward campus. After 5 min it starts to rain, and she returns home. Her distance from her house as a function of time is shown in Fig. E2.10. At which of the labeled points is her velocity (a) zero? (b) constant and positive? (c) constant and negative? (d) increasing in magnitude? (e) decreasing in magnitude?
+
+2.11 •• A test car travels in a straight line along the x-axis. The graph in Fig. E2.11 shows the car's position x as a function of time. Find its instantaneous velocity at points A through G.
+
+--- Section 2.3 Average and Instantaneous Acceleration ---
+
+2.12 • Figure E2.12 shows the velocity of a solar-powered car as a function of time. The driver accelerates from a stop sign, cruises for 20 s at a constant speed of 60 km/h, and then brakes to come to a stop 40 s after leaving the stop sign. (a) Compute the average acceleration during these time intervals: (i) t = 0 to t = 10 s; (ii) t = 30 s to t = 40 s; (iii) t = 10 s to t = 30 s; (iv) t = 0 to t = 40 s. (b) What is the instantaneous acceleration at t = 20 s and at t = 35 s?
+
+2.13 • CALC A turtle crawls along a straight line, which we'll call the x-axis with the positive direction to the right. The equation for the turtle's position as a function of time is x(t) = 50.0 cm + (2.00 cm/s)t - (0.0625 cm/s^2)t^2. (a) Find the turtle's initial velocity, initial position, and initial acceleration. (b) At what time t is the velocity of the turtle zero? (c) How long after starting does it take the turtle to return to its starting point? (d) At what times t is the turtle a distance of 10.0 cm from its starting point? What is the velocity (magnitude and direction) of the turtle at each of those times? (e) Sketch graphs of x versus t, vx versus t, and ax versus t, for the time interval t = 0 to t = 40 s.
+
+2.14 •• CALC A race car starts from rest and travels east along a straight and level track. For the first 5.0 s of the car's motion, the eastward component of the car's velocity is given by vx(t) = (0.860 m/s^3)t^2. What is the acceleration of the car when vx = 12.0 m/s?
+
+2.15 • CALC A car's velocity as a function of time is given by vx(t) = a + bt^2, where a = 3.00 m/s and b = 0.100 m/s^3. (a) Calculate the average acceleration for the time interval t = 0 to t = 5.00 s. (b) Calculate the instantaneous acceleration for t = 0 and t = 5.00 s. (c) Draw vx-t and ax-t graphs for the car's motion between t = 0 and t = 5.00 s.
+
+2.16 • An astronaut has left the International Space Station to test a new space scooter. Her partner measures the following velocity changes, each taking place in a 10 s interval. What are the magnitude, the algebraic sign, and the direction of the average acceleration in each interval? Assume that the positive direction is to the right. (a) At the beginning of the interval, the astronaut is moving toward the right along the x-axis at 15.0 m/s, and at the end of the interval she is moving toward the right at 5.0 m/s. (b) At the beginning she is moving toward the left at 5.0 m/s, and at the end she is moving toward the left at 15.0 m/s. (c) At the beginning she is moving toward the right at 15.0 m/s, and at the end she is moving toward the left at 15.0 m/s.
+
+2.17 •• CALC The position of the front bumper of a test car under microprocessor control is given by x(t) = 2.17 m + (4.80 m/s^2)t^2 - (0.100 m/s^6)t^6. (a) Find its position and acceleration at the instants when the car has zero velocity. (b) Draw x-t, vx-t, and ax-t graphs for the motion of the bumper between t = 0 and t = 2.00 s.
+
+--- Section 2.4 Motion with Constant Acceleration ---
+
+2.18 • Estimate the distance in feet that your car travels on the entrance ramp to a freeway as it accelerates from 30 mph to the freeway speed of 70 mph. During this motion what is the average acceleration of the car?
+
+2.19 •• An antelope moving with constant acceleration covers the distance between two points 70.0 m apart in 6.00 s. Its speed as it passes the second point is 15.0 m/s. What are (a) its speed at the first point and (b) its acceleration?
+
+2.20 •• A Tennis Serve. In the fastest measured tennis serve, the ball left the racquet at 73.14 m/s. A served tennis ball is typically in contact with the racquet for 30.0 ms and starts from rest. Assume constant acceleration. (a) What was the ball's acceleration during this serve? (b) How far did the ball travel during the serve?
+
+2.21 • A Fast Pitch. The fastest measured pitched baseball left the pitcher's hand at a speed of 45.0 m/s. If the pitcher was in contact with the ball over a distance of 1.50 m and produced constant acceleration, (a) what acceleration did he give the ball, and (b) how much time did it take him to pitch it?
+
+2.22 • You are traveling on an interstate highway at the posted speed limit of 70 mph when you see that the traffic in front of you has stopped due to an accident up ahead. You step on your brakes to slow down as quickly as possible. (a) Estimate how many seconds it takes you to slow down to 30 mph. What is the magnitude of the average acceleration of the car while it is slowing down? With this same average acceleration, (b) how much longer would it take you to stop, and (c) what total distance would you travel from when you first apply the brakes until the car stops?
+
+2.23 •• BIO Automobile Airbags. The human body can survive an acceleration trauma incident (sudden stop) if the magnitude of the acceleration is less than 250 m/s^2. If you are in an automobile accident with an initial speed of 105 km/h (65 mi/h) and are stopped by an airbag that inflates from the dashboard, over what minimum distance must the airbag stop you for you to survive the crash?
+
+2.24 • Entering the Freeway. A car sits on an entrance ramp to a freeway, waiting for a break in the traffic. Then the driver accelerates with constant acceleration along the ramp and onto the freeway. The car starts from rest, moves in a straight line, and has a speed of 20 m/s (45 mi/h) when it reaches the end of the 120-m-long ramp. (a) What is the acceleration of the car? (b) How much time does it take the car to travel the length of the ramp? (c) The traffic on the freeway is moving at a constant speed of 20 m/s. What distance does the traffic travel while the car is moving the length of the ramp?
+
+2.25 • BIO Airbag Injuries. During an auto accident, the vehicle's airbags deploy and slow down the passengers more gently than if they had hit the windshield or steering wheel. According to safety standards, airbags produce a maximum acceleration of 60g that lasts for only 36 ms (or less). How far (in meters) does a person travel in coming to a complete stop in 36 ms at a constant acceleration of 60g?
+
+2.26 •• A cat walks in a straight line, which we shall call the x-axis, with the positive direction to the right. As an observant physicist, you make measurements of this cat's motion and construct a graph of the feline's velocity as a function of time (Fig. E2.26). (a) Find the cat's velocity at t = 4.0 s and at t = 7.0 s. (b) What is the cat's acceleration at t = 3.0 s? At t = 6.0 s? At t = 7.0 s? (c) What distance does the cat move during the first 4.5 s? From t = 0 to t = 7.0 s? (d) Assuming that the cat started at the origin, sketch clear graphs of the cat's acceleration and position as functions of time.
+
+2.27 • BIO Are We Martians? It has been suggested, and not facetiously, that life might have originated on Mars and been carried to the earth when a meteor hit Mars and blasted pieces of rock (perhaps containing primitive life) free of the Martian surface. Astronomers know that many Martian rocks have come to the earth this way. (For instance, search the Internet for "ALH 84001.") One objection to this idea is that microbes would have had to undergo an enormous lethal acceleration during the impact. Let us investigate how large such an acceleration might be. To escape Mars, rock fragments would have to reach its escape velocity of 5.0 km/s, and that would most likely happen over a distance of about 4.0 m during the meteor impact. (a) What would be the acceleration (in m/s^2 and g's) of such a rock fragment, if the acceleration is constant? (b) How long would this acceleration last? (c) In tests, scientists have found that over 40% of Bacillus subtilis bacteria survived after an acceleration of 450,000g. In light of your answer to part (a), can we rule out the hypothesis that life might have been blasted from Mars to the earth?
+
+2.28 • Two cars, A and B, move along the x-axis. Figure E2.28 is a graph of the positions of A and B versus time. (a) In motion diagrams (like Figs. 2.13b and 2.14b), show the position, velocity, and acceleration of each of the two cars at t = 0, t = 1 s, and t = 3 s. (b) At what time(s), if any, do A and B have the same position? (c) Graph velocity versus time for both A and B. (d) At what time(s), if any, do A and B have the same velocity? (e) At what time(s), if any, does car A pass car B? (f) At what time(s), if any, does car B pass car A?
+
+2.29 •• The graph in Fig. E2.29 shows the velocity of a motorcycle police officer plotted as a function of time. (a) Find the instantaneous acceleration at t = 3 s, t = 7 s, and t = 11 s. (b) How far does the officer go in the first 5 s? The first 9 s? The first 13 s?
+
+2.30 •• A small block has constant acceleration as it slides down a frictionless incline. The block is released from rest at the top of the incline, and its speed after it has traveled 6.80 m to the bottom of the incline is 3.80 m/s. What is the speed of the block when it is 3.40 m from the top of the incline?
+
+2.31 •• (a) If a flea can jump straight up to a height of 0.440 m, what is its initial speed as it leaves the ground? (b) How long is it in the air?
+
+2.32 •• A small rock is thrown vertically upward with a speed of 22.0 m/s from the edge of the roof of a 30.0-m-tall building. The rock doesn't hit the building on its way back down and lands on the street below. Ignore air resistance. (a) What is the speed of the rock just before it hits the street? (b) How much time elapses from when the rock is thrown until it hits the street?
+
+--- Section 2.5 Freely Falling Objects ---
+
+2.33 • A juggler throws a bowling pin straight up with an initial speed of 8.20 m/s. How much time elapses until the bowling pin returns to the juggler's hand?
+
+2.34 •• You throw a glob of putty straight up toward the ceiling, which is 3.60 m above the point where the putty leaves your hand. The initial speed of the putty as it leaves your hand is 9.50 m/s. (a) What is the speed of the putty just before it strikes the ceiling? (b) How much time from when it leaves your hand does it take the putty to reach the ceiling?
+
+2.35 •• A tennis ball on Mars, where the acceleration due to gravity is 0.379g and air resistance is negligible, is hit directly upward and returns to the same level 8.5 s later. (a) How high above its original point did the ball go? (b) How fast was it moving just after it was hit? (c) Sketch graphs of the ball's vertical position, vertical velocity, and vertical acceleration as functions of time while it's in the Martian air.
+
+2.36 •• Estimate the maximum height in feet that you can throw a baseball straight up. (a) For this height, how long after the ball leaves your hand does it return to your hand? (b) Estimate the distance in feet that the ball moves while you are throwing it—that is, the distance from where the ball is when you start your throw until it leaves your hand. Calculate the average acceleration in m/s^2 that the ball has while it is being thrown, as it moves from rest to the point where it leaves your hand.
+
+2.37 •• A rock is thrown straight up with an initial speed of 24.0 m/s. Neglect air resistance. (a) At t = 1.0 s, what are the directions of the velocity and acceleration of the rock? Is the speed of the rock increasing or decreasing? (b) At t = 3.0 s, what are the directions of the velocity and acceleration of the rock? Is the speed of the rock increasing or decreasing?
+
+2.38 •• A brick is dropped (zero initial speed) from the roof of a building. The brick strikes the ground in 1.90 s. You may ignore air resistance, so the brick is in free fall. (a) How tall, in meters, is the building? (b) What is the magnitude of the brick's velocity just before it reaches the ground? (c) Sketch ay-t, vy-t, and y-t graphs for the motion of the brick.
+
+2.39 •• A Simple Reaction-Time Test. A meter stick is held vertically above your hand, with the lower end between your thumb and first finger. When you see the meter stick released, you grab it with those two fingers. You can calculate your reaction time from the distance the meter stick falls, read directly from the point where your fingers grabbed it. (a) Derive a relationship for your reaction time in terms of this measured distance, d. (b) If the measured distance is 17.6 cm, what is your reaction time?
+
+2.40 •• Touchdown on the Moon. A lunar lander is making its descent to Moon Base I (Fig. E2.40). The lander descends slowly under the retro-thrust of its descent engine. The engine is cut off when the lander is 5.0 m above the surface and has a downward speed of 0.8 m/s. With the engine off, the lander is in free fall. What is the speed of the lander just before it touches the surface? The acceleration due to gravity on the moon is 1.6 m/s^2.
+
+2.41 •• Launch Failure. A 7500 kg rocket blasts off vertically from the launch pad with a constant upward acceleration of 2.25 m/s^2 and feels no appreciable air resistance. When it has reached a height of 525 m, its engines suddenly fail; the only force acting on it is now gravity. (a) What is the maximum height this rocket will reach above the launch pad? (b) How much time will elapse after engine failure before the rocket comes crashing down to the launch pad, and how fast will it be moving just before it crashes? (c) Sketch ay-t, vy-t, and y-t graphs of the rocket's motion from the instant of blast-off to the instant just before it strikes the launch pad.
+
+2.42 •• A hot-air balloonist, rising vertically with a constant velocity of magnitude 5.00 m/s, releases a sandbag at an instant when the balloon is 40.0 m above the ground (Fig. E2.42). After the sandbag is released, it is in free fall. (a) Compute the position and velocity of the sandbag at 0.250 s and 1.00 s after its release. (b) How many seconds after its release does the bag strike the ground? (c) With what magnitude of velocity does it strike the ground? (d) What is the greatest height above the ground that the sandbag reaches? (e) Sketch ay-t, vy-t, and y-t graphs for the motion.
+
+2.43 • You throw a rock straight up and find that it returns to your hand 3.60 s after it left your hand. Neglect air resistance. What was the maximum height above your hand that the rock reached?
+
+2.44 • An egg is thrown nearly vertically upward from a point near the cornice of a tall building. The egg just misses the cornice on the way down and passes a point 30.0 m below its starting point 5.00 s after it leaves the thrower's hand. Ignore air resistance. (a) What is the initial speed of the egg? (b) How high does it rise above its starting point? (c) What is the magnitude of its velocity at the highest point? (d) What are the magnitude and direction of its acceleration at the highest point? (e) Sketch ay-t, vy-t, and y-t graphs for the motion of the egg.
+
+2.45 •• A 15 kg rock is dropped from rest on the earth and reaches the ground in 1.75 s. When it is dropped from the same height on Saturn's satellite Enceladus, the rock reaches the ground in 18.6 s. What is the acceleration due to gravity on Enceladus?
+
+2.46 • A large boulder is ejected vertically upward from a volcano with an initial speed of 40.0 m/s. Ignore air resistance. (a) At what time after being ejected is the boulder moving at 20.0 m/s upward? (b) At what time is it moving at 20.0 m/s downward? (c) When is the displacement of the boulder from its initial position zero? (d) When is the velocity of the boulder zero? (e) What are the magnitude and direction of the acceleration while the boulder is (i) moving upward? (ii) Moving downward? (iii) At the highest point? (f) Sketch ay-t, vy-t, and y-t graphs for the motion.
+
+2.47 •• You throw a small rock straight up from the edge of a highway bridge that crosses a river. The rock passes you on its way down, 6.00 s after it was thrown. What is the speed of the rock just before it reaches the water 28.0 m below the point where the rock left your hand? Ignore air resistance.
+
+--- Section 2.6 Velocity and Position by Integration ---
+
+2.48 •• Consider the motion described by the vx-t graph of Fig. E2.26. (a) Calculate the area under the graph between t = 0 and t = 6.0 s. (b) For the time interval t = 0 to t = 6.0 s, what is the magnitude of the average velocity of the cat? (c) Use constant-acceleration equations to calculate the distance the cat travels in this time interval. How does your result compare to the area you calculated in part (a)?
+
+2.49 • CALC A rocket starts from rest and moves upward from the surface of the earth. For the first 10.0 s of its motion, the vertical acceleration of the rocket is given by ay = (2.80 m/s^3)t, where the +y-direction is upward. (a) What is the height of the rocket above the surface of the earth at t = 10.0 s? (b) What is the speed of the rocket when it is 325 m above the surface of the earth?
+
+2.50 •• CALC A small object moves along the x-axis with acceleration ax(t) = -(0.0320 m/s^3)(15.0 s - t). At t = 0 the object is at x = -14.0 m and has velocity v0x = 8.00 m/s. What is the x-coordinate of the object when t = 10.0 s?
+
+2.51 •• CALC The acceleration of a motorcycle is given by ax(t) = At - Bt^2, where A = 1.50 m/s^3 and B = 0.120 m/s^4. The motorcycle is at rest at the origin at time t = 0. (a) Find its position and velocity as functions of time. (b) Calculate the maximum velocity it attains.
+
+2.52 •• CALC The acceleration of a bus is given by ax(t) = at, where a = 1.2 m/s^3. (a) If the bus's velocity at time t = 1.0 s is 5.0 m/s, what is its velocity at time t = 2.0 s? (b) If the bus's position at time t = 1.0 s is 6.0 m, what is its position at time t = 2.0 s? (c) Sketch ay-t, vy-t, and x-t graphs for the motion.
+
+============================================================
+PROBLEMS
+============================================================
+
+2.53 • BIO A typical male sprinter can maintain his maximum acceleration for 2.0 s, and his maximum speed is 10 m/s. After he reaches this maximum speed, his acceleration becomes zero, and then he runs at constant speed. Assume that his acceleration is constant during the first 2.0 s of the race, that he starts from rest, and that he runs in a straight line. (a) How far has the sprinter run when he reaches his maximum speed? (b) What is the magnitude of his average velocity for a race of these lengths: (i) 50.0 m; (ii) 100.0 m; (iii) 200.0 m?
+
+2.54 • CALC A lunar lander is descending toward the moon's surface. Until the lander reaches the surface, its height above the surface of the moon is given by y(t) = b - ct + dt^2, where b = 800 m is the initial height of the lander above the surface, c = 60.0 m/s, and d = 1.05 m/s^2. (a) What is the initial velocity of the lander, at t = 0? (b) What is the velocity of the lander just before it reaches the lunar surface?
+
+2.55 ••• Earthquake Analysis. Earthquakes produce several types of shock waves. The most well known are the P-waves (P for primary or pressure) and the S-waves (S for secondary or shear). In the earth's crust, P-waves travel at about 6.5 km/s and S-waves move at about 3.5 km/s. The time delay between the arrival of these two waves at a seismic recording station tells geologists how far away an earthquake occurred. If the time delay is 33 s, how far from the seismic station did the earthquake occur?
+
+2.56 •• You throw a small rock straight up with initial speed V0 from the edge of the roof of a building that is a distance H above the ground. The rock travels upward to a maximum height in time Tmax, misses the edge of the roof on its way down, and reaches the ground in time Ttotal after it was thrown. Neglect air resistance. If the total time the rock is in the air is three times the time it takes it to reach its maximum height, so Ttotal = 3Tmax, then in terms of H what must be the value of V0?
+
+2.57 ••• A rocket carrying a satellite is accelerating straight up from the earth's surface. At 1.15 s after liftoff, the rocket clears the top of its launch platform, 63 m above the ground. After an additional 4.75 s, it is 1.00 km above the ground. Calculate the magnitude of the average velocity of the rocket for (a) the 4.75 s part of its flight and (b) the first 5.90 s of its flight.
+
+2.58 •• A block moving on a horizontal surface is at x = 0 when t = 0 and is sliding east with a speed of 12.0 m/s. Because of a net force acting on the block, it has a constant acceleration with direction west and magnitude 2.00 m/s^2. The block travels east, slows down, reverses direction, and then travels west with increasing speed. (a) At what value of t is the block again at x = 0? (b) What is the maximum distance east of x = 0 that the rock reaches, and how long does it take the rock to reach this point?
+
+2.59 •• A block is sliding with constant acceleration down an incline. The block starts from rest at t = 0 and has speed 3.00 m/s after it has traveled a distance 8.00 m from its starting point. (a) What is the speed of the block when it is a distance of 16.0 m from its t = 0 starting point? (b) How long does it take the block to slide 16.0 m from its starting point?
+
+2.60 ••• A subway train starts from rest at a station and accelerates at a rate of 1.60 m/s^2 for 14.0 s. It runs at constant speed for 70.0 s and slows down at a rate of 3.50 m/s^2 until it stops at the next station. Find the total distance covered.
+
+2.61 • A gazelle is running in a straight line (the x-axis). The graph in Fig. P2.61 shows this animal's velocity as a function of time. During the first 12.0 s, find (a) the total distance moved and (b) the displacement of the gazelle. (c) Sketch an ax-t graph showing this gazelle's acceleration as a function of time for the first 12.0 s.
+
+2.62 •• Collision. The engineer of a passenger train traveling at 25.0 m/s sights a freight train whose caboose is 200 m ahead on the same track (Fig. P2.62). The freight train is traveling at 15.0 m/s in the same direction as the passenger train. The engineer of the passenger train immediately applies the brakes, causing a constant acceleration of 0.100 m/s^2 in a direction opposite to the train's velocity, while the freight train continues with constant speed. Take x = 0 at the location of the front of the passenger train when the engineer applies the brakes. (a) Will the cows nearby witness a collision? (b) If so, where will it take place? (c) On a single graph, sketch the positions of the front of the passenger train and the back of the freight train.
+
+2.63 ••• A ball starts from rest and rolls down a hill with uniform acceleration, traveling 200 m during the second 5.0 s of its motion. How far did it roll during the first 5.0 s of motion?
+
+2.64 •• A rock moving in the +x-direction with speed 16.0 m/s has a net force applied to it at time t = 0, and this produces a constant acceleration in the -x-direction that has magnitude 4.00 m/s^2. For what three times t after the force is applied is the rock a distance of 24.0 m from its position at t = 0? For each of these three values of t, what is the velocity (magnitude and direction) of the rock?
+
+2.65 • A car and a truck start from rest at the same instant, with the car initially at some distance behind the truck. The truck has a constant acceleration of 2.10 m/s^2, and the car has an acceleration of 3.40 m/s^2. The car overtakes the truck after the truck has moved 60.0 m. (a) How much time does it take the car to overtake the truck? (b) How far was the car behind the truck initially? (c) What is the speed of each when they are abreast? (d) On a single graph, sketch the position of each vehicle as a function of time. Take x = 0 at the initial location of the truck.
+
+2.66 •• You are standing at rest at a bus stop. A bus moving at a constant speed of 5.00 m/s passes you. When the rear of the bus is 12.0 m past you, you realize that it is your bus, so you start to run toward it with a constant acceleration of 0.960 m/s^2. How far would you have to run before you catch up with the rear of the bus, and how fast must you be running then? Would an average college student be physically able to accomplish this?
+
+2.67 •• A sprinter runs a 100 m dash in 12.0 s. She starts from rest with a constant acceleration ax for 3.0 s and then runs with constant speed for the remainder of the race. What is the value of ax?
+
+2.68 •• CALC An object's velocity is measured to be vx(t) = a - bt^2, where a = 4.00 m/s and b = 2.00 m/s^3. At t = 0 the object is at x = 0. (a) Calculate the object's position and acceleration as functions of time. (b) What is the object's maximum positive displacement from the origin?
+
+2.69 •• CALC An object is moving along the x-axis. At t = 0 it is at x = 0. Its x-component of velocity vx as a function of time is given by vx(t) = at - bt^3, where a = 8.0 m/s^2 and b = 4.0 m/s^4. (a) At what nonzero time t is the object again at x = 0? (b) At the time calculated in part (a), what are the velocity and acceleration of the object (magnitude and direction)?
+
+2.70 • Egg Drop. You are on the roof of the physics building, 46.0 m above the ground (Fig. P2.70). Your physics professor, who is 1.80 m tall, is walking alongside the building at a constant speed of 1.20 m/s. If you wish to drop an egg on your professor's head, where should the professor be when you release the egg? Assume that the egg is in free fall.
+
+2.71 ••• CALC The acceleration of a particle is given by ax(t) = -2.00 m/s^2 + (3.00 m/s^3)t. (a) Find the initial velocity v0x such that the particle will have the same x-coordinate at t = 4.00 s as it had at t = 0. (b) What will be the velocity at t = 4.00 s?
+
+2.72 •• A small rock is thrown straight up with initial speed v0 from the edge of the roof of a building with height H. The rock travels upward and then downward to the ground at the base of the building. Let +y be upward, and neglect air resistance. (a) For the rock's motion from the roof to the ground, what is the vertical component vav-y of its average velocity? Is this quantity positive or negative? Explain. (b) What does your expression for vav-y give in the limit that H is zero? Explain. (c) Show that your result in part (a) agrees with Eq. (2.10).
+
+2.73 •• A watermelon is dropped from the edge of the roof of a building and falls to the ground. You are standing on the sidewalk and see the watermelon falling when it is 30.0 m above the ground. Then 1.50 s after you first spot it, the watermelon lands at your feet. What is the height of the building? Neglect air resistance.
+
+2.74 ••• A flowerpot falls off a windowsill and passes the window of the story below. Ignore air resistance. It takes the pot 0.380 s to pass from the top to the bottom of this window, which is 1.90 m high. How far is the top of the window below the windowsill from which the flowerpot fell?
+
+2.75 ••• Look Out Below. Sam heaves a 16 lb shot straight up, giving it a constant upward acceleration from rest of 35.0 m/s^2 for 64.0 cm. He releases it 2.20 m above the ground. Ignore air resistance. (a) What is the speed of the shot when Sam releases it? (b) How high above the ground does it go? (c) How much time does he have to get out of its way before it returns to the height of the top of his head, 1.83 m above the ground?
+
+2.76 ••• A Multistage Rocket. In the first stage of a two-stage rocket, the rocket is fired from the launch pad starting from rest but with a constant acceleration of 3.50 m/s^2 upward. At 25.0 s after launch, the second stage fires for 10.0 s, which boosts the rocket's velocity to 132.5 m/s upward at 35.0 s after launch. This firing uses up all of the fuel, however, so after the second stage has finished firing, the only force acting on the rocket is gravity. Ignore air resistance. (a) Find the maximum height that the stage-two rocket reaches above the launch pad. (b) How much time after the end of the stage-two firing will it take for the rocket to fall back to the launch pad? (c) How fast will the stage-two rocket be moving just as it reaches the launch pad?
+
+2.77 •• Two stones are thrown vertically upward from the ground, one with three times the initial speed of the other. (a) If the faster stone takes 10 s to return to the ground, how long will it take the slower stone to return? (b) If the slower stone reaches a maximum height of H, how high (in terms of H) will the faster stone go? Assume free fall.
+
+2.78 ••• During your summer internship for an aerospace company, you are asked to design a small research rocket. The rocket is to be launched from rest from the earth's surface and is to reach a maximum height of 960 m above the earth's surface. The rocket's engines give the rocket an upward acceleration of 16.0 m/s^2 during the time T that they fire. After the engines shut off, the rocket is in free fall. Ignore air resistance. What must be the value of T in order for the rocket to reach the required altitude?
+
+2.79 ••• A helicopter carrying Dr. Evil takes off with a constant upward acceleration of 5.0 m/s^2. Secret agent Austin Powers jumps on just as the helicopter lifts off the ground. After the two men struggle for 10.0 s, Powers shuts off the engine and steps out of the helicopter. Assume that the helicopter is in free fall after its engine is shut off, and ignore the effects of air resistance. (a) What is the maximum height above ground reached by the helicopter? (b) Powers deploys a jet pack strapped on his back 7.0 s after leaving the helicopter, and then he has a constant downward acceleration with magnitude 2.0 m/s^2. How far is Powers above the ground when the helicopter crashes into the ground?
+
+2.80 •• Cliff Height. You are climbing in the High Sierra when you suddenly find yourself at the edge of a fog-shrouded cliff. To find the height of this cliff, you drop a rock from the top; 8.00 s later you hear the sound of the rock hitting the ground at the foot of the cliff. (a) If you ignore air resistance, how high is the cliff if the speed of sound is 330 m/s? (b) Suppose you had ignored the time it takes the sound to reach you. In that case, would you have overestimated or underestimated the height of the cliff? Explain.
+
+2.81 •• CALC An object is moving along the x-axis. At t = 0 it has velocity v0x = 20.0 m/s. Starting at time t = 0 it has acceleration ax = -Ct, where C has units of m/s^3. (a) What is the value of C if the object stops in 8.00 s after t = 0? (b) For the value of C calculated in part (a), how far does the object travel during the 8.00 s?
+
+2.82 •• A ball is thrown straight up from the ground with speed v0. At the same instant, a second ball is dropped from rest from a height H, directly above the point where the first ball was thrown upward. There is no air resistance. (a) Find the time at which the two balls collide. (b) Find the value of H in terms of v0 and g such that at the instant when the balls collide, the first ball is at the highest point of its motion.
+
+2.83 • CALC Cars A and B travel in a straight line. The distance of A from the starting point is given as a function of time by xA(t) = at + bt^2, with a = 2.60 m/s and b = 1.20 m/s^2. The distance of B from the starting point is xB(t) = gt^2 - dt^3, with g = 2.80 m/s^2 and d = 0.20 m/s^3. (a) Which car is ahead just after the two cars leave the starting point? (b) At what time(s) are the cars at the same point? (c) At what time(s) is the distance from A to B neither increasing nor decreasing? (d) At what time(s) do A and B have the same acceleration?
+
+2.84 •• DATA In your physics lab you release a small glider from rest at various points on a long, frictionless air track that is inclined at an angle theta above the horizontal. With an electronic photocell, you measure the time t it takes the glider to slide a distance x from the release point to the bottom of the track. Your measurements are given in Fig. P2.84, which shows a second-order polynomial (quadratic) fit to the plotted data. You are asked to find the glider's acceleration, which is assumed to be constant. There is some error in each measurement, so instead of using a single set of x and t values, you can be more accurate if you use graphical methods and obtain your measured value of the acceleration from the graph. (a) How can you re-graph the data so that the data points fall close to a straight line? (Hint: You might want to plot x or t, or both, raised to some power.) (b) Construct the graph you described in part (a) and find the equation for the straight line that is the best fit to the data points. (c) Use the straight-line fit from part (b) to calculate the acceleration of the glider. (d) The glider is released at a distance x = 1.35 m from the bottom of the track. Use the acceleration value you obtained in part (c) to calculate the speed of the glider when it reaches the bottom of the track.
+
+2.85 •• DATA In a physics lab experiment, you release a small steel ball at various heights above the ground and measure the ball's speed just before it strikes the ground. You plot your data on a graph that has the release height (in meters) on the vertical axis and the square of the final speed (in m^2/s^2) on the horizontal axis. In this graph your data points lie close to a straight line. (a) Using g = 9.80 m/s^2 and ignoring the effect of air resistance, what is the numerical value of the slope of this straight line? (Include the correct units.) The presence of air resistance reduces the magnitude of the downward acceleration, and the effect of air resistance increases as the speed of the object increases. You repeat the experiment, but this time with a tennis ball as the object being dropped. Air resistance now has a noticeable effect on the data. (b) Is the final speed for a given release height higher than, lower than, or the same as when you ignored air resistance? (c) Is the graph of the release height versus the square of the final speed still a straight line? Sketch the qualitative shape of the graph when air resistance is present.
+
+2.86 ••• DATA A model car starts from rest and travels in a straight line. A smartphone mounted on the car has an app that transmits the magnitude of the car's acceleration (measured by an accelerometer) every second. The results are given in the table:
+
+Time (s)    Acceleration (m/s^2)
+0           5.95
+1.00        5.52
+2.00        5.08
+3.00        4.55
+4.00        3.96
+5.00        3.40
+
+Each measured value has some experimental error. (a) Plot acceleration versus time and find the equation for the straight line that gives the best fit to the data. (b) Use the equation for a(t) that you found in part (a) to calculate v(t), the speed of the car as a function of time. Sketch the graph of v versus t. Is this graph a straight line? (c) Use your result from part (b) to calculate the speed of the car at t = 5.00 s. (d) Calculate the distance the car travels between t = 0 and t = 5.00 s.
+
+============================================================
+CHALLENGE PROBLEMS
+============================================================
+
+2.87 ••• In the vertical jump, an athlete starts from a crouch and jumps upward as high as possible. Even the best athletes spend little more than 1.00 s in the air (their "hang time"). Treat the athlete as a particle and let ymax be his maximum height above the floor. To explain why he seems to hang in the air, calculate the ratio of the time he is above ymax/2 to the time it takes him to go from the floor to that height. Ignore air resistance.
+
+2.88 ••• Catching the Bus. A student is running at her top speed of 5.0 m/s to catch a bus, which is stopped at the bus stop. When the student is still 40.0 m from the bus, it starts to pull away, moving with a constant acceleration of 0.170 m/s^2. (a) For how much time and what distance does the student have to run at 5.0 m/s before she overtakes the bus? (b) When she reaches the bus, how fast is the bus traveling? (c) Sketch an x-t graph for both the student and the bus. Take x = 0 at the initial position of the student. (d) The equations you used in part (a) to find the time have a second solution, corresponding to a later time for which the student and bus are again at the same place if they continue their specified motions. Explain the significance of this second solution. How fast is the bus traveling at this point? (e) If the student's top speed is 3.5 m/s, will she catch the bus? (f) What is the minimum speed the student must have to just catch up with the bus? For what time and what distance does she have to run in that case?
+
+2.89 ••• A ball is thrown straight up from the edge of the roof of a building. A second ball is dropped from the roof 1.00 s later. Ignore air resistance. (a) If the height of the building is 20.0 m, what must the initial speed of the first ball be if both are to hit the ground at the same time? On the same graph, sketch the positions of both balls as a function of time, measured from when the first ball is thrown. Consider the same situation, but now let the initial speed v0 of the first ball be given and treat the height h of the building as an unknown. (b) What must the height of the building be for both balls to reach the ground at the same time if (i) v0 is 6.0 m/s and (ii) v0 is 9.5 m/s? (c) If v0 is greater than some value vmax, no value of h exists that allows both balls to hit the ground at the same time. Solve for vmax. The value vmax has a simple physical interpretation. What is it? (d) If v0 is less than some value vmin, no value of h exists that allows both balls to hit the ground at the same time. Solve for vmin. The value vmin also has a simple physical interpretation. What is it?
+
+============================================================
+MCAT-STYLE PASSAGE PROBLEMS
+============================================================
+
+BIO Blood Flow in the Heart. The human circulatory system is closed—that is, the blood pumped out of the left ventricle of the heart into the arteries is constrained to a series of continuous, branching vessels as it passes through the capillaries and then into the veins as it returns to the heart. The blood in each of the heart's four chambers comes briefly to rest before it is ejected by contraction of the heart muscle.
+
+2.90 If the contraction of the left ventricle lasts 250 ms and the speed of blood flow in the aorta (the large artery leaving the heart) is 0.80 m/s at the end of the contraction, what is the average acceleration of a red blood cell as it leaves the heart? (a) 310 m/s^2; (b) 31 m/s^2; (c) 3.2 m/s^2; (d) 0.32 m/s^2.
+
+2.91 If the aorta (diameter da) branches into two equal-sized arteries with a combined area equal to that of the aorta, what is the diameter of one of the branches? (a) sqrt(da); (b) da/sqrt(2); (c) 2da; (d) da/2.
+
+2.92 The velocity of blood in the aorta can be measured directly with ultrasound techniques. A typical graph of blood velocity versus time during a single heartbeat is shown in Fig. P2.92. Which statement is the best interpretation of this graph? (a) The blood flow changes direction at about 0.25 s; (b) the speed of the blood flow begins to decrease at about 0.10 s; (c) the acceleration of the blood is greatest in magnitude at about 0.25 s; (d) the acceleration of the blood is greatest in magnitude at about 0.10 s.
+
+============================================================
+END OF TRANSCRIPTION (Q2.1 - 2.92)
+============================================================
