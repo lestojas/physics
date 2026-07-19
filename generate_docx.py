@@ -420,13 +420,10 @@ def add_omml_to_cell(cell, omml_elements):
 # ===========================================================================
 
 def add_problem_heading(doc, text):
-    """Add Problem N heading."""
-    p = doc.add_paragraph()
+    """Add Problem N heading using Heading 1 style (dark blue #365F91, 14pt, bold)."""
+    p = doc.add_heading(text, level=1)
+    # Override spacing
     set_paragraph_spacing(p, before=360, after=120)
-    run = p.add_run(text)
-    run.bold = True
-    run.font.size = Pt(14)
-    run.font.name = 'Calibri'
     return p
 
 
@@ -442,25 +439,22 @@ def add_problem_text(doc, text):
 
 
 def add_section_heading(doc, text):
-    """Add Given/Required/Solution heading."""
-    p = doc.add_paragraph()
+    """Add Given/Required/Solution heading using Heading 2 style (blue #4F81BD, bold)."""
+    p = doc.add_heading(text, level=2)
+    # Override size to 11pt (keep the blue color from the style)
+    for run in p.runs:
+        run.font.size = Pt(12)
     set_paragraph_spacing(p, before=200, after=80)
-    run = p.add_run(text)
-    run.bold = True
-    run.font.size = Pt(11)
-    run.font.name = 'Calibri'
     return p
 
 
 def add_sub_heading(doc, text, indent=Cm(0.63)):
-    """Add (a) Finding acceleration style sub-heading."""
-    p = doc.add_paragraph()
+    """Add (a) Finding acceleration style sub-heading using Heading 3 (blue, bold)."""
+    p = doc.add_heading(text, level=3)
     p.paragraph_format.left_indent = indent
+    for run in p.runs:
+        run.font.size = Pt(11)
     set_paragraph_spacing(p, before=160, after=60)
-    run = p.add_run(text)
-    run.bold = True
-    run.font.size = Pt(11)
-    run.font.name = 'Calibri'
     return p
 
 
@@ -496,6 +490,7 @@ def add_given_table(doc, rows, indent=720):
     """
     Add a Given table: Symbol | Value | Annotation.
     rows is list of [symbol, value, annotation].
+    Header row has bottom border and light blue shading.
     """
     table = doc.add_table(rows=len(rows) + 1, cols=3)
     table.alignment = WD_TABLE_ALIGNMENT.LEFT
@@ -504,17 +499,34 @@ def add_given_table(doc, rows, indent=720):
     col_widths = [1200, 2000, 5800]
     headers = ['Symbol', 'Value', 'Annotation']
 
-    # Header row
+    # Header row with styling
     for j, header in enumerate(headers):
         cell = table.rows[0].cells[j]
         set_cell_width(cell, col_widths[j])
         set_cell_margins(cell, top=40, bottom=40, start=72, end=72)
+        # Add bottom border to header cells
+        tc = cell._tc
+        tcPr = tc.get_or_add_tcPr()
+        tcBorders = parse_xml(
+            f'<w:tcBorders {nsdecls("w")}>'
+            f'  <w:top w:val="nil"/>'
+            f'  <w:left w:val="nil"/>'
+            f'  <w:bottom w:val="single" w:sz="4" w:space="0" w:color="4F81BD"/>'
+            f'  <w:right w:val="nil"/>'
+            f'</w:tcBorders>'
+        )
+        tcPr.append(tcBorders)
+        # Light blue shading for header
+        shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="DBE5F1" w:val="clear" w:color="auto"/>')
+        tcPr.append(shd)
+
         p = cell.paragraphs[0]
         set_paragraph_spacing(p, before=0, after=0)
         run = p.add_run(header)
         run.bold = True
         run.font.size = Pt(11)
         run.font.name = 'Calibri'
+        run.font.color.rgb = RGBColor(0x36, 0x5F, 0x91)  # Dark blue matching Heading 1
 
     # Data rows
     for i, row_data in enumerate(rows):
@@ -1180,17 +1192,17 @@ def build_document():
     summary_table = doc.add_table(rows=6, cols=3)
     summary_table.alignment = WD_TABLE_ALIGNMENT.LEFT
 
-    # Set up borders
+    # Set up borders with blue accent color
     tbl = summary_table._tbl
     tblPr = tbl.tblPr
     borders = parse_xml(
         f'<w:tblBorders {nsdecls("w")}>'
-        f'  <w:top w:val="single" w:sz="4" w:space="0" w:color="000000"/>'
-        f'  <w:left w:val="single" w:sz="4" w:space="0" w:color="000000"/>'
-        f'  <w:bottom w:val="single" w:sz="4" w:space="0" w:color="000000"/>'
-        f'  <w:right w:val="single" w:sz="4" w:space="0" w:color="000000"/>'
-        f'  <w:insideH w:val="single" w:sz="4" w:space="0" w:color="000000"/>'
-        f'  <w:insideV w:val="single" w:sz="4" w:space="0" w:color="000000"/>'
+        f'  <w:top w:val="single" w:sz="4" w:space="0" w:color="4F81BD"/>'
+        f'  <w:left w:val="single" w:sz="4" w:space="0" w:color="4F81BD"/>'
+        f'  <w:bottom w:val="single" w:sz="4" w:space="0" w:color="4F81BD"/>'
+        f'  <w:right w:val="single" w:sz="4" w:space="0" w:color="4F81BD"/>'
+        f'  <w:insideH w:val="single" w:sz="4" w:space="0" w:color="4F81BD"/>'
+        f'  <w:insideV w:val="single" w:sz="4" w:space="0" w:color="4F81BD"/>'
         f'</w:tblBorders>'
     )
     tblPr.append(borders)
@@ -1216,6 +1228,18 @@ def build_document():
             run.font.name = 'Calibri'
             if i == 0:
                 run.bold = True
+                run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)  # White text on blue header
+                # Add blue shading to header cells
+                tc = cell._tc
+                tcPr = tc.get_or_add_tcPr()
+                shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="4F81BD" w:val="clear" w:color="auto"/>')
+                tcPr.append(shd)
+            elif i % 2 == 0:
+                # Alternating row shading (light blue)
+                tc = cell._tc
+                tcPr = tc.get_or_add_tcPr()
+                shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="DBE5F1" w:val="clear" w:color="auto"/>')
+                tcPr.append(shd)
 
     # Footer
     p = doc.add_paragraph()
