@@ -138,42 +138,30 @@ def create_document():
         p = doc.paragraphs[0]._element
         p.getparent().remove(p)
 
-    # Layout: 1 column, multiple rows per page (grid = rows x 1 col with borders)
-    # On 8.5x13 paper with tight margins, each questionnaire takes about ~3.2 inches height
-    # So we can fit 4 rows per page in a single column
-    # OR 2 columns x 2 rows = 4 per page but text would be too small
-    # Let's do 1 column x 4 rows per page to keep original font size
+    # Layout: 2 columns x N rows per page (true grid, matching the original 2-column layout)
+    # Page is 8.5 x 13 in with 0.5cm margins on every side.
+    # Usable width  ~ 8.1 in  -> each column ~ 4.0 in wide
+    # Usable height ~ 12.0 in -> with 3 rows per page, each row gets ~4.0 in of height,
+    # which comfortably fits the questionnaire content at the narrower column width.
+    #
+    # 2 columns x 3 rows = 6 questionnaires per page
+    # 48 questionnaires / 6 per page = 8 pages exactly.
 
-    # Actually, re-reading user request: "grid type" and "maximize space"
-    # The original is a half-page questionnaire. On 8.5x13 we can fit:
-    # - 2 columns x 3 rows = 6 per page (with smaller margins), or
-    # - 1 column x 4 rows = 4 per page
-    # Let's try 2 columns x 3 rows = 6 per page for true grid
-
-    # With 2 columns on 8.5in paper (minus margins), each column ~ 3.6 inches wide
-    # That's tight for the text. Let's check: original text is 10pt in ~7.3in width
-    # At half width (3.6in), 10pt would wrap a lot. Let's use 9pt and see.
-    # 
-    # Actually, looking at the original document content - it's meant to be a half-page slip.
-    # "Grid type" likely means a table with visible borders (grid lines) for cutting.
-    # Let me do 1 column with visible grid borders, fitting as many rows as possible.
-    # On 8.5x13 with 0.5cm margins top/bottom, usable height ~ 12 in = ~864pt
-    # Each questionnaire at 10pt with the content ~ about 2.8-3.2 inches
-    # So 4 per page is safe. 4 x 12 pages = 48 questionnaires.
-
-    # Let's try to maximize: use compact spacing to fit more per page
-    # Testing shows we can likely fit 4 per page comfortably
-
-    rows_per_page = 4
+    cols_per_page = 2
+    rows_per_page = 3
+    per_page = cols_per_page * rows_per_page
     total_questionnaires = 48  # at least 45
-    total_pages = (total_questionnaires + rows_per_page - 1) // rows_per_page
+    total_pages = (total_questionnaires + per_page - 1) // per_page
 
     questionnaire_num = 1
 
     for page in range(total_pages):
-        # Create a table with rows_per_page rows and 1 column
-        rows_this_page = min(rows_per_page, total_questionnaires - page * rows_per_page)
-        table = doc.add_table(rows=rows_this_page, cols=1)
+        remaining = total_questionnaires - page * per_page
+        items_this_page = min(per_page, remaining)
+        rows_this_page = (items_this_page + cols_per_page - 1) // cols_per_page
+
+        # Create a table with rows_this_page rows and 2 columns
+        table = doc.add_table(rows=rows_this_page, cols=cols_per_page)
         table.alignment = WD_TABLE_ALIGNMENT.CENTER
 
         # Set table width to full page width
@@ -183,6 +171,11 @@ def create_document():
         tblW.set(qn('w:w'), '5000')
         tblW.set(qn('w:type'), 'pct')  # 100% width
         tblPr.append(tblW)
+
+        # Fixed layout so both columns are equal width regardless of content
+        tblLayout = OxmlElement('w:tblLayout')
+        tblLayout.set(qn('w:type'), 'fixed')
+        tblPr.append(tblLayout)
 
         # Set table borders (visible grid for cutting)
         tblBorders = OxmlElement('w:tblBorders')
@@ -195,10 +188,19 @@ def create_document():
             tblBorders.append(border)
         tblPr.append(tblBorders)
 
+        # Force equal column widths (half the table width each)
+        for col in table.columns:
+            col.width = Inches(4.0)
+
+        # Fill cells in row-major order: left-to-right, then next row
         for row_idx in range(rows_this_page):
-            cell = table.cell(row_idx, 0)
-            add_questionnaire_to_cell(cell, questionnaire_num)
-            questionnaire_num += 1
+            for col_idx in range(cols_per_page):
+                if questionnaire_num > total_questionnaires:
+                    break
+                cell = table.cell(row_idx, col_idx)
+                cell.width = Inches(4.0)
+                add_questionnaire_to_cell(cell, questionnaire_num)
+                questionnaire_num += 1
 
         # Add page break after each table (except last)
         if page < total_pages - 1:
@@ -217,7 +219,7 @@ def create_document():
     doc.save(output_path)
     print(f"Document saved to: {output_path}")
     print(f"Total questionnaires: {total_questionnaires}")
-    print(f"Questionnaires per page: {rows_per_page}")
+    print(f"Grid layout: {cols_per_page} columns x {rows_per_page} rows = {per_page} per page")
     print(f"Total pages: {total_pages}")
 
 
