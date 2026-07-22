@@ -185,9 +185,10 @@ def main():
     path = sys.argv[1] if len(sys.argv) > 1 else "Class_Participation_Tally_G12-Tesla.xlsx"
     wb = load_workbook(path)
     os.makedirs("preview", exist_ok=True)
+    stem = os.path.splitext(os.path.basename(path))[0]
     for i, ws in enumerate(wb.worksheets, start=1):
         safe = ws.title.replace(" ", "_")
-        render_sheet(ws, f"preview/{i}_{safe}.png")
+        render_sheet(ws, f"preview/{stem}__{i}_{safe}.png")
 
 
 if __name__ == "__main__":

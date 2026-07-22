@@ -81,17 +81,46 @@ NUM_REP_ROWS = 30       # number of rows on the class-representative sheet
 # --------------------------------------------------------------------------- #
 # Palette
 # --------------------------------------------------------------------------- #
-NAVY      = "1F3A5F"   # deep header band
-NAVY_DK   = "16304D"   # title band
-TEAL      = "2E86AB"   # accent band
-LIGHT     = "EAF1F7"   # light blue fill (date header)
-ZEBRA     = "F4F8FB"   # alternate row
-WHITE     = "FFFFFF"
-MALE_CLR  = "2F5597"   # blue section band
-FEMALE_CLR = "9B3B6E"  # mauve section band
-BORDER_CLR = "AEBECD"  # light grid line
-NUMCOL_CLR = "FBEFD6"  # soft amber for the count sub-column
-TEXT_DK   = "1F2A37"
+# Shared (palette-independent) colours
+WHITE      = "FFFFFF"
+BORDER_CLR = "AEBECD"   # light grid line
+TEXT_DK    = "1F2A37"   # body text
+
+# Selectable colour schemes. Each maps the palette-specific roles.
+PALETTES = {
+    # Original navy + teal scheme (used by the Physics 1 sheet)
+    "navy": {
+        "NAVY_DK":    "16304D",   # title band
+        "NAVY":       "1F3A5F",   # header band
+        "TEAL":       "2E86AB",   # accent band / subtitle
+        "LIGHT":      "EAF1F7",   # light fill (date header, teacher line)
+        "ZEBRA":      "F4F8FB",   # alternate row
+        "MALE_CLR":   "2F5597",   # male section band
+        "FEMALE_CLR": "9B3B6E",   # female section band
+        "NUMCOL_CLR": "FBEFD6",   # soft amber for the count sub-column
+    },
+    # Emerald + amber scheme (used by the Research 1 sheet)
+    "emerald": {
+        "NAVY_DK":    "0F3D2E",   # deep emerald title band
+        "NAVY":       "1B5E43",   # emerald header band
+        "TEAL":       "C77D0A",   # amber accent band / subtitle
+        "LIGHT":      "E6F2EB",   # light green fill
+        "ZEBRA":      "F2F9F5",   # alternate row
+        "MALE_CLR":   "1B5E43",   # emerald male section band
+        "FEMALE_CLR": "B26A00",   # amber-bronze female section band
+        "NUMCOL_CLR": "FBEED6",   # soft amber for the count sub-column
+    },
+}
+
+# Active palette values (populated by apply_palette). Defaults to "navy".
+NAVY_DK = NAVY = TEAL = LIGHT = ZEBRA = MALE_CLR = FEMALE_CLR = NUMCOL_CLR = ""
+
+
+def apply_palette(name):
+    """Load a colour scheme into module globals used by the builders."""
+    global med
+    globals().update(PALETTES[name])
+    med = Side(style="medium", color=NAVY)   # rebuild accent border colour
 
 # --------------------------------------------------------------------------- #
 # Helpers
@@ -116,7 +145,7 @@ def align(h="center", v="center", wrap=False, rot=0, indent=0):
 
 
 thin = Side(style="thin", color=BORDER_CLR)
-med = Side(style="medium", color=NAVY)
+med = Side(style="medium", color="1F3A5F")   # rebuilt by apply_palette()
 ALL_THIN = Border(left=thin, right=thin, top=thin, bottom=thin)
 
 
@@ -393,7 +422,10 @@ def _signature_block(ws, r, col, teacher):
 
 
 # --------------------------------------------------------------------------- #
-def main():
+def build_workbook(output, subject, palette):
+    apply_palette(palette)
+    CLASS_INFO["subject"] = subject
+
     wb = Workbook()
     ws1 = wb.active
     ws1.title = "Participation Tally"
@@ -402,8 +434,19 @@ def main():
     ws2 = wb.create_sheet("Class Rep of the Day")
     build_reps(ws2)
 
-    wb.save(OUTPUT)
-    print(f"Saved {OUTPUT}")
+    wb.save(output)
+    print(f"Saved {output}  (subject='{subject}', palette='{palette}')")
+
+
+def main():
+    import argparse
+    p = argparse.ArgumentParser(description="Generate a class participation tally workbook.")
+    p.add_argument("--output", default=OUTPUT, help="output .xlsx filename")
+    p.add_argument("--subject", default=CLASS_INFO["subject"], help="subject label in the header")
+    p.add_argument("--palette", default="navy", choices=list(PALETTES),
+                   help="colour scheme")
+    args = p.parse_args()
+    build_workbook(args.output, args.subject, args.palette)
 
 
 if __name__ == "__main__":
