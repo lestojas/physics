@@ -422,8 +422,8 @@ EXAMPLES.append(dict(
         ("tip", ["The answer is negative because the brick ends up below where it started "
                  "\u2014 expected for a dropped object.",
                  "Since \u201cheight\u201d is a distance (always positive), we report the "
-                 "size of the number, 17.7 m, and drop the minus sign."]),
-        ("answer", "Part (A)", [("\\u{height}", "= 17.7 \\u{m}")]),
+                 "size of the number, 17.69 m, and drop the minus sign."]),
+        ("answer", "Part (A)", [("\\u{height}", "= 17.69 \\u{m}")]),
         ("step", "Step 2.", "Find the impact velocity with the velocity equation "
                             "`v = v_{0} + at`, which is already solved for `v`."),
         ("eq", [("v", "= v_{0} + at")]),
@@ -433,7 +433,7 @@ EXAMPLES.append(dict(
                  "(our negative direction).",
                  "The question asks for the magnitude \u2014 how fast, not which way "
                  "\u2014 so we drop the sign."]),
-        ("answer", "Part (B)", [("|v|", "= 18.6 \\u{m/s}")]),
+        ("answer", "Part (B)", [("|v|", "= 18.62 \\u{m/s}")]),
     ]))
 
 # ---------- Example 2 ----------
@@ -467,8 +467,8 @@ EXAMPLES.append(dict(
                  "(negative y) and still moving downward (negative v).",
                  "Here we keep the signs, unlike Example 1, because the question asks for "
                  "position and velocity \u2014 which include direction."]),
-        ("answer", "Part (A)", [("y", "= \u221223.0 \\u{m}"),
-                                ("v", "= \u221222.7 \\u{m/s}")]),
+        ("answer", "Part (A)", [("y", "= \u221223.03 \\u{m}"),
+                                ("v", "= \u221222.70 \\u{m/s}")]),
         ("step", "Step 2.", "Part (b) gives a position instead of a time, so use the "
                             "equation that skips `t` entirely."),
         ("eq", [("v^{2}", "= v_{0}^{2} + 2a(y \u2212 y_{0})")]),
@@ -479,8 +479,8 @@ EXAMPLES.append(dict(
         ("tip", ["Squaring erases the sign, so this equation always returns two answers, "
                  "+ and \u2212.",
                  "Physically the stone was thrown downward and gravity only speeds it up, so "
-                 "it never reverses \u2014 the velocity stays negative: v = \u221214.9 m/s."]),
-        ("answer", "Part (B)", [("v", "= \u221214.9 \\u{m/s}")]),
+                 "it never reverses \u2014 the velocity stays negative: v = \u221214.86 m/s."]),
+        ("answer", "Part (B)", [("v", "= \u221214.86 \\u{m/s}")]),
     ]))
 
 # ---------- Example 3 ----------
@@ -519,12 +519,12 @@ EXAMPLES.append(dict(
                 ("t", "= \\frac{\u2212v_{0} \u00b1 \\sqrt{v_{0}^{2} + 2ay}}{a}")]),
         ("text", "Substitute `v_{0}` = 9.50 m/s, `a` = \u22129.80 m/s\u00b2, `y` = 3.60 m:"),
         ("eq", [("t", "= \\frac{\u22129.50 \u00b1 \\sqrt{{(9.50)}^{2} + 2(\u22129.80)(3.60)}}{\u22129.80}")]),
-        ("eq", [("t", "= 0.517 \\u{s}     \\u{or}     t = 1.42 \\u{s}")]),
+        ("eq", [("t", "= 0.52 \\u{s}     \\u{or}     t = 1.42 \\u{s}")]),
         ("tip", ["A quadratic in t usually gives two roots, because the object passes a given "
                  "height twice \u2014 once going up, once coming down.",
-                 "t = 0.517 s is the rising pass and t = 1.42 s the falling pass, but the "
+                 "t = 0.52 s is the rising pass and t = 1.42 s the falling pass, but the "
                  "putty sticks on arrival \u2014 so only the smaller time is physical."]),
-        ("answer", "Part (B)", [("t", "= 0.517 \\u{s}")]),
+        ("answer", "Part (B)", [("t", "= 0.52 \\u{s}")]),
     ]))
 
 # ---------- Example 4 ----------
@@ -561,7 +561,7 @@ EXAMPLES.append(dict(
                 ("h", "= \\frac{\u2212v_{0}^{2}}{2a} = \u2212\\frac{1}{2}at_{up}^{2}")]),
         ("text", "Substitute `a` = \u22129.80 m/s\u00b2 and `t_{up}` = 1.80 s:"),
         ("eq", [("h", "= \u2212\\frac{1}{2}(\u22129.80){(1.80)}^{2}")]),
-        ("answer", "", [("\\u{maximum height}", "= 15.9 \\u{m}")]),
+        ("answer", "", [("\\u{maximum height}", "= 15.88 \\u{m}")]),
     ]))
 
 # ---------------------------------------------------------------------------
