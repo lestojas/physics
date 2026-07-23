@@ -415,20 +415,20 @@ EXAMPLES.append(dict(
                             "(no `v` needed) \u2014 this fits part (a) because we know `t` "
                             "but not the final velocity yet."),
         ("eq", [("y \u2212 y_{0}", "= v_{0}t + \\frac{1}{2}at^{2}")]),
-        ("part", "Part (a).", "Substitute `v_{0}` = 0, `a` = \u22129.80 m/s\u00b2, `t` = 1.90 s:"),
-        ("eq", [("y \u2212 0", "= 0 + \\frac{1}{2}(\u22129.80){(1.90)}^{2}"),
-                ("y", "= \u221217.7 \\u{m}")]),
+        ("part", "Part (a).", "Isolate `y`, then substitute `v_{0}` = 0, `a` = \u22129.80 m/s\u00b2, "
+                             "`t` = 1.90 s:"),
+        ("eq", [("y", "= y_{0} + v_{0}t + \\frac{1}{2}at^{2}"),
+                ("y", "= 0 + (0)(1.90) + \\frac{1}{2}(\u22129.80){(1.90)}^{2}")]),
         ("tip", ["The answer is negative because the brick ends up below where it started "
                  "\u2014 expected for a dropped object.",
                  "Since \u201cheight\u201d is a distance (always positive), we report the "
                  "size of the number, 17.7 m, and drop the minus sign."]),
         ("answer", "Part (A)", [("\\u{height}", "= 17.7 \\u{m}")]),
         ("step", "Step 2.", "Find the impact velocity with the velocity equation "
-                            "`v = v_{0} + at` (this links `v`, `v_{0}`, `a`, and `t` directly)."),
+                            "`v = v_{0} + at`, which is already solved for `v`."),
         ("eq", [("v", "= v_{0} + at")]),
         ("part", "Part (b).", "Substitute `v_{0}` = 0, `a` = \u22129.80 m/s\u00b2, `t` = 1.90 s:"),
-        ("eq", [("v", "= 0 + (\u22129.80)(1.90)"),
-                ("", "= \u221218.6 \\u{m/s}")]),
+        ("eq", [("v", "= 0 + (\u22129.80)(1.90)")]),
         ("tip", ["The negative sign just means the velocity points downward "
                  "(our negative direction).",
                  "The question asks for the magnitude \u2014 how fast, not which way "
@@ -455,17 +455,14 @@ EXAMPLES.append(dict(
                  "as a negative number.",
                  "Mixing up a sign here is the most common mistake in this type of problem."]),
         ("step", "Step 1.", "Part (a) gives `t` directly, so use the position and velocity "
-                            "equations that contain `t`."),
+                            "equations that contain `t` \u2014 both are already solved for the "
+                            "quantity we want."),
         ("eq", [("y", "= v_{0}t + \\frac{1}{2}at^{2}"),
                 ("v", "= v_{0} + at")]),
         ("part", "Part (a).", "Substitute `v_{0}` = \u22128.00 m/s, `a` = \u22129.80 m/s\u00b2, "
                              "`t` = 1.50 s:"),
-        ("eq", [("y", "= (\u22128.00)(1.50) + \\frac{1}{2}(\u22129.80){(1.50)}^{2}"),
-                ("", "= \u221212.0 \u2212 11.0"),
-                ("y", "= \u221223.0 \\u{m}")]),
-        ("eq", [("v", "= \u22128.00 + (\u22129.80)(1.50)"),
-                ("", "= \u22128.00 \u2212 14.7"),
-                ("v", "= \u221222.7 \\u{m/s}")]),
+        ("eq", [("y", "= (\u22128.00)(1.50) + \\frac{1}{2}(\u22129.80){(1.50)}^{2}")]),
+        ("eq", [("v", "= \u22128.00 + (\u22129.80)(1.50)")]),
         ("tip", ["Both answers are negative, which makes sense: the stone is below the hand "
                  "(negative y) and still moving downward (negative v).",
                  "Here we keep the signs, unlike Example 1, because the question asks for "
@@ -475,12 +472,10 @@ EXAMPLES.append(dict(
         ("step", "Step 2.", "Part (b) gives a position instead of a time, so use the "
                             "equation that skips `t` entirely."),
         ("eq", [("v^{2}", "= v_{0}^{2} + 2a(y \u2212 y_{0})")]),
-        ("part", "Part (b).", "Substitute `v_{0}` = \u22128.00 m/s, `a` = \u22129.80 m/s\u00b2, "
-                             "`y` = \u22128.00 m:"),
-        ("eq", [("v^{2}", "= {(\u22128.00)}^{2} + 2(\u22129.80)(\u22128.00 \u2212 0)"),
-                ("", "= 64.0 + 156.8"),
-                ("", "= 220.8"),
-                ("v", "= \u00b114.9 \\u{m/s}")]),
+        ("part", "Part (b).", "Solve for `v` (take the square root), then substitute "
+                             "`v_{0}` = \u22128.00 m/s, `a` = \u22129.80 m/s\u00b2, `y` = \u22128.00 m:"),
+        ("eq", [("v", "= \u00b1\\sqrt{v_{0}^{2} + 2a(y \u2212 y_{0})}"),
+                ("v", "= \u00b1\\sqrt{{(\u22128.00)}^{2} + 2(\u22129.80)(\u22128.00 \u2212 0)}")]),
         ("tip", ["Squaring erases the sign, so this equation always returns two answers, "
                  "+ and \u2212.",
                  "Physically the stone was thrown downward and gravity only speeds it up, so "
@@ -504,12 +499,10 @@ EXAMPLES.append(dict(
         ("step", "Step 1.", "Part (a) gives a position, not a time, so skip `t` with "
                             "`v^{2} = v_{0}^{2} + 2a(y \u2212 y_{0})`."),
         ("eq", [("v^{2}", "= v_{0}^{2} + 2a(y \u2212 y_{0})")]),
-        ("part", "Part (a).", "Substitute `v_{0}` = 9.50 m/s, `a` = \u22129.80 m/s\u00b2, "
-                             "`y` = 3.60 m:"),
-        ("eq", [("v^{2}", "= {(9.50)}^{2} + 2(\u22129.80)(3.60)"),
-                ("", "= 90.25 \u2212 70.56"),
-                ("", "= 19.7"),
-                ("v", "= \u00b14.44 \\u{m/s}")]),
+        ("part", "Part (a).", "Solve for `v` (take the square root), then substitute "
+                             "`v_{0}` = 9.50 m/s, `a` = \u22129.80 m/s\u00b2, `y` = 3.60 m:"),
+        ("eq", [("v", "= \u00b1\\sqrt{v_{0}^{2} + 2a(y \u2212 y_{0})}"),
+                ("v", "= \u00b1\\sqrt{{(9.50)}^{2} + 2(\u22129.80)(3.60)}")]),
         ("tip", ["Again a \u00b1 answer, so reason about direction. The highest the putty "
                  "could reach unobstructed is y\u2098\u2090\u2093 = v\u2080\u00b2/(2g) = "
                  "90.25/19.6 \u2248 4.60 m.",
@@ -517,14 +510,15 @@ EXAMPLES.append(dict(
                  "when it hits. Keep the positive root: v = +4.44 m/s."]),
         ("answer", "Part (A)", [("\\u{speed}", "= 4.44 \\u{m/s}")]),
         ("step", "Step 2.", "Part (b) asks for time and we know the position, so use "
-                            "`y = v_{0}t + \\frac{1}{2}at^{2}` and solve the quadratic for `t`."),
+                            "`y = v_{0}t + \\frac{1}{2}at^{2}`. Because `t` is squared, this is "
+                            "a quadratic \u2014 rearrange to standard form and isolate `t` first."),
         ("eq", [("y", "= v_{0}t + \\frac{1}{2}at^{2}")]),
-        ("text", "Substitute `y` = 3.60 m, `v_{0}` = 9.50 m/s, `a` = \u22129.80 m/s\u00b2, "
-                 "and rearrange into standard quadratic form:"),
-        ("eq", [("4.90t^{2} \u2212 9.50t + 3.60", "= 0")]),
-        ("text", "Solve with the quadratic formula:"),
-        ("eq", [("t", "= \\frac{9.50 \u00b1 \\sqrt{{9.50}^{2} \u2212 4(4.90)(3.60)}}{2 \u00d7 4.90}"
-                      " = \\frac{9.50 \u00b1 4.44}{9.80}")]),
+        ("text", "Write it as `\\frac{1}{2}at^{2} + v_{0}t \u2212 y = 0` and solve for `t` with the "
+                 "quadratic formula:"),
+        ("eq", [("\\frac{1}{2}at^{2} + v_{0}t \u2212 y", "= 0"),
+                ("t", "= \\frac{\u2212v_{0} \u00b1 \\sqrt{v_{0}^{2} + 2ay}}{a}")]),
+        ("text", "Substitute `v_{0}` = 9.50 m/s, `a` = \u22129.80 m/s\u00b2, `y` = 3.60 m:"),
+        ("eq", [("t", "= \\frac{\u22129.50 \u00b1 \\sqrt{{(9.50)}^{2} + 2(\u22129.80)(3.60)}}{\u22129.80}")]),
         ("eq", [("t", "= 0.517 \\u{s}     \\u{or}     t = 1.42 \\u{s}")]),
         ("tip", ["A quadratic in t usually gives two roots, because the object passes a given "
                  "height twice \u2014 once going up, once coming down.",
@@ -548,21 +542,25 @@ EXAMPLES.append(dict(
                  "starts and ends at the same height, the trip up takes exactly as long as the "
                  "trip down.",
                  "So the time to reach the very top is half of the total flight time."]),
-        ("step", "Step 1.", "Use symmetry to find the time to reach maximum height."),
-        ("eq", [("t_{up}", "= \\frac{1}{2}(\\u{total time}) = \\frac{1}{2}(3.60 \\u{s}) "
-                          "= 1.80 \\u{s}")]),
+        ("step", "Step 1.", "Use symmetry to find the time to reach maximum height \u2014 "
+                            "isolate `t_{up}` as half the total flight time."),
+        ("eq", [("t_{up}", "= \\frac{1}{2}t_{total}"),
+                ("t_{up}", "= \\frac{1}{2}(3.60 \\u{s}) = 1.80 \\u{s}")]),
         ("step", "Step 2.", "At maximum height the rock is momentarily at rest (`v` = 0). "
-                            "Use `v = v_{0} + at` to back out `v_{0}`."),
-        ("eq", [("0", "= v_{0} + (\u22129.80)(1.80)"),
-                ("v_{0}", "= 17.6 \\u{m/s}")]),
+                            "Use `v = v_{0} + at` and solve for `v_{0}`."),
+        ("eq", [("v", "= v_{0} + at"),
+                ("v_{0}", "= v \u2212 at = \u2212at_{up}"),
+                ("v_{0}", "= \u2212(\u22129.80)(1.80) = 17.6 \\u{m/s}")]),
         ("tip", ["We used t = 1.80 s here (time to the top, where v = 0) \u2014 not 3.60 s.",
                  "Plugging in the full 3.60 s would answer a different question: the velocity "
                  "back at the hand, not at the peak."]),
         ("step", "Step 3.", "Find the maximum height with `v^{2} = v_{0}^{2} + 2a(y \u2212 y_{0})`, "
-                            "again with `v` = 0 at the top."),
-        ("eq", [("0", "= {(17.6)}^{2} + 2(\u22129.80)(h)"),
-                ("h", "= \\frac{{(17.6)}^{2}}{2 \u00d7 9.80} = \\frac{311.2}{19.6}"),
-                ("h", "= 15.9 \\u{m}")]),
+                            "using `v` = 0 and `y \u2212 y_{0}` = `h`. Since `v_{0}` = `\u2212at_{up}`, "
+                            "solving for `h` gives a form in `a` and `t_{up}` only:"),
+        ("eq", [("0", "= v_{0}^{2} + 2ah"),
+                ("h", "= \\frac{\u2212v_{0}^{2}}{2a} = \u2212\\frac{1}{2}at_{up}^{2}")]),
+        ("text", "Substitute `a` = \u22129.80 m/s\u00b2 and `t_{up}` = 1.80 s:"),
+        ("eq", [("h", "= \u2212\\frac{1}{2}(\u22129.80){(1.80)}^{2}")]),
         ("answer", "", [("\\u{maximum height}", "= 15.9 \\u{m}")]),
     ]))
 
@@ -712,4 +710,4 @@ def write_docx(path):
     print("wrote", path, os.path.getsize(path), "bytes; xml OK")
 
 if __name__ == "__main__":
-    write_docx("/projects/sandbox/Guided-Examples-Free-Fall.docx")
+    write_docx("/projects/sandbox/physics/Guided-Examples-Free-Fall.docx")
