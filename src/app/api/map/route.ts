@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { askClaude } from "@/lib/anthropic";
+import { askAI } from "@/lib/ai";
 import { COMPETENCY_MAPPING_PROMPT, buildCompetencyUserMessage } from "@/lib/prompts";
 import { parseJsonLoose } from "@/lib/json";
 
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const reply = await askClaude({
+    const reply = await askAI({
       system: COMPETENCY_MAPPING_PROMPT,
       user: buildCompetencyUserMessage({ syllabusText, targetCompetency }),
       maxTokens: 2000,

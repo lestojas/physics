@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "ILAW Lesson Plan Generator",
   description:
-    "DepEd-aligned, Claude-powered ILAW (7Es) lesson plan generator with a 4-phase, human-in-the-loop workflow.",
+    "DepEd-aligned, Gemini-powered ILAW (7Es) lesson plan generator with a 4-phase, human-in-the-loop workflow.",
 };
 
 export default function RootLayout({
@@ -21,8 +21,8 @@ export default function RootLayout({
               <span className="lamp">&#128161;</span> ILAW Lesson Plan Generator
             </h1>
             <p>
-              DepEd-aligned 7Es lesson plans, drafted with Claude AI under your
-              professional review.
+              DepEd-aligned 7Es lesson plans, drafted with Google Gemini AI under
+              your professional review.
             </p>
           </div>
         </header>

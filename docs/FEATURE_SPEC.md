@@ -8,8 +8,8 @@
 
 ## 1. Purpose
 
-Provide DepEd Philippines teachers a guided web tool that uses Claude AI to draft
-**ILAW (7Es) lesson plans** that are curriculum-aligned, inclusive, and
+Provide DepEd Philippines teachers a guided web tool that uses Google Gemini AI to
+draft **ILAW (7Es) lesson plans** that are curriculum-aligned, inclusive, and
 classroom-ready, while keeping the teacher firmly in control (human-in-the-loop).
 
 ## 2. Goals & Non-Goals
@@ -18,7 +18,7 @@ classroom-ready, while keeping the teacher firmly in control (human-in-the-loop)
 - Generate complete ILAW lesson plans that pass a built-in 9-criteria quality audit.
 - Track vertical competency alignment (prerequisite → target → future).
 - Let teachers approve/tweak activity ideas before the full plan is written.
-- Keep the Anthropic API key private (server-side only).
+- Keep the Gemini API key private (server-side only).
 - Declare AI use per DO 3, s. 2026, Annex A in every output.
 
 **Non-Goals (MVP)**
@@ -39,13 +39,13 @@ Browser (Next.js client)
    │  fetch()
    ▼
 Next.js API routes (server, Node.js runtime)   ← ANTHROPIC_API_KEY lives here only
-   │  @anthropic-ai/sdk
+   │  @google/genai
    ▼
-Anthropic Claude Messages API
+Google Gemini API (generateContent)
 ```
 
 - **Framework:** Next.js 14 (App Router), React 18, TypeScript.
-- **AI:** Anthropic Claude via `@anthropic-ai/sdk`; model configurable via `CLAUDE_MODEL`.
+- **AI:** Google Gemini via `@google/genai` (free tier); model configurable via `GEMINI_MODEL`.
 - **File parsing (server):** `pdf-parse` (PDF), `mammoth` (DOCX), native UTF-8 (TXT/MD).
 - **Rendering:** `react-markdown` + `remark-gfm` for GFM tables.
 
@@ -56,7 +56,7 @@ Anthropic Claude Messages API
 | `POST /api/parse` | 1 & 2 | multipart files | `{ combinedText, files[] }` |
 | `POST /api/map` | 1 | `{ syllabusText, targetCompetency }` | `{ mapping }` (JSON) |
 | `POST /api/activities` | 3 | `{ context }` | `{ activities }` (JSON) |
-| `POST /api/generate` | 4 | `{ context, selectedActivities, tweaks }` | `{ markdown }` |
+| `POST /api/generate` | 4 | `{ context, selectedActivities, tweaks, templateText? }` | `{ markdown }` |
 
 All AI routes run on the Node.js runtime and never expose the API key to the client.
 
@@ -75,6 +75,11 @@ All AI routes run on the Node.js runtime and never expose the API key to the cli
 - Capture: Teacher Name, Learning Area*, Grade Level*, Section, No. of Sessions,
   Target Competency*, Content/Performance Standards, Learner Context.
 - Optionally ingest reference materials (books, toolkits, PDFs, notes).
+- **Template selection:** optionally upload a custom lesson-plan template
+  (`.docx`/`.pdf`/`.txt`/`.md`); if none is uploaded, the built-in default ILAW
+  template (`src/lib/defaultTemplate.ts`) is used automatically. The generated plan
+  follows the chosen template's structure while still enforcing all required ILAW
+  elements (Declaration of AI Use, 7Es, SMART objectives, 10-point reflection).
 - Pedagogical freedom: allow evidence-based external strategies beyond the references.
 
 ### Phase 3 — Interactive Activity Pitch (Human-in-the-Loop)

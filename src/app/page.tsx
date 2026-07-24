@@ -36,6 +36,8 @@ export default function Home() {
   // Phase 2
   const [form, setForm] = useState<LessonContextForm>(EMPTY_FORM);
   const [referencesText, setReferencesText] = useState("");
+  const [templateText, setTemplateText] = useState("");
+  const [templateFileName, setTemplateFileName] = useState("");
 
   // Phase 3
   const [activities, setActivities] = useState<ActivitiesResponse | null>(null);
@@ -158,6 +160,7 @@ export default function Home() {
             elaborate: chosen("elaborate"),
           },
           tweaks,
+          templateText,
         }),
       });
       const data = await res.json();
@@ -186,7 +189,7 @@ export default function Home() {
           <h2>Phase 1 — Curriculum &amp; Competency Tracking</h2>
           <p className="hint">
             Upload your Curriculum Guide / MELC / Syllabus (optional) and enter the
-            target competency. Claude maps what comes before and after it.
+            target competency. Gemini maps what comes before and after it.
           </p>
 
           <div className="field">
@@ -277,7 +280,7 @@ export default function Home() {
         <div className="card">
           <h2>Phase 2 — Context &amp; Reference Ingestion</h2>
           <p className="hint">
-            Tell Claude about your class and materials. The more context, the more
+            Tell Gemini about your class and materials. The more context, the more
             tailored and inclusive the plan.
           </p>
 
@@ -366,6 +369,38 @@ export default function Home() {
             />
           </div>
 
+          <div className="field">
+            <label>Lesson Plan Template</label>
+            {templateText ? (
+              <div className="alert alert-info" style={{ marginBottom: 8 }}>
+                Using your uploaded template:{" "}
+                <strong>{templateFileName || "custom template"}</strong>.{" "}
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setTemplateText("");
+                    setTemplateFileName("");
+                  }}
+                >
+                  Remove &amp; use the default template
+                </a>
+              </div>
+            ) : (
+              <div className="alert alert-info" style={{ marginBottom: 8 }}>
+                Using the <strong>built-in default DepEd ILAW template</strong>. To use
+                your own format, upload it below (.docx, .pdf, .txt, or .md).
+              </div>
+            )}
+            <UploadZone
+              label="Upload your own ILAW template (optional)"
+              onExtracted={(text, fileNames) => {
+                setTemplateText(text);
+                setTemplateFileName(fileNames[0] || "");
+              }}
+            />
+          </div>
+
           <div className="btn-row">
             <button className="btn btn-secondary" onClick={() => setPhase(0)}>
               &larr; Back
@@ -392,14 +427,14 @@ export default function Home() {
         <div className="card">
           <h2>Phase 3 — Interactive Activity Pitch</h2>
           <p className="hint">
-            Pick one option per stage (or leave a stage unpicked to let Claude
+            Pick one option per stage (or leave a stage unpicked to let Gemini
             choose). Add tweak notes below before generating the full plan.
           </p>
 
           {activitiesBusy && (
             <div className="loading-block">
               <div className="spinner" />
-              Claude is designing 3 distinct options for Engage, Explore, and
+              Gemini is designing 3 distinct options for Engage, Explore, and
               Elaborate…
             </div>
           )}
@@ -456,7 +491,7 @@ export default function Home() {
           {planBusy && (
             <div className="loading-block">
               <div className="spinner" />
-              Claude is writing and self-auditing your full ILAW lesson plan…
+              Gemini is writing and self-auditing your full ILAW lesson plan…
             </div>
           )}
 

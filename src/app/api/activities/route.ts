@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { askClaude } from "@/lib/anthropic";
+import { askAI } from "@/lib/ai";
 import {
   ACTIVITY_PITCH_PROMPT,
   buildActivityUserMessage,
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const reply = await askClaude({
+    const reply = await askAI({
       system: ACTIVITY_PITCH_PROMPT,
       user: buildActivityUserMessage(context),
       maxTokens: 4000,

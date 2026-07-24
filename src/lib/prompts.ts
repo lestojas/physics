@@ -1,13 +1,13 @@
 /**
  * All of the "intelligence" of the ILAW Lesson Plan Generator lives here as
- * carefully written system prompts. Claude receives these instructions and
- * produces the actual content. Editing this file changes how the AI behaves —
+ * carefully written system prompts. The AI (Gemini) receives these instructions
+ * and produces the actual content. Editing this file changes how the AI behaves —
  * no other code changes needed.
  */
 
 /**
  * The shared persona + domain knowledge injected into every phase. It defines
- * WHO Claude is acting as and the non-negotiable standards (ILAW 7Es framework
+ * WHO the AI is acting as and the non-negotiable standards (ILAW 7Es framework
  * and the 9-criteria quality audit).
  */
 export const SHARED_PERSONA = `You are an expert Instructional Designer specializing in Department of Education (DepEd) Philippines curriculum standards. You have deep, practical mastery of the K-12 curriculum, the MELCs (Most Essential Learning Competencies), and the ILAW lesson design framework built on the 7Es.
@@ -106,17 +106,24 @@ export const FULL_PLAN_PROMPT = `${SHARED_PERSONA}
 
 # TASK: Generate the Complete DepEd ILAW Lesson Plan (Phase 4)
 
-Using ALL the context provided (competency mapping, lesson context, references, and the teacher's SELECTED activities), produce the complete lesson plan strictly following the DepEd ILAW Template below.
+Using ALL the context provided (competency mapping, lesson context, references, and the teacher's SELECTED activities), produce the complete lesson plan.
+
+You will be given a "LESSON PLAN TEMPLATE" in the user message. That template is AUTHORITATIVE for the structure, section order, headings, and table layout of your output — follow it faithfully and fill in every field. Whether it is the built-in default or a template the teacher uploaded, mirror its format.
+
+Regardless of the template's wording, the finished plan MUST still contain all of these required elements (add them if the template omits any):
+- A **Declaration of AI Use** stating the plan was drafted with AI assistance under the teacher's professional review, in compliance with DepEd Order (DO) No. 3, s. 2026, Annex A.
+- The full **7Es Learning Experience** (ELICIT, ENGAGE, EXPLORE, EXPLAIN, ELABORATE, EVALUATE, EXTEND), incorporating the teacher's SELECTED activities for Engage/Explore/Elaborate exactly as chosen (integrating any tweaks).
+- **SMART Learning Objectives**.
+- A **10-point Reflections & Self-Assessment** checklist with Yes/No/Notes and actionable "Ways Forward".
 
 Before you output, silently self-audit the plan against all 9 Quality-Audit Criteria and revise until every criterion passes. Then output the final plan ONLY.
 
 Format the entire output as clean, well-structured GitHub-Flavored Markdown. Use Markdown TABLES wherever the template calls for structured rows. Do NOT wrap the whole thing in a code fence.
 
-# DepEd ILAW LESSON PLAN — REQUIRED STRUCTURE
+# GUIDANCE PER SECTION (apply within the template's structure)
 
 ## 1. Header & Metadata
-A Markdown table with: Lesson Title, Learning Area, Teacher Name, Grade & Section, Number of Sessions, and References.
-Immediately after, a **Declaration of AI Use** paragraph stating that this lesson plan was drafted with the assistance of an AI tool (Claude) under the teacher's professional review, in compliance with DepEd Order (DO) No. 3, s. 2026, Annex A on the responsible use of AI in teaching and learning.
+Include: Lesson Title, Learning Area, Teacher Name, Grade & Section, Number of Sessions, and References — followed by the **Declaration of AI Use** described above.
 
 ## 2. Intentions
 Clear mastery goals and how they align to the learner context.
@@ -168,6 +175,8 @@ export function buildPlanUserMessage(input: {
     elaborate?: string;
   };
   tweaks?: string;
+  templateText?: string;
+  templateSource?: "default" | "uploaded";
 }): string {
   const parts: string[] = [renderContextBlock(input.context)];
 
@@ -181,6 +190,12 @@ export function buildPlanUserMessage(input: {
   if (input.tweaks && input.tweaks.trim()) {
     parts.push(`\n---\nTEACHER'S REQUESTED TWEAKS / NOTES:\n${input.tweaks}`);
   }
+
+  const label =
+    input.templateSource === "uploaded"
+      ? "LESSON PLAN TEMPLATE (uploaded by the teacher — follow this structure exactly)"
+      : "LESSON PLAN TEMPLATE (built-in default — follow this structure)";
+  parts.push(`\n---\n${label}:\n${input.templateText || "(use a standard ILAW structure)"}`);
 
   return parts.join("\n");
 }
@@ -202,7 +217,7 @@ export interface LessonContext {
   competencyMapping?: unknown;
 }
 
-/** Renders the lesson context as a readable text block for Claude. */
+/** Renders the lesson context as a readable text block for the AI. */
 function renderContextBlock(c: LessonContext): string {
   const lines = [
     "LESSON CONTEXT:",
