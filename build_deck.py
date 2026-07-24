@@ -45,6 +45,14 @@ FONT_H = "Segoe UI Semibold"
 FONT_B = "Segoe UI"
 FONT_L = "Segoe UI Light"
 
+# Global font scale — bump all text up for readability / to fill the slide.
+FSCALE = 1.2
+
+
+def sp(pt, scale=True):
+    """Scaled point size for fonts (spacing values keep using Pt directly)."""
+    return Pt(pt * (FSCALE if scale else 1.0))
+
 EMU_IN = 914400
 SW = 13.333
 SH = 7.5
@@ -126,7 +134,7 @@ def textbox(slide, x, y, w, h, anchor=MSO_ANCHOR.TOP, wrap=True):
 
 def para(tf, runs, size=16, color=INK, bold=False, italic=False,
          align=PP_ALIGN.LEFT, before=0, after=6, line=1.06, font=FONT_B,
-         first=False):
+         first=False, scale=True):
     """runs: str, or list of (text, dict-overrides)."""
     p = tf.paragraphs[0] if first and not tf.paragraphs[0].runs else tf.add_paragraph()
     p.alignment = align
@@ -141,7 +149,7 @@ def para(tf, runs, size=16, color=INK, bold=False, italic=False,
     for text, ov in runs:
         r = p.add_run()
         r.text = text
-        r.font.size = Pt(ov.get("size", size))
+        r.font.size = sp(ov.get("size", size), scale)
         r.font.bold = ov.get("bold", bold)
         r.font.italic = ov.get("italic", italic)
         r.font.name = ov.get("font", font)
@@ -181,12 +189,12 @@ def header(slide, kicker_key, title, num):
     _, ktf = textbox(slide, 1.15, 0.44, 9.5, 0.4, anchor=MSO_ANCHOR.MIDDLE)
     para(ktf, [(label, {})], size=12.5, color=accent, bold=True,
          font=FONT_H, after=0, first=True)
-    # title
-    _, ttf = textbox(slide, 0.7, 0.9, 11.4, 1.1, anchor=MSO_ANCHOR.TOP)
-    para(ttf, title, size=32, color=INK, bold=True, font=FONT_H,
-         after=0, first=True, line=1.0)
+    # title (fixed size — kept large but stable so long titles don't wrap)
+    _, ttf = textbox(slide, 0.7, 0.86, 12.1, 1.0, anchor=MSO_ANCHOR.TOP)
+    para(ttf, title, size=35, color=INK, bold=True, font=FONT_H,
+         after=0, first=True, line=1.0, scale=False)
     # underline accent
-    rect(slide, 0.72, 1.72, 1.5, 0.06, fill=accent)
+    rect(slide, 0.72, 1.72, 1.6, 0.07, fill=accent)
     # slide number
     _, ntf = textbox(slide, SW - 1.2, SH - 0.55, 0.9, 0.35,
                      anchor=MSO_ANCHOR.MIDDLE)
@@ -258,7 +266,7 @@ def flowchart(slide, y, highlight=None, accent=SAND_DK, cx=None, w_total=11.9,
             pp.line_spacing = 1.0
             r = pp.add_run()
             r.text = ln
-            r.font.size = Pt(size)
+            r.font.size = sp(size)
             r.font.bold = True
             r.font.name = FONT_H
             r.font.color.rgb = tcol
@@ -304,7 +312,7 @@ def styled_table(slide, data, x, y, w, h, col_w=None, header=True,
             for text, ov in runs:
                 rn = p.add_run()
                 rn.text = text
-                rn.font.size = Pt(ov.get("size", hsize if is_head else fsize))
+                rn.font.size = sp(ov.get("size", hsize if is_head else fsize))
                 rn.font.bold = ov.get("bold", header_bold if is_head else False)
                 rn.font.italic = ov.get("italic", False)
                 rn.font.name = FONT_H if (is_head or ov.get("bold")) else FONT_B
@@ -323,14 +331,14 @@ def bullets(tf, items, size=17, color=INK, gap=8, bullet_color=None,
         p.line_spacing = 1.08
         m = p.add_run()
         m.text = marker + "  "
-        m.font.size = Pt(size)
+        m.font.size = sp(size)
         m.font.bold = True
         m.font.name = FONT_H
         m.font.color.rgb = bullet_color or color
         for text, ov in runs:
             r = p.add_run()
             r.text = text
-            r.font.size = Pt(ov.get("size", size))
+            r.font.size = sp(ov.get("size", size))
             r.font.bold = ov.get("bold", False)
             r.font.italic = ov.get("italic", False)
             r.font.name = ov.get("font", FONT_B)
@@ -345,22 +353,22 @@ def numbered(tf, items, size=17, color=INK, gap=8, num_color=TEAL, first=True):
         p.line_spacing = 1.08
         m = p.add_run()
         m.text = f"{i+1}   "
-        m.font.size = Pt(size)
+        m.font.size = sp(size)
         m.font.bold = True
         m.font.name = FONT_H
         m.font.color.rgb = num_color
         for text, ov in runs:
             r = p.add_run()
             r.text = text
-            r.font.size = Pt(ov.get("size", size))
+            r.font.size = sp(ov.get("size", size))
             r.font.bold = ov.get("bold", False)
             r.font.italic = ov.get("italic", False)
             r.font.name = ov.get("font", FONT_B)
             r.font.color.rgb = ov.get("color", color)
 
 
-def apply_chip(slide, x, y, accent, text="APPLY IT", width=1.35):
-    chip = rect(slide, x, y, width, 0.42, fill=accent,
+def apply_chip(slide, x, y, accent, text="APPLY IT", width=1.6):
+    chip = rect(slide, x, y, width, 0.46, fill=accent,
                 shape=MSO_SHAPE.ROUNDED_RECTANGLE)
     chip.adjustments[0] = 0.5
     tf = chip.text_frame
@@ -370,7 +378,7 @@ def apply_chip(slide, x, y, accent, text="APPLY IT", width=1.35):
     p = tf.paragraphs[0]
     p.alignment = PP_ALIGN.CENTER
     r = p.add_run(); r.text = text
-    r.font.size = Pt(12.5); r.font.bold = True
+    r.font.size = sp(12.5); r.font.bold = True
     r.font.name = FONT_H; r.font.color.rgb = WHITE
     return chip
 
@@ -428,7 +436,7 @@ set_notes(s, "Title slide for Lecture 2: Research Ethics. Target competencies: "
 # ============================================================================
 s = base_slide()
 header(s, "foundation", "How This Lecture Works", 0)
-_, tf = textbox(s, 0.7, 2.0, 6.0, 3.0)
+_, tf = textbox(s, 0.7, 2.0, 6.05, 4.6)
 para(tf, [("One story, start to finish.", {"bold": True, "size": 19,
            "color": TEAL, "font": FONT_H})], after=6, first=True)
 para(tf, [("A single recurring case study runs across the whole lecture, so "
@@ -655,7 +663,7 @@ set_notes(s, "Walk through each column using the water filter scenario as a runn
 s = base_slide()
 header(s, "foundation", "Who Could Be Affected?", 5)
 apply_chip(s, 0.7, 1.95, AQUA)
-_, tf = textbox(s, 2.25, 1.98, 10, 0.45, anchor=MSO_ANCHOR.MIDDLE)
+_, tf = textbox(s, 2.55, 1.98, 10, 0.5, anchor=MSO_ANCHOR.MIDDLE)
 para(tf, [("Return to the Barangay Water Filter Project.", {"bold": True,
            "size": 16, "color": TEAL})], after=0, first=True)
 _, tf = textbox(s, 0.7, 2.65, 11.9, 0.5)
@@ -870,7 +878,7 @@ set_notes(s, "This is the broadest of the four principles, so anchor it firmly w
 s = base_slide()
 header(s, "standards", "Ethical Standards Decision Tree", 11)
 apply_chip(s, 0.7, 1.95, AQUA)
-_, tf = textbox(s, 2.25, 1.98, 10.4, 0.7, anchor=MSO_ANCHOR.MIDDLE)
+_, tf = textbox(s, 2.55, 1.9, 10.0, 0.8, anchor=MSO_ANCHOR.MIDDLE)
 para(tf, [("For each mini-scenario, decide ", {"size": 14.5}),
           ("which of the four standards", {"bold": True, "size": 14.5}),
           (" is most directly at risk — Honesty, Respect, Confidentiality, "
@@ -1058,7 +1066,7 @@ set_notes(s, "This is the pivot slide of the entire lecture — deliver it with 
 s = base_slide()
 header(s, "stages", "Trace the Stages", 16)
 apply_chip(s, 0.7, 1.9, SAND_DK)
-_, tf = textbox(s, 2.25, 1.93, 10.4, 0.6, anchor=MSO_ANCHOR.MIDDLE)
+_, tf = textbox(s, 2.55, 1.87, 10.0, 0.72, anchor=MSO_ANCHOR.MIDDLE)
 para(tf, [("Sort the following researcher actions into the correct stage — "
            "Planning, Collecting, Analyzing, or Reporting.", {"size": 14.5})],
      after=0, first=True, line=1.1)
@@ -1236,7 +1244,7 @@ set_notes(s, "This slide answers the question students are often silently asking
 s = base_slide()
 header(s, "bridge", "Plagiarism or Proper Credit?", 20)
 apply_chip(s, 0.7, 1.95, CORAL)
-_, tf = textbox(s, 2.25, 1.98, 10, 0.45, anchor=MSO_ANCHOR.MIDDLE)
+_, tf = textbox(s, 2.55, 1.98, 10, 0.5, anchor=MSO_ANCHOR.MIDDLE)
 para(tf, [("Which version properly credits the source?", {"bold": True,
            "size": 16, "color": CORAL})], after=0, first=True)
 versions = [
@@ -1376,7 +1384,7 @@ set_notes(s, "Keep the focus tightly on the author-date format — this is the o
 s = base_slide()
 header(s, "citation", "Practice In-Text Citations", 23)
 apply_chip(s, 0.7, 1.95, PURPLE)
-_, tf = textbox(s, 2.25, 1.98, 10.2, 0.45, anchor=MSO_ANCHOR.MIDDLE)
+_, tf = textbox(s, 2.55, 1.98, 10.0, 0.5, anchor=MSO_ANCHOR.MIDDLE)
 para(tf, [("Add a properly formatted APA in-text citation to each sentence.", {"bold": True, "size": 15.5, "color": PURPLE})],
      after=0, first=True)
 items = [
@@ -1511,15 +1519,15 @@ set_notes(s, "This slide exists specifically so students can see a complete, rea
 s = base_slide()
 header(s, "citation", "Build a Reference List", 26)
 apply_chip(s, 0.7, 1.95, PURPLE)
-_, tf = textbox(s, 2.25, 1.98, 10.2, 0.45, anchor=MSO_ANCHOR.MIDDLE)
+_, tf = textbox(s, 2.55, 1.98, 10.0, 0.5, anchor=MSO_ANCHOR.MIDDLE)
 para(tf, [("Turn this source information into a properly formatted APA "
            "reference entry.", {"bold": True, "size": 15, "color": PURPLE})],
      after=0, first=True)
 # source-detail panel
-sp = rect(s, 0.7, 2.65, 6.1, 4.0, fill=WHITE, line=FAINT,
-          shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-sp.adjustments[0] = 0.03
-soft_shadow(sp)
+srcpanel = rect(s, 0.7, 2.65, 6.1, 4.0, fill=WHITE, line=FAINT,
+                shape=MSO_SHAPE.ROUNDED_RECTANGLE)
+srcpanel.adjustments[0] = 0.03
+soft_shadow(srcpanel)
 rect(s, 0.7, 2.65, 6.1, 0.6, fill=PURPLE, shape=MSO_SHAPE.ROUND_2_SAME_RECTANGLE)
 _, htf = textbox(s, 0.95, 2.65, 5.6, 0.6, anchor=MSO_ANCHOR.MIDDLE)
 para(htf, [("SOURCE DETAILS", {})], size=13.5, color=WHITE, bold=True,
@@ -1564,8 +1572,8 @@ set_notes(s, "This is the culminating skills-practice slide for citation mechani
 # ============================================================================
 s = base_slide()
 header(s, "integrate", "Full Ethics and Citation Audit", 27)
-apply_chip(s, 0.7, 1.9, TEAL, text="APPLY IT — ONE LAST TIME", width=2.75)
-_, tf = textbox(s, 3.65, 1.9, 8.9, 0.6, anchor=MSO_ANCHOR.MIDDLE)
+apply_chip(s, 0.7, 1.9, TEAL, text="APPLY IT — ONE LAST TIME", width=3.15)
+_, tf = textbox(s, 4.05, 1.87, 8.5, 0.66, anchor=MSO_ANCHOR.MIDDLE)
 para(tf, [("The Barangay Water Filter researchers are ready to submit their "
            "final report. Audit their draft against everything covered today:", {"size": 13.5})],
      after=0, first=True, line=1.1)
