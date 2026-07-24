@@ -449,9 +449,7 @@ para(tf, [("Sources.", {"bold": True, "size": 19, "color": TEAL, "font": FONT_H}
      after=6)
 para(tf, [("Textbook material is drawn from ", {}),
           ("Creswell & Creswell (2023), Research Design, Ch. 4", {"italic": True}),
-          (" — the “Ethical Issues” section and Table 4.1. Examples not from "
-           "the textbook are labeled ", {}),
-          ("Instructor-Created Example", {"bold": True}), (".", {})],
+          (" — the “Ethical Issues” section and Table 4.1.", {})],
      size=15.5, after=0)
 # case study panel
 cs = rect(s, 7.0, 2.0, 5.5, 4.55, fill=WHITE, line=FAINT,
@@ -462,11 +460,9 @@ rect(s, 7.0, 2.0, 5.5, 0.7, fill=AQUA, shape=MSO_SHAPE.ROUND_2_SAME_RECTANGLE)
 _, ctf = textbox(s, 7.28, 2.05, 5.0, 0.62, anchor=MSO_ANCHOR.MIDDLE)
 para(ctf, [("RECURRING CASE STUDY", {})], size=13, color=WHITE, bold=True,
      font=FONT_H, after=0, first=True)
-_, ctf = textbox(s, 7.3, 2.85, 4.95, 3.55)
+_, ctf = textbox(s, 7.3, 2.9, 4.95, 3.5, anchor=MSO_ANCHOR.MIDDLE)
 para(ctf, [("The Barangay Water Filter Project", {"bold": True, "size": 17,
-            "color": TEAL, "font": FONT_H})], after=3, first=True)
-para(ctf, [("Instructor-Created Example", {"italic": True, "size": 12,
-            "color": MUTED})], after=8)
+            "color": TEAL, "font": FONT_H})], after=8, first=True)
 para(ctf, [("Grade 12 STEM researchers test whether a low-cost filter of "
             "coconut-husk charcoal, sand, and gravel can reduce bacterial "
             "contamination in a rural barangay's shared well. They sample "
@@ -756,7 +752,7 @@ def concept_example(num, section, title, kind, concept_runs, list_items,
     bullets(tf2, list_items, size=16, gap=7, bullet_color=ac,
             marker=list_marker, first=True)
     # example card at bottom
-    example_card(s, 0.7, 5.55, 11.9, 1.35, "EXAMPLE (Instructor-Created):",
+    example_card(s, 0.7, 5.55, 11.9, 1.35, "EXAMPLE:",
                  example_runs, ac)
     return s
 
@@ -1130,7 +1126,7 @@ para(tf, [("Plagiarism is not just a ", {}), ("rule", {"italic": True}),
           (". It breaks the same standard of honesty and integrity introduced "
            "earlier in this lesson.", {})],
      size=17, after=0, first=True, line=1.15)
-example_card(s, 0.7, 4.95, 11.9, 1.55, "EXAMPLE (Instructor-Created):",
+example_card(s, 0.7, 4.95, 11.9, 1.55, "EXAMPLE:",
              [[("If the researchers build their filter using the earlier student's "
                 "design but never mention that design in their report, readers are "
                 "misled into thinking the design is original — that's plagiarism.", {})]],
@@ -1474,9 +1470,6 @@ set_notes(s, "Present these three templates as patterns to recognize, not to mem
 # ============================================================================
 s = base_slide()
 header(s, "citation", "Sample APA Reference Entries", 25)
-_, tf = textbox(s, 0.7, 1.9, 11.9, 0.45)
-para(tf, [("Instructor-Created Examples, formatted for illustration", {"italic": True})],
-     size=13.5, color=MUTED, after=0, first=True)
 samples = [
     ("Book", C_HONESTY, [
         ("Santos, M. R. (2020). ", {}),
@@ -1491,9 +1484,9 @@ samples = [
         ("Community water testing guidelines.", {"italic": True}),
         (" DOST Philippines. https://www.dost.gov.ph", {})]),
 ]
-y = 2.5; rh = 1.35
+y = 2.3; rh = 1.35
 for i, (label, col, runs) in enumerate(samples):
-    yy = y + i * (rh + 0.2)
+    yy = y + i * (rh + 0.22)
     card = rect(s, 0.7, yy, 11.9, rh, fill=WHITE, line=FAINT,
                 shape=MSO_SHAPE.ROUNDED_RECTANGLE)
     card.adjustments[0] = 0.05
@@ -1639,6 +1632,24 @@ set_notes(s, "Appendix: Slide-to-Competency Alignment Map. Slides 1-5 build the 
              "application (Comp. 9 & 10).")
 
 # ----------------------------------------------------------------------------
+# Move teacher-facing provenance out of the visible slides and into notes.
+# (Examples were labeled "Instructor-Created Example" on-slide; that authoring
+# detail belongs in the speaker notes, not in the students' view.)
+def append_note(slide_index, text):
+    tf = prs.slides[slide_index].notes_slide.notes_text_frame
+    tf.text = (tf.text.rstrip() + "\n\n" + text)
+
+
+# Content slides whose EXAMPLE callout is instructor-created (slide -> index+1)
+_example_slide_indices = [8, 9, 10, 11, 13, 14, 15, 18]  # Slides 7,8,9,10,12,13,14,17
+for _i in _example_slide_indices:
+    append_note(_i, "[Provenance] The EXAMPLE on this slide is an "
+                    "instructor-created scenario (not drawn from the textbook). "
+                    "This label is kept in the notes only, not on the student slide.")
+# Slide 25 — sample reference entries
+append_note(26, "[Provenance] These three sample reference entries are "
+                "instructor-created and formatted for illustration only.")
+
 out = "/projects/sandbox/physics/Lecture2-Research-Ethics.pptx"
 prs.save(out)
 print("Saved", out, "with", len(prs.slides._sldIdLst), "slides")
