@@ -45,13 +45,15 @@ FONT_H = "Segoe UI Semibold"
 FONT_B = "Segoe UI"
 FONT_L = "Segoe UI Light"
 
-# Global font scale — bump all text up for readability / to fill the slide.
-FSCALE = 1.2
+# Body-text minimum. scale=True enforces this floor (main slide content);
+# scale=False uses the exact size (titles, top subtitles, diagram labels,
+# chips/footers, and deliberately-reduced text on dense slides).
+BODY_MIN = 28.0
 
 
 def sp(pt, scale=True):
-    """Scaled point size for fonts (spacing values keep using Pt directly)."""
-    return Pt(pt * (FSCALE if scale else 1.0))
+    """Font size. scale=True clamps up to the 28pt body minimum."""
+    return Pt(max(pt, BODY_MIN) if scale else pt)
 
 EMU_IN = 914400
 SW = 13.333
@@ -186,9 +188,9 @@ def header(slide, kicker_key, title, num):
     rect(slide, 0, 0, 0.22, SH, fill=accent)
     # kicker chip
     chip = rect(slide, 0.7, 0.5, 0.34, 0.34, fill=accent, shape=MSO_SHAPE.OVAL)
-    _, ktf = textbox(slide, 1.15, 0.44, 9.5, 0.4, anchor=MSO_ANCHOR.MIDDLE)
-    para(ktf, [(label, {})], size=12.5, color=accent, bold=True,
-         font=FONT_H, after=0, first=True)
+    _, ktf = textbox(slide, 1.2, 0.42, 11.0, 0.42, anchor=MSO_ANCHOR.MIDDLE)
+    para(ktf, [(label, {})], size=14, color=accent, bold=True,
+         font=FONT_H, after=0, first=True, scale=False)
     # title (fixed size — kept large but stable so long titles don't wrap)
     _, ttf = textbox(slide, 0.7, 0.86, 12.1, 1.0, anchor=MSO_ANCHOR.TOP)
     para(ttf, title, size=35, color=INK, bold=True, font=FONT_H,
@@ -198,28 +200,29 @@ def header(slide, kicker_key, title, num):
     # slide number
     _, ntf = textbox(slide, SW - 1.2, SH - 0.55, 0.9, 0.35,
                      anchor=MSO_ANCHOR.MIDDLE)
-    para(ntf, [(f"{num:02d}", {})], size=12, color=MUTED, bold=True,
-         align=PP_ALIGN.RIGHT, after=0, first=True, font=FONT_H)
+    para(ntf, [(f"{num:02d}", {})], size=13, color=MUTED, bold=True,
+         align=PP_ALIGN.RIGHT, after=0, first=True, font=FONT_H, scale=False)
     # footer label
     _, ftf = textbox(slide, 0.7, SH - 0.55, 8.0, 0.35, anchor=MSO_ANCHOR.MIDDLE)
-    para(ftf, [("Lecture 2 · Research Ethics", {})], size=10, color=MUTED,
-         after=0, first=True)
+    para(ftf, [("Lecture 2 · Research Ethics", {})], size=11, color=MUTED,
+         after=0, first=True, scale=False)
     return accent
 
 
-def example_card(slide, x, y, w, h, label, body_runs, accent):
+def example_card(slide, x, y, w, h, label, body_runs, accent,
+                 body_size=28, body_scale=True):
     """A highlighted 'Example' callout with a colored left rail."""
     card = rect(slide, x, y, w, h, fill=WHITE, line=FAINT, line_w=1.0,
                 shape=MSO_SHAPE.ROUNDED_RECTANGLE)
     card.adjustments[0] = 0.04
     soft_shadow(card, blur=0.07, dist=0.04, alpha=60000)
     rect(slide, x, y, 0.12, h, fill=accent, shape=MSO_SHAPE.ROUND_2_SAME_RECTANGLE)
-    _, tf = textbox(slide, x + 0.32, y + 0.16, w - 0.55, h - 0.3,
+    _, tf = textbox(slide, x + 0.32, y + 0.14, w - 0.55, h - 0.26,
                     anchor=MSO_ANCHOR.MIDDLE)
-    para(tf, [(label + "  ", {"color": accent, "bold": True, "size": 12.5,
-                              "font": FONT_H})], after=4, first=True)
+    para(tf, [(label + "  ", {"color": accent, "bold": True, "size": 15,
+                              "font": FONT_H})], after=3, first=True, scale=False)
     for rr in body_runs:
-        para(tf, rr, size=14.5, color=INK, after=2)
+        para(tf, rr, size=body_size, color=INK, after=2, scale=body_scale)
     return card
 
 
@@ -266,7 +269,7 @@ def flowchart(slide, y, highlight=None, accent=SAND_DK, cx=None, w_total=11.9,
             pp.line_spacing = 1.0
             r = pp.add_run()
             r.text = ln
-            r.font.size = sp(size)
+            r.font.size = sp(size, False)
             r.font.bold = True
             r.font.name = FONT_H
             r.font.color.rgb = tcol
@@ -274,7 +277,7 @@ def flowchart(slide, y, highlight=None, accent=SAND_DK, cx=None, w_total=11.9,
 
 def styled_table(slide, data, x, y, w, h, col_w=None, header=True,
                  accent=TEAL, fsize=14, hsize=14.5, header_bold=True,
-                 align_first_left=True):
+                 align_first_left=True, scale=False):
     rows, cols = len(data), len(data[0])
     gtbl = slide.shapes.add_table(rows, cols, Inches(x), Inches(y),
                                   Inches(w), Inches(h))
@@ -312,7 +315,7 @@ def styled_table(slide, data, x, y, w, h, col_w=None, header=True,
             for text, ov in runs:
                 rn = p.add_run()
                 rn.text = text
-                rn.font.size = sp(ov.get("size", hsize if is_head else fsize))
+                rn.font.size = sp(ov.get("size", hsize if is_head else fsize), scale)
                 rn.font.bold = ov.get("bold", header_bold if is_head else False)
                 rn.font.italic = ov.get("italic", False)
                 rn.font.name = FONT_H if (is_head or ov.get("bold")) else FONT_B
@@ -320,8 +323,8 @@ def styled_table(slide, data, x, y, w, h, col_w=None, header=True,
     return tbl
 
 
-def bullets(tf, items, size=17, color=INK, gap=8, bullet_color=None,
-            marker="•", first=True):
+def bullets(tf, items, size=28, color=INK, gap=8, bullet_color=None,
+            marker="•", first=True, scale=True):
     for i, it in enumerate(items):
         runs = it if isinstance(it, list) else [(it, {})]
         p = tf.paragraphs[0] if (first and i == 0 and not tf.paragraphs[0].runs) else tf.add_paragraph()
@@ -331,21 +334,22 @@ def bullets(tf, items, size=17, color=INK, gap=8, bullet_color=None,
         p.line_spacing = 1.08
         m = p.add_run()
         m.text = marker + "  "
-        m.font.size = sp(size)
+        m.font.size = sp(size, scale)
         m.font.bold = True
         m.font.name = FONT_H
         m.font.color.rgb = bullet_color or color
         for text, ov in runs:
             r = p.add_run()
             r.text = text
-            r.font.size = sp(ov.get("size", size))
+            r.font.size = sp(ov.get("size", size), scale)
             r.font.bold = ov.get("bold", False)
             r.font.italic = ov.get("italic", False)
             r.font.name = ov.get("font", FONT_B)
             r.font.color.rgb = ov.get("color", color)
 
 
-def numbered(tf, items, size=17, color=INK, gap=8, num_color=TEAL, first=True):
+def numbered(tf, items, size=28, color=INK, gap=8, num_color=TEAL, first=True,
+             scale=True):
     for i, it in enumerate(items):
         runs = it if isinstance(it, list) else [(it, {})]
         p = tf.paragraphs[0] if (first and i == 0 and not tf.paragraphs[0].runs) else tf.add_paragraph()
@@ -353,14 +357,14 @@ def numbered(tf, items, size=17, color=INK, gap=8, num_color=TEAL, first=True):
         p.line_spacing = 1.08
         m = p.add_run()
         m.text = f"{i+1}   "
-        m.font.size = sp(size)
+        m.font.size = sp(size, scale)
         m.font.bold = True
         m.font.name = FONT_H
         m.font.color.rgb = num_color
         for text, ov in runs:
             r = p.add_run()
             r.text = text
-            r.font.size = sp(ov.get("size", size))
+            r.font.size = sp(ov.get("size", size), scale)
             r.font.bold = ov.get("bold", False)
             r.font.italic = ov.get("italic", False)
             r.font.name = ov.get("font", FONT_B)
@@ -378,7 +382,7 @@ def apply_chip(slide, x, y, accent, text="APPLY IT", width=1.6):
     p = tf.paragraphs[0]
     p.alignment = PP_ALIGN.CENTER
     r = p.add_run(); r.text = text
-    r.font.size = sp(12.5); r.font.bold = True
+    r.font.size = sp(14, False); r.font.bold = True
     r.font.name = FONT_H; r.font.color.rgb = WHITE
     return chip
 
@@ -411,19 +415,19 @@ para(tf, [("Research Ethics", {})], size=60, color=WHITE, bold=True,
 para(tf, [("Doing science honestly — from planning to citation", {})],
      size=21, color=RGBColor(0xCF, 0xE6, 0xE2), italic=True, font=FONT_L, after=0)
 # competency + audience pills
-py = 4.75
+py = 4.7
 for i, (t) in enumerate([
         "Competency 9 · Apply ethical standards in all stages of research",
         "Competency 10 · Demonstrate proper citation of sources"]):
-    pill = rect(s, 0.95, py + i*0.62, 8.6, 0.5, fill=RGBColor(0x14,0x5A,0x6B),
+    pill = rect(s, 0.95, py + i*0.7, 10.2, 0.58, fill=RGBColor(0x14,0x5A,0x6B),
                 shape=MSO_SHAPE.ROUNDED_RECTANGLE)
     pill.adjustments[0] = 0.5
-    _, ptf = textbox(s, 1.2, py + i*0.62, 8.2, 0.5, anchor=MSO_ANCHOR.MIDDLE)
-    para(ptf, [(t, {})], size=14, color=WHITE, bold=True, font=FONT_H,
-         after=0, first=True)
+    _, ptf = textbox(s, 1.25, py + i*0.7, 9.8, 0.58, anchor=MSO_ANCHOR.MIDDLE)
+    para(ptf, [(t, {})], size=16, color=WHITE, bold=True, font=FONT_H,
+         after=0, first=True, scale=False)
 _, tf = textbox(s, 0.98, 6.35, 10, 0.5)
-para(tf, [("Grade 12 STEM · Senior High School", {})], size=14,
-     color=RGBColor(0x9F,0xC7,0xC2), font=FONT_B, after=0, first=True)
+para(tf, [("Grade 12 STEM · Senior High School", {})], size=17,
+     color=RGBColor(0x9F,0xC7,0xC2), font=FONT_B, after=0, first=True, scale=False)
 set_notes(s, "Title slide for Lecture 2: Research Ethics. Target competencies: "
              "(9) apply ethical standards in all stages of the research process, and "
              "(10) demonstrate proper citation of sources. Audience: Grade 12 STEM, "
@@ -436,21 +440,21 @@ set_notes(s, "Title slide for Lecture 2: Research Ethics. Target competencies: "
 # ============================================================================
 s = base_slide()
 header(s, "foundation", "How This Lecture Works", 0)
-_, tf = textbox(s, 0.7, 2.0, 6.05, 4.6)
-para(tf, [("One story, start to finish.", {"bold": True, "size": 19,
-           "color": TEAL, "font": FONT_H})], after=6, first=True)
+_, tf = textbox(s, 0.7, 2.05, 6.05, 4.6)
+para(tf, [("One story, start to finish.", {"bold": True, "size": 23,
+           "color": TEAL, "font": FONT_H})], after=6, first=True, scale=False)
 para(tf, [("A single recurring case study runs across the whole lecture, so "
            "research ethics and citation feel like a ", {}),
           ("connected story", {"italic": True, "bold": True}),
           (" — not a list of disconnected rules. Reusing it also lowers "
            "cognitive load: no new scenario to learn every few slides.", {})],
-     size=15.5, after=12)
-para(tf, [("Sources.", {"bold": True, "size": 19, "color": TEAL, "font": FONT_H})],
-     after=6)
+     size=19, after=16, scale=False, line=1.14)
+para(tf, [("Sources.", {"bold": True, "size": 23, "color": TEAL, "font": FONT_H})],
+     after=6, scale=False)
 para(tf, [("Textbook material is drawn from ", {}),
           ("Creswell & Creswell (2023), Research Design, Ch. 4", {"italic": True}),
           (" — the “Ethical Issues” section and Table 4.1.", {})],
-     size=15.5, after=0)
+     size=19, after=0, scale=False, line=1.14)
 # case study panel
 cs = rect(s, 7.0, 2.0, 5.5, 4.55, fill=WHITE, line=FAINT,
           shape=MSO_SHAPE.ROUNDED_RECTANGLE)
@@ -458,18 +462,18 @@ cs.adjustments[0] = 0.03
 soft_shadow(cs)
 rect(s, 7.0, 2.0, 5.5, 0.7, fill=AQUA, shape=MSO_SHAPE.ROUND_2_SAME_RECTANGLE)
 _, ctf = textbox(s, 7.28, 2.05, 5.0, 0.62, anchor=MSO_ANCHOR.MIDDLE)
-para(ctf, [("RECURRING CASE STUDY", {})], size=13, color=WHITE, bold=True,
-     font=FONT_H, after=0, first=True)
-_, ctf = textbox(s, 7.3, 2.9, 4.95, 3.5, anchor=MSO_ANCHOR.MIDDLE)
-para(ctf, [("The Barangay Water Filter Project", {"bold": True, "size": 17,
-            "color": TEAL, "font": FONT_H})], after=8, first=True)
+para(ctf, [("RECURRING CASE STUDY", {})], size=14, color=WHITE, bold=True,
+     font=FONT_H, after=0, first=True, scale=False)
+_, ctf = textbox(s, 7.3, 2.88, 4.95, 3.55, anchor=MSO_ANCHOR.MIDDLE)
+para(ctf, [("The Barangay Water Filter Project", {"bold": True, "size": 21,
+            "color": TEAL, "font": FONT_H})], after=8, first=True, scale=False)
 para(ctf, [("Grade 12 STEM researchers test whether a low-cost filter of "
             "coconut-husk charcoal, sand, and gravel can reduce bacterial "
             "contamination in a rural barangay's shared well. They sample "
             "household water before and after filtering, interview residents "
             "about water habits, and compare results to a filter design "
             "published earlier by another student researcher.", {})],
-     size=13.5, after=0, line=1.12)
+     size=16.5, after=0, line=1.16, scale=False)
 set_notes(s, "A note on structure before you build: this script uses one recurring "
              "case study across the whole lecture so students experience research "
              "ethics and citation as a connected story, not a list of disconnected "
@@ -484,48 +488,50 @@ set_notes(s, "A note on structure before you build: this script uses one recurri
 s = base_slide()
 header(s, "foundation", "A Filter, A Village, A Dilemma", 1)
 # narrative panel (full-bleed feel)
-panel = rect(s, 0.7, 2.0, 7.7, 4.6, fill=WHITE, line=FAINT,
+panel = rect(s, 0.7, 1.95, 8.55, 4.98, fill=WHITE, line=FAINT,
              shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-panel.adjustments[0] = 0.03
+panel.adjustments[0] = 0.025
 soft_shadow(panel)
-_, tf = textbox(s, 1.05, 2.3, 7.05, 4.0, anchor=MSO_ANCHOR.MIDDLE)
+_, tf = textbox(s, 1.05, 2.12, 7.95, 4.72, anchor=MSO_ANCHOR.MIDDLE)
 para(tf, [("Grade 12 researchers want to test a homemade water filter in a "
            "rural barangay. Before they collect a single drop of water, they "
            "face questions no data can answer for them:", {})],
-     size=16.5, after=10, first=True)
+     size=21, after=8, first=True, scale=False, line=1.08)
 bullets(tf, [
     "Who gets to decide if the community participates?",
     [("What happens if the filter ", {}), ("doesn't", {"italic": True}),
      (" work — do they still report that?", {})],
     "What if their filter design looks a lot like someone else's?",
-], size=16, gap=8, bullet_color=AQUA, first=False)
+], size=21, gap=7, bullet_color=AQUA, first=False, scale=False)
 para(tf, [("This is where research ethics begins — before the “research” "
-           "even starts.", {"italic": True})], size=16.5, color=TEAL,
-     bold=True, after=0)
+           "even starts.", {"italic": True})], size=21, color=TEAL,
+     bold=True, after=0, scale=False, line=1.08, before=6)
 # visual: illustrated well + filter
-vx = 8.75
-vp = rect(s, vx, 2.0, 3.8, 4.6, fill=TEAL, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
+vx = 9.5
+vp = rect(s, vx, 2.0, 3.05, 4.9, fill=TEAL, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
 vp.adjustments[0] = 0.03
 soft_shadow(vp)
 # well
-rect(s, vx+0.55, 4.5, 1.3, 1.7, fill=RGBColor(0x2A,0x66,0x74))
-rect(s, vx+0.5, 4.35, 1.4, 0.2, fill=SAND)
+rect(s, vx+0.4, 4.8, 1.05, 1.5, fill=RGBColor(0x2A,0x66,0x74))
+rect(s, vx+0.35, 4.65, 1.15, 0.18, fill=SAND)
 # water
-rect(s, vx+0.7, 4.85, 1.0, 1.3, fill=AQUA)
+rect(s, vx+0.55, 5.1, 0.75, 1.2, fill=AQUA)
 # roof over well
-tri = s.shapes.add_shape(MSO_SHAPE.ISOSCELES_TRIANGLE, Inches(vx+0.35), Inches(3.7),
-                         Inches(1.7), Inches(0.7)); _shadow_off(tri); _set_fill(tri, CORAL); _no_line(tri)
+tri = s.shapes.add_shape(MSO_SHAPE.ISOSCELES_TRIANGLE, Inches(vx+0.2), Inches(4.05),
+                         Inches(1.45), Inches(0.62)); _shadow_off(tri); _set_fill(tri, CORAL); _no_line(tri)
 # filter tube beside
-rect(s, vx+2.35, 3.55, 0.95, 2.65, fill=RGBColor(0xEE,0xF4,0xF3),
+rect(s, vx+1.95, 4.0, 0.82, 2.3, fill=RGBColor(0xEE,0xF4,0xF3),
      shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-rect(s, vx+2.45, 3.75, 0.75, 0.7, fill=INK)          # charcoal
-rect(s, vx+2.45, 4.5, 0.75, 0.7, fill=SAND)          # sand
-rect(s, vx+2.45, 5.25, 0.75, 0.75, fill=RGBColor(0x8A,0x9A,0xA0))  # gravel
-_, vtf = textbox(s, vx+0.2, 2.25, 3.4, 1.0)
-para(vtf, [("The well. The filter.", {})], size=15, color=WHITE, bold=True,
-     font=FONT_H, after=0, first=True)
-para(vtf, [("A tangible object to picture all lecture long.", {})], size=12,
-     color=RGBColor(0xBF, 0xDD, 0xD8), italic=True, after=0)
+rect(s, vx+2.03, 4.18, 0.66, 0.62, fill=INK)          # charcoal
+rect(s, vx+2.03, 4.85, 0.66, 0.62, fill=SAND)         # sand
+rect(s, vx+2.03, 5.52, 0.66, 0.62, fill=RGBColor(0x8A,0x9A,0xA0))  # gravel
+_, vtf = textbox(s, vx+0.22, 2.3, 2.62, 1.5)
+para(vtf, [("The well.", {})], size=19, color=WHITE, bold=True,
+     font=FONT_H, after=0, first=True, scale=False, line=1.02)
+para(vtf, [("The filter.", {})], size=19, color=WHITE, bold=True,
+     font=FONT_H, after=6, scale=False, line=1.02)
+para(vtf, [("A tangible object to picture all lecture long.", {})], size=14,
+     color=RGBColor(0xBF, 0xDD, 0xD8), italic=True, after=0, scale=False, line=1.05)
 set_notes(s, "Open with this scenario cold — don't define anything yet. The goal is "
              "to let students feel the tension in the questions before you hand them "
              "vocabulary. Ask the class: \"What could go wrong here, even if the "
@@ -545,19 +551,19 @@ set_notes(s, "Open with this scenario cold — don't define anything yet. The go
 # ============================================================================
 s = base_slide()
 header(s, "foundation", "Ethics Is Not One Checklist Item", 2)
-_, tf = textbox(s, 0.7, 2.0, 11.9, 1.3)
+_, tf = textbox(s, 0.7, 2.1, 11.95, 1.95)
 bullets(tf, [
     [("Many students think “ethics” is something you check ", {}),
      ("once", {"italic": True}), (", at the start of a study.", {})],
     [("In reality, ", {}), ("research ethics", {"bold": True, "color": TEAL}),
      (" applies ", {}), ("continuously", {"bold": True}),
      (" — at every stage of the research process.", {})],
-], size=17, gap=8, bullet_color=SAND_DK, first=True)
-flowchart(s, y=3.7, highlight=None, accent=SAND_DK)
-_, tf = textbox(s, 0.7, 5.05, 11.9, 0.6)
+], size=28, gap=12, bullet_color=SAND_DK, first=True)
+flowchart(s, y=4.35, highlight=None, accent=SAND_DK, h=1.05)
+_, tf = textbox(s, 0.7, 5.75, 11.9, 0.7)
 para(tf, [("Every one of these five stages has its own ethical questions.", {})],
-     size=16, color=TEAL, italic=True, bold=True, align=PP_ALIGN.CENTER,
-     after=0, first=True)
+     size=22, color=TEAL, italic=True, bold=True, align=PP_ALIGN.CENTER,
+     after=0, first=True, scale=False)
 set_notes(s, "This slide reframes a term students already encountered briefly in "
              "Lecture 1 (when weighing 'ethical, social, and environmental factors' for "
              "a proposal). Here, make clear that ethics isn't a single feasibility "
@@ -575,31 +581,31 @@ set_notes(s, "This slide reframes a term students already encountered briefly in
 s = base_slide()
 header(s, "foundation", "Defining Research Ethics", 3)
 # definition callout
-defb = rect(s, 0.7, 2.05, 11.9, 1.35, fill=TEAL, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-defb.adjustments[0] = 0.06
+defb = rect(s, 0.7, 2.0, 11.95, 1.62, fill=TEAL, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
+defb.adjustments[0] = 0.05
 soft_shadow(defb)
-_, tf = textbox(s, 1.1, 2.2, 11.1, 1.05, anchor=MSO_ANCHOR.MIDDLE)
-para(tf, [("Research ethics", {"bold": True, "size": 21, "color": SAND,
+_, tf = textbox(s, 1.1, 2.12, 11.2, 1.38, anchor=MSO_ANCHOR.MIDDLE)
+para(tf, [("Research ethics", {"bold": True, "size": 28, "color": SAND,
            "font": FONT_H}),
-          ("  —  the standards and principles that guide ", {"size": 18, "color": WHITE}),
-          ("responsible and trustworthy", {"size": 18, "color": WHITE, "italic": True, "bold": True}),
-          (" conduct throughout a research study.", {"size": 18, "color": WHITE})],
-     after=0, first=True, line=1.1)
-_, tf = textbox(s, 0.7, 3.75, 11.9, 0.5)
+          ("  —  the standards and principles that guide ", {"size": 28, "color": WHITE}),
+          ("responsible and trustworthy", {"size": 28, "color": WHITE, "italic": True, "bold": True}),
+          (" conduct throughout a research study.", {"size": 28, "color": WHITE})],
+     after=0, first=True, line=1.08)
+_, tf = textbox(s, 0.7, 3.82, 11.95, 0.6)
 para(tf, [("Research ethics exists because research almost always involves:", {})],
-     size=17, color=INK, after=6, first=True)
-_, tf = textbox(s, 1.0, 4.35, 11.4, 1.5)
+     size=28, color=INK, after=6, first=True)
+_, tf = textbox(s, 1.0, 4.5, 11.5, 1.85)
 bullets(tf, [
     [("Collecting data ", {}), ("from", {"bold": True}), (" or ", {}),
      ("about", {"bold": True}), (" people", {})],
     [("Working within real ", {}), ("communities", {"bold": True}),
      (" and ", {}), ("environments", {"bold": True})],
     [("Producing findings that others will ", {}), ("rely on", {"bold": True})],
-], size=16.5, gap=9, bullet_color=AQUA, first=True)
-_, tf = textbox(s, 0.7, 6.15, 11.9, 0.5)
+], size=28, gap=6, bullet_color=AQUA, first=True)
+_, tf = textbox(s, 0.7, 6.42, 11.9, 0.55)
 para(tf, [("Where there are people and consequences, there are ethical "
-           "responsibilities.", {})], size=16.5, color=TEAL, italic=True,
-     bold=True, align=PP_ALIGN.CENTER, after=0, first=True)
+           "responsibilities.", {})], size=20, color=TEAL, italic=True,
+     bold=True, align=PP_ALIGN.CENTER, after=0, first=True, scale=False)
 set_notes(s, "Give students a clean, quotable definition here — this is the term "
              "they'll be tested on, so it should be crisp and memorable. Emphasize the "
              "why embedded in the definition: ethics isn't an abstract philosophical "
@@ -618,7 +624,7 @@ s = base_slide()
 header(s, "foundation", "Why Research Ethics Matters", 4)
 _, tf = textbox(s, 0.7, 1.95, 11.9, 0.5)
 para(tf, [("Research ethics protects three things at once:", {})],
-     size=17, color=INK, after=0, first=True)
+     size=21, color=MUTED, after=0, first=True, scale=False)
 cards = [
     ("The Participants", "Prevents harm, exploitation, and disrespect toward the people involved in a study", C_RESPECT),
     ("The Findings", "Keeps results honest and trustworthy, not distorted by bias or dishonesty", C_HONESTY),
@@ -637,12 +643,12 @@ for i, (t, d, col) in enumerate(cards):
     _, btf = textbox(s, x + cw/2 - 0.35, cy + 1.4, 0.7, 0.7, anchor=MSO_ANCHOR.MIDDLE)
     para(btf, [(str(i+1), {})], size=22, color=WHITE, bold=True, font=FONT_H,
          align=PP_ALIGN.CENTER, after=0, first=True)
-    _, htf = textbox(s, x + 0.2, cy + 0.18, cw - 0.4, 0.75, anchor=MSO_ANCHOR.MIDDLE)
-    para(htf, [(t, {})], size=16.5, color=WHITE, bold=True, font=FONT_H,
-         align=PP_ALIGN.CENTER, after=0, first=True, line=1.0)
-    _, dtf = textbox(s, x + 0.28, cy + 2.25, cw - 0.56, 1.2, anchor=MSO_ANCHOR.TOP)
-    para(dtf, [(d, {})], size=14, color=INK, align=PP_ALIGN.CENTER, after=0,
-         first=True, line=1.12)
+    _, htf = textbox(s, x + 0.15, cy + 0.16, cw - 0.3, 0.78, anchor=MSO_ANCHOR.MIDDLE)
+    para(htf, [(t, {})], size=19, color=WHITE, bold=True, font=FONT_H,
+         align=PP_ALIGN.CENTER, after=0, first=True, line=1.0, scale=False)
+    _, dtf = textbox(s, x + 0.26, cy + 2.2, cw - 0.52, 1.3, anchor=MSO_ANCHOR.TOP)
+    para(dtf, [(d, {})], size=18, color=INK, align=PP_ALIGN.CENTER, after=0,
+         first=True, line=1.14, scale=False)
 set_notes(s, "Walk through each column using the water filter scenario as a running "
              "example: if researchers mislead a household about how their water data will "
              "be used, they harm a participant; if they only report favorable filter "
@@ -658,22 +664,22 @@ set_notes(s, "Walk through each column using the water filter scenario as a runn
 # ============================================================================
 s = base_slide()
 header(s, "foundation", "Who Could Be Affected?", 5)
-apply_chip(s, 0.7, 1.95, AQUA)
-_, tf = textbox(s, 2.55, 1.98, 10, 0.5, anchor=MSO_ANCHOR.MIDDLE)
+apply_chip(s, 0.7, 1.9, AQUA)
+_, tf = textbox(s, 2.55, 1.9, 10, 0.5, anchor=MSO_ANCHOR.MIDDLE)
 para(tf, [("Return to the Barangay Water Filter Project.", {"bold": True,
-           "size": 16, "color": TEAL})], after=0, first=True)
-_, tf = textbox(s, 0.7, 2.65, 11.9, 0.5)
-para(tf, [("For each group below, identify ", {"size": 16}),
-          ("one specific way", {"bold": True, "size": 16}),
-          (" research ethics protects them:", {"size": 16})],
-     after=0, first=True)
+           "size": 19, "color": TEAL})], after=0, first=True, scale=False)
+_, tf = textbox(s, 0.7, 2.5, 11.9, 0.5)
+para(tf, [("For each group below, identify ", {"size": 19}),
+          ("one specific way", {"bold": True, "size": 19}),
+          (" research ethics protects them:", {"size": 19})],
+     after=0, first=True, color=MUTED, scale=False)
 groups = [
     "The households whose water is being tested",
     "The barangay as a whole community",
     "The original designer of the earlier filter",
     "Future readers who might rely on this research",
 ]
-gy = 3.35; gw = 5.75; gh = 0.92
+gy = 3.3; gw = 5.75; gh = 1.08
 for i, g in enumerate(groups):
     col = i % 2; row = i // 2
     x = 0.7 + col * (gw + 0.35); y = gy + row * (gh + 0.32)
@@ -685,11 +691,13 @@ for i, g in enumerate(groups):
     _, ntf = textbox(s, x + 0.2, y + gh/2 - 0.3, 0.6, 0.6, anchor=MSO_ANCHOR.MIDDLE)
     para(ntf, [(str(i+1), {})], size=18, color=WHITE, bold=True, font=FONT_H,
          align=PP_ALIGN.CENTER, after=0, first=True)
-    _, gtf = textbox(s, x + 1.0, y, gw - 1.2, gh, anchor=MSO_ANCHOR.MIDDLE)
-    para(gtf, [(g, {})], size=15, color=INK, after=0, first=True, line=1.05)
-_, tf = textbox(s, 0.7, 6.35, 11.9, 0.5)
+    _, gtf = textbox(s, x + 1.05, y, gw - 1.3, gh, anchor=MSO_ANCHOR.MIDDLE)
+    para(gtf, [(g, {})], size=21, color=INK, after=0, first=True, line=1.06,
+         scale=False)
+_, tf = textbox(s, 0.7, 6.4, 11.9, 0.5)
 para(tf, [("Discuss in pairs, then share with the class.", {})],
-     size=15.5, color=MUTED, italic=True, align=PP_ALIGN.CENTER, after=0, first=True)
+     size=19, color=MUTED, italic=True, align=PP_ALIGN.CENTER, after=0,
+     first=True, scale=False)
 set_notes(s, "This is the lesson's first 'apply it' moment — resist the urge to give "
              "answers immediately. Let pairs work through all four prompts for 3-4 "
              "minutes. Expect students to intuitively identify participant protection (#1) "
@@ -713,7 +721,7 @@ quad = [
     ("Confidentiality & Privacy", "Protecting the identity and personal information of participants", C_CONFID),
     ("Avoiding Harm", "Preventing physical, social, or emotional harm to people, communities, and the environment", C_HARM),
 ]
-qw = 5.75; qh = 2.15; x0 = 0.7; y0 = 2.15; gx = 0.35; gy = 0.32
+qw = 5.78; qh = 2.28; x0 = 0.7; y0 = 2.08; gx = 0.32; gy = 0.24
 for i, (t, d, col) in enumerate(quad):
     c = i % 2; r = i // 2
     x = x0 + c * (qw + gx); y = y0 + r * (qh + gy)
@@ -722,10 +730,10 @@ for i, (t, d, col) in enumerate(quad):
     card.adjustments[0] = 0.05
     soft_shadow(card)
     rect(s, x, y, 0.16, qh, fill=col, shape=MSO_SHAPE.ROUND_2_SAME_RECTANGLE)
-    _, tf = textbox(s, x + 0.42, y + 0.22, qw - 0.7, qh - 0.4)
-    para(tf, [(t, {})], size=19, color=col, bold=True, font=FONT_H, after=6,
-         first=True)
-    para(tf, [(d, {})], size=14.5, color=INK, after=0, line=1.12)
+    _, tf = textbox(s, x + 0.42, y + 0.2, qw - 0.68, qh - 0.36, anchor=MSO_ANCHOR.MIDDLE)
+    para(tf, [(t, {})], size=25, color=col, bold=True, font=FONT_H, after=6,
+         first=True, scale=False)
+    para(tf, [(d, {})], size=20, color=INK, after=0, line=1.1, scale=False)
 set_notes(s, "This is the 'table of contents' slide for the next four concept slides — "
              "introduce all four principles briefly here, then go deeper one at a time. "
              "Tell students they don't need to memorize the exact wording yet; they'll see "
@@ -738,22 +746,27 @@ set_notes(s, "This is the 'table of contents' slide for the next four concept sl
 
 # ---- Helper for concept + example slides (7-10, 12-15) ----
 def concept_example(num, section, title, kind, concept_runs, list_items,
-                    example_runs, accent, flow_hi=None, list_marker="•"):
+                    example_runs, accent, flow_hi=None, list_marker="•",
+                    concept_size=26, concept_h=1.5, list_size=26, ex_size=22,
+                    ex_h=1.6, gap=8):
     s = base_slide()
     ac = header(s, section, title, num)
-    top = 2.0
     if flow_hi:
-        flowchart(s, y=1.95, highlight=flow_hi, accent=SAND_DK, h=0.8, size=12)
-        top = 3.05
-    _, tf = textbox(s, 0.7, top, 11.9, 1.0)
-    para(tf, concept_runs, size=17, color=INK, after=8, first=True, line=1.12)
-    ly = top + 0.95
-    _, tf2 = textbox(s, 1.0, ly, 11.4, 1.7)
-    bullets(tf2, list_items, size=16, gap=7, bullet_color=ac,
-            marker=list_marker, first=True)
-    # example card at bottom
-    example_card(s, 0.7, 5.55, 11.9, 1.35, "EXAMPLE:",
-                 example_runs, ac)
+        flowchart(s, y=1.86, highlight=flow_hi, accent=SAND_DK, h=0.56, size=12.5)
+        top = 2.5
+    else:
+        top = 2.05
+    # example card anchored to the bottom of the content area
+    ex_y = 6.92 - ex_h
+    _, tf = textbox(s, 0.7, top, 11.95, concept_h, anchor=MSO_ANCHOR.TOP)
+    para(tf, concept_runs, size=concept_size, color=INK, after=0, first=True,
+         line=1.08, scale=(concept_size >= BODY_MIN))
+    ly = top + concept_h + 0.05
+    _, tf2 = textbox(s, 0.95, ly, 11.55, ex_y - ly - 0.08)
+    bullets(tf2, list_items, size=list_size, gap=gap, bullet_color=ac,
+            marker=list_marker, first=True, scale=(list_size >= BODY_MIN))
+    example_card(s, 0.7, ex_y, 11.95, ex_h, "EXAMPLE:", example_runs, ac,
+                 body_size=ex_size, body_scale=(ex_size >= BODY_MIN))
     return s
 
 # ============================================================================
@@ -774,7 +787,7 @@ s = concept_example(
     [[("If the water filter only reduces bacteria by 40% instead of the "
        "hoped-for 90%, the honest researcher reports 40% — not a rounded-up, "
        "more impressive number.", {})]],
-    C_HONESTY)
+    C_HONESTY, concept_size=26, concept_h=1.5, list_size=24, ex_size=22, ex_h=1.55)
 set_notes(s, "Honesty is usually the easiest of the four principles for students to "
              "grasp intuitively, so move through the definition quickly and spend more "
              "time on the example. Emphasize that dishonesty in research isn't always "
@@ -802,7 +815,7 @@ s = concept_example(
     [[("Before collecting a single water sample, the researchers explain to "
        "each household what the study is for, what will be done with their "
        "water, and confirm the household agrees to participate.", {})]],
-    C_RESPECT)
+    C_RESPECT, concept_size=28, concept_h=0.8, list_size=28, ex_size=22, ex_h=1.6)
 set_notes(s, "Keep this deliberately simple and plain-language — students do not need "
              "formal consent forms or IRB procedures at this level; they need to "
              "understand the principle of voluntary, informed participation. Contrast the "
@@ -829,7 +842,7 @@ s = concept_example(
     [[("Instead of writing “Household of Mrs. Santos reported the water tastes "
        "better,” the report says “Household 3 reported the water tastes "
        "better.”", {})]],
-    C_CONFID)
+    C_CONFID, concept_size=26, concept_h=1.5, list_size=26, ex_size=22, ex_h=1.5)
 set_notes(s, "This principle often confuses students with 'avoiding harm' (the next "
              "slide) — clarify the distinction directly: confidentiality is specifically "
              "about identity protection, while avoiding harm is broader. Use the example "
@@ -857,7 +870,7 @@ s = concept_example(
        "access to the well, or if a “failed” filter is left installed and "
        "mistakenly trusted by residents, real harm has occurred — separate "
        "from whether the data was reported honestly.", {})]],
-    C_HARM)
+    C_HARM, concept_size=26, concept_h=1.25, list_size=22, ex_size=20, ex_h=1.75)
 set_notes(s, "This is the broadest of the four principles, so anchor it firmly with the "
              "example — the 'failed filter left installed' detail is important because it "
              "shows harm can happen even after data collection ends, purely through the "
@@ -873,50 +886,48 @@ set_notes(s, "This is the broadest of the four principles, so anchor it firmly w
 # ============================================================================
 s = base_slide()
 header(s, "standards", "Ethical Standards Decision Tree", 11)
-apply_chip(s, 0.7, 1.95, AQUA)
-_, tf = textbox(s, 2.55, 1.9, 10.0, 0.8, anchor=MSO_ANCHOR.MIDDLE)
-para(tf, [("For each mini-scenario, decide ", {"size": 14.5}),
-          ("which of the four standards", {"bold": True, "size": 14.5}),
-          (" is most directly at risk — Honesty, Respect, Confidentiality, "
-           "or Avoiding Harm.", {"size": 14.5})], after=0, first=True, line=1.1)
+apply_chip(s, 0.7, 1.88, AQUA)
+_, tf = textbox(s, 2.55, 1.82, 10.0, 0.72, anchor=MSO_ANCHOR.MIDDLE)
+para(tf, [("For each mini-scenario, decide ", {"size": 18}),
+          ("which of the four standards", {"bold": True, "size": 18}),
+          (" is most directly at risk.", {"size": 18})], after=0, first=True,
+     line=1.08, color=MUTED, scale=False)
 scen = [
     "A researcher tests water without telling the household.",
     "A report lists a participant's full name and address.",
     "A researcher only publishes the filter's best-performing test result.",
     "Repeated data collection visits leave a household without well access for hours each time.",
 ]
-sy = 2.95; sh_ = 0.82
+sy = 2.68; sh_ = 0.96
 for i, sc in enumerate(scen):
-    y = sy + i * (sh_ + 0.16)
-    b = rect(s, 0.7, y, 7.0, sh_, fill=WHITE, line=FAINT,
+    y = sy + i * (sh_ + 0.14)
+    b = rect(s, 0.7, y, 7.05, sh_, fill=WHITE, line=FAINT,
              shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-    b.adjustments[0] = 0.12
+    b.adjustments[0] = 0.1
     soft_shadow(b, blur=0.05, dist=0.03, alpha=45000)
-    num = rect(s, 0.9, y + sh_/2 - 0.27, 0.54, 0.54, fill=TEAL, shape=MSO_SHAPE.OVAL)
-    _, ntf = textbox(s, 0.9, y + sh_/2 - 0.27, 0.54, 0.54, anchor=MSO_ANCHOR.MIDDLE)
-    para(ntf, [(str(i+1), {})], size=16, color=WHITE, bold=True, font=FONT_H,
-         align=PP_ALIGN.CENTER, after=0, first=True)
-    _, stf = textbox(s, 1.65, y, 5.9, sh_, anchor=MSO_ANCHOR.MIDDLE)
-    para(stf, [(sc, {})], size=13.5, color=INK, after=0, first=True, line=1.05)
+    num = rect(s, 0.9, y + sh_/2 - 0.3, 0.6, 0.6, fill=TEAL, shape=MSO_SHAPE.OVAL)
+    _, ntf = textbox(s, 0.9, y + sh_/2 - 0.3, 0.6, 0.6, anchor=MSO_ANCHOR.MIDDLE)
+    para(ntf, [(str(i+1), {})], size=20, color=WHITE, bold=True, font=FONT_H,
+         align=PP_ALIGN.CENTER, after=0, first=True, scale=False)
+    _, stf = textbox(s, 1.7, y, 5.85, sh_, anchor=MSO_ANCHOR.MIDDLE)
+    para(stf, [(sc, {})], size=18, color=INK, after=0, first=True, line=1.06,
+         scale=False)
 # four endpoint nodes (reuse colors)
 nodes = [("Honesty", C_HONESTY), ("Respect", C_RESPECT),
          ("Confidentiality", C_CONFID), ("Avoiding Harm", C_HARM)]
-nx = 8.35
-_, ttf = textbox(s, nx, 2.75, 4.2, 0.4)
-para(ttf, [("Which standard is at risk?", {})], size=13, color=MUTED,
-     italic=True, align=PP_ALIGN.CENTER, after=0, first=True)
+nx = 8.45
+_, ttf = textbox(s, nx, 2.66, 4.2, 0.42)
+para(ttf, [("Which standard is at risk?", {})], size=17, color=MUTED,
+     italic=True, align=PP_ALIGN.CENTER, after=0, first=True, scale=False)
 ny = 3.2
 for i, (t, col) in enumerate(nodes):
-    y = ny + i * (0.72 + 0.16)
-    node = rect(s, nx, y, 4.2, 0.72, fill=col, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-    node.adjustments[0] = 0.35
+    y = ny + i * (0.82 + 0.12)
+    node = rect(s, nx, y, 4.2, 0.82, fill=col, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
+    node.adjustments[0] = 0.32
     soft_shadow(node, blur=0.05, dist=0.03, alpha=45000)
-    _, ntf = textbox(s, nx, y, 4.2, 0.72, anchor=MSO_ANCHOR.MIDDLE)
-    para(ntf, [(t, {})], size=16, color=WHITE, bold=True, font=FONT_H,
-         align=PP_ALIGN.CENTER, after=0, first=True)
-_, tf = textbox(s, 0.7, 6.75, 11.9, 0.4)
-para(tf, [("Match each number to a standard.", {})], size=14, color=MUTED,
-     italic=True, align=PP_ALIGN.CENTER, after=0, first=True)
+    _, ntf = textbox(s, nx, y, 4.2, 0.82, anchor=MSO_ANCHOR.MIDDLE)
+    para(ntf, [(t, {})], size=23, color=WHITE, bold=True, font=FONT_H,
+         align=PP_ALIGN.CENTER, after=0, first=True, scale=False)
 set_notes(s, "This is the consolidation activity for the four core standards — resist "
              "explaining the answers until students have attempted all four matches. The "
              "intended mapping is: 1 -> Respect for Participants, 2 -> Confidentiality, "
@@ -949,7 +960,8 @@ s = concept_example(
       (" is a responsibly chosen problem — testing it purely because it's a "
        "“convenient” barangay near the school, with no real community benefit "
        "in mind, is not.", {})]],
-    SAND_DK, flow_hi="Planning")
+    SAND_DK, flow_hi="Planning", concept_size=24, concept_h=1.05, list_size=20,
+    ex_size=20, ex_h=1.75)
 set_notes(s, "This begins the second major arc of the lecture — walking through the "
              "five-stage flowchart from Slide 2 in detail, one stage per slide. "
              "Reintroducing the same flowchart graphic (now with 'Planning' highlighted) "
@@ -980,7 +992,8 @@ s = concept_example(
        "researchers must respect that decision — inventing a data point for "
        "that household to “complete the set” would be a serious ethical "
        "violation.", {})]],
-    SAND_DK, flow_hi="Collecting")
+    SAND_DK, flow_hi="Collecting", concept_size=24, concept_h=1.05, list_size=20,
+    ex_size=20, ex_h=1.7)
 set_notes(s, "Note that this slide revisits 'honesty' and 'respect' from Slides 7-8, "
              "but now applied specifically to the action of collecting data, not the "
              "general principle. This repetition is intentional — it shows students that "
@@ -1009,7 +1022,8 @@ s = concept_example(
     [[("If 7 out of 10 households show improved water quality but 3 show no "
        "change, the researchers must report all 10 results — not just the 7 "
        "that support their hypothesis.", {})]],
-    SAND_DK, flow_hi="Analyzing")
+    SAND_DK, flow_hi="Analyzing", concept_size=24, concept_h=1.05, list_size=22,
+    ex_size=20, ex_h=1.7)
 set_notes(s, "This stage is where 'honesty' (Slide 7) becomes most concrete and "
              "testable — students can directly see what selective reporting would look "
              "like using real numbers. Ask the class: 'If you were the researcher and only "
@@ -1024,25 +1038,25 @@ set_notes(s, "This stage is where 'honesty' (Slide 7) becomes most concrete and 
 # ============================================================================
 s = base_slide()
 ac = header(s, "stages", "Ethics During Reporting and Writing", 15)
-flowchart(s, y=1.95, highlight="Reporting", accent=SAND_DK, h=0.8, size=12)
-_, tf = textbox(s, 0.7, 3.05, 11.9, 0.6)
+flowchart(s, y=1.9, highlight="Reporting", accent=SAND_DK, h=0.62, size=13)
+_, tf = textbox(s, 0.7, 2.62, 11.95, 0.65)
 para(tf, [("At the ", {}), ("reporting stage", {"bold": True, "color": SAND_DK}),
-          (", ethical research means:", {})], size=17, after=8, first=True)
-_, tf = textbox(s, 1.0, 3.7, 11.4, 1.2)
+          (", ethical research means:", {})], size=28, after=0, first=True)
+_, tf = textbox(s, 0.95, 3.42, 11.55, 1.6)
 bullets(tf, [
     "Communicating findings honestly and clearly",
     [("Giving proper ", {}), ("credit", {"bold": True}),
      (" to the ideas and words of others ", {}),
      ("(Creswell & Creswell, 2023)", {"italic": True, "color": MUTED})],
-], size=16.5, gap=8, bullet_color=SAND_DK, first=True)
+], size=28, gap=8, bullet_color=SAND_DK, first=True)
 # pivot callout pointing to citation section
-pv = rect(s, 0.7, 5.35, 11.9, 1.35, fill=CORAL, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-pv.adjustments[0] = 0.06
+pv = rect(s, 0.7, 5.15, 11.95, 1.68, fill=CORAL, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
+pv.adjustments[0] = 0.05
 soft_shadow(pv)
-_, ptf = textbox(s, 1.1, 5.5, 9.8, 1.05, anchor=MSO_ANCHOR.MIDDLE)
-para(ptf, [("That second point — giving credit — is its own major skill.", {"bold": True, "size": 18, "color": WHITE, "font": FONT_H})], after=3, first=True)
-para(ptf, [("It's coming up next.", {"italic": True, "size": 16, "color": RGBColor(0xFF,0xE6,0xDD)})], after=0)
-arrow = s.shapes.add_shape(MSO_SHAPE.RIGHT_ARROW, Inches(11.1), Inches(5.75),
+_, ptf = textbox(s, 1.1, 5.28, 9.5, 1.42, anchor=MSO_ANCHOR.MIDDLE)
+para(ptf, [("That second point — giving credit — is its own major skill.", {"bold": True, "size": 23, "color": WHITE, "font": FONT_H})], after=4, first=True, scale=False, line=1.05)
+para(ptf, [("It's coming up next.", {"italic": True, "size": 19, "color": RGBColor(0xFF,0xE6,0xDD)})], after=0, scale=False)
+arrow = s.shapes.add_shape(MSO_SHAPE.RIGHT_ARROW, Inches(11.0), Inches(5.72),
                            Inches(1.15), Inches(0.55))
 _shadow_off(arrow); _set_fill(arrow, WHITE); _no_line(arrow)
 set_notes(s, "This is the pivot slide of the entire lecture — deliver it with a clear "
@@ -1061,12 +1075,12 @@ set_notes(s, "This is the pivot slide of the entire lecture — deliver it with 
 # ============================================================================
 s = base_slide()
 header(s, "stages", "Trace the Stages", 16)
-apply_chip(s, 0.7, 1.9, SAND_DK)
-_, tf = textbox(s, 2.55, 1.87, 10.0, 0.72, anchor=MSO_ANCHOR.MIDDLE)
-para(tf, [("Sort the following researcher actions into the correct stage — "
-           "Planning, Collecting, Analyzing, or Reporting.", {"size": 14.5})],
-     after=0, first=True, line=1.1)
-flowchart(s, y=2.75, highlight=None, accent=SAND_DK, h=0.85, size=12)
+apply_chip(s, 0.7, 1.88, SAND_DK)
+_, tf = textbox(s, 2.55, 1.82, 10.0, 0.72, anchor=MSO_ANCHOR.MIDDLE)
+para(tf, [("Sort each researcher action into the correct stage — Planning, "
+           "Collecting, Analyzing, or Reporting.", {"size": 18})],
+     after=0, first=True, line=1.08, color=MUTED, scale=False)
+flowchart(s, y=2.66, highlight=None, accent=SAND_DK, h=0.82, size=13)
 # draggable-style cards
 actions = [
     "Deciding to study the barangay because they genuinely lack safe water access",
@@ -1074,23 +1088,24 @@ actions = [
     "Including both improved and unchanged households in the final results",
     "Properly acknowledging the earlier filter design that inspired their own",
 ]
-ay = 4.05; aw = 5.75; ah = 0.92
+ay = 3.82; aw = 5.78; ah = 1.16
 for i, a in enumerate(actions):
     c = i % 2; r = i // 2
-    x = 0.7 + c * (aw + 0.35); y = ay + r * (ah + 0.3)
+    x = 0.7 + c * (aw + 0.32); y = ay + r * (ah + 0.24)
     card = rect(s, x, y, aw, ah, fill=WHITE, line=SAND, line_w=1.5,
                 shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-    card.adjustments[0] = 0.1
+    card.adjustments[0] = 0.08
     soft_shadow(card, blur=0.05, dist=0.03, alpha=45000)
-    num = rect(s, x + 0.2, y + ah/2 - 0.27, 0.54, 0.54, fill=SAND_DK, shape=MSO_SHAPE.OVAL)
-    _, ntf = textbox(s, x + 0.2, y + ah/2 - 0.27, 0.54, 0.54, anchor=MSO_ANCHOR.MIDDLE)
-    para(ntf, [(str(i+1), {})], size=16, color=WHITE, bold=True, font=FONT_H,
-         align=PP_ALIGN.CENTER, after=0, first=True)
-    _, atf = textbox(s, x + 0.95, y, aw - 1.15, ah, anchor=MSO_ANCHOR.MIDDLE)
-    para(atf, [(a, {})], size=13, color=INK, after=0, first=True, line=1.05)
+    num = rect(s, x + 0.22, y + ah/2 - 0.3, 0.6, 0.6, fill=SAND_DK, shape=MSO_SHAPE.OVAL)
+    _, ntf = textbox(s, x + 0.22, y + ah/2 - 0.3, 0.6, 0.6, anchor=MSO_ANCHOR.MIDDLE)
+    para(ntf, [(str(i+1), {})], size=20, color=WHITE, bold=True, font=FONT_H,
+         align=PP_ALIGN.CENTER, after=0, first=True, scale=False)
+    _, atf = textbox(s, x + 1.02, y + 0.08, aw - 1.25, ah - 0.16, anchor=MSO_ANCHOR.MIDDLE)
+    para(atf, [(a, {})], size=18, color=INK, after=0, first=True, line=1.08,
+         scale=False)
 _, tf = textbox(s, 0.7, 6.5, 11.9, 0.4)
-para(tf, [("Place each action on the flowchart.", {})], size=14, color=MUTED,
-     italic=True, align=PP_ALIGN.CENTER, after=0, first=True)
+para(tf, [("Place each action on the flowchart.", {})], size=17, color=MUTED,
+     italic=True, align=PP_ALIGN.CENTER, after=0, first=True, scale=False)
 set_notes(s, "This is the consolidation activity for the entire 'stages' section (Slides "
              "12-15) — students should place each numbered action onto the appropriate "
              "stage of the flowchart (physically, if using printed handouts, or "
@@ -1109,28 +1124,28 @@ set_notes(s, "This is the consolidation activity for the entire 'stages' section
 # ============================================================================
 s = base_slide()
 header(s, "bridge", "What Counts as Plagiarism", 17)
-defb = rect(s, 0.7, 2.05, 11.9, 1.3, fill=CORAL, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-defb.adjustments[0] = 0.06
+defb = rect(s, 0.7, 2.0, 11.95, 1.62, fill=CORAL, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
+defb.adjustments[0] = 0.05
 soft_shadow(defb)
-_, tf = textbox(s, 1.1, 2.2, 11.1, 1.0, anchor=MSO_ANCHOR.MIDDLE)
-para(tf, [("Plagiarism", {"bold": True, "size": 21, "color": WHITE, "font": FONT_H}),
+_, tf = textbox(s, 1.1, 2.12, 11.2, 1.38, anchor=MSO_ANCHOR.MIDDLE)
+para(tf, [("Plagiarism", {"bold": True, "size": 26, "color": WHITE, "font": FONT_H}),
           ("  —  presenting someone else's work, ideas, or words as your own, "
-           "without giving them credit ", {"size": 17.5, "color": WHITE}),
-          ("(Creswell & Creswell, 2023)", {"size": 15, "color": RGBColor(0xFF,0xE6,0xDD), "italic": True}),
-          (".", {"size": 17.5, "color": WHITE})],
-     after=0, first=True, line=1.12)
-_, tf = textbox(s, 0.7, 3.7, 11.9, 1.0)
+           "without giving them credit ", {"size": 24, "color": WHITE}),
+          ("(Creswell & Creswell, 2023)", {"size": 19, "color": RGBColor(0xFF,0xE6,0xDD), "italic": True}),
+          (".", {"size": 24, "color": WHITE})],
+     after=0, first=True, line=1.08, scale=False)
+_, tf = textbox(s, 0.7, 3.82, 11.95, 1.15)
 para(tf, [("Plagiarism is not just a ", {}), ("rule", {"italic": True}),
           (" — it's an ", {}),
           ("ethics violation", {"bold": True, "color": CORAL}),
-          (". It breaks the same standard of honesty and integrity introduced "
+          (". It breaks the same standard of honesty and integrity from "
            "earlier in this lesson.", {})],
-     size=17, after=0, first=True, line=1.15)
-example_card(s, 0.7, 4.95, 11.9, 1.55, "EXAMPLE:",
+     size=24, after=0, first=True, line=1.12, scale=False)
+example_card(s, 0.7, 5.0, 11.95, 1.85, "EXAMPLE:",
              [[("If the researchers build their filter using the earlier student's "
                 "design but never mention that design in their report, readers are "
                 "misled into thinking the design is original — that's plagiarism.", {})]],
-             CORAL)
+             CORAL, body_size=22, body_scale=False)
 set_notes(s, "The most important move on this slide is framing — students often think "
              "of plagiarism as a school-specific 'rule' about citations, disconnected "
              "from real ethics. Explicitly connect it back to Slide 7's 'Honesty and "
@@ -1150,23 +1165,24 @@ cols = [
     ("Uncredited Paraphrasing", "Restating someone else's idea in your own words — but still without giving credit",
      "Changing the wording doesn't remove the need to cite the original idea.", RGBColor(0xC0,0x53,0x38)),
 ]
-cw = 5.75; ch = 3.7; y = 2.4
+cw = 5.78; ch = 4.5; y = 2.2
 for i, (t, d, note, col) in enumerate(cols):
-    x = 0.7 + i * (cw + 0.4)
+    x = 0.7 + i * (cw + 0.32)
     card = rect(s, x, y, cw, ch, fill=WHITE, line=FAINT,
                 shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-    card.adjustments[0] = 0.04
+    card.adjustments[0] = 0.035
     soft_shadow(card)
     rect(s, x, y, cw, 0.95, fill=col, shape=MSO_SHAPE.ROUND_2_SAME_RECTANGLE)
     _, htf = textbox(s, x + 0.3, y, cw - 0.6, 0.95, anchor=MSO_ANCHOR.MIDDLE)
-    para(htf, [(t, {})], size=19, color=WHITE, bold=True, font=FONT_H, after=0,
-         first=True)
-    _, dtf = textbox(s, x + 0.35, y + 1.2, cw - 0.7, 1.4)
-    para(dtf, [(d, {})], size=16, color=INK, after=0, first=True, line=1.15)
-    ln = rect(s, x + 0.35, y + 2.55, cw - 0.7, 0.02, fill=FAINT)
-    _, ntf = textbox(s, x + 0.35, y + 2.7, cw - 0.7, 0.9)
-    para(ntf, [(note, {"italic": True})], size=14, color=col, bold=True, after=0,
-         first=True, line=1.12)
+    para(htf, [(t, {})], size=24, color=WHITE, bold=True, font=FONT_H, after=0,
+         first=True, scale=False)
+    _, dtf = textbox(s, x + 0.38, y + 1.15, cw - 0.76, 1.95, anchor=MSO_ANCHOR.MIDDLE)
+    para(dtf, [(d, {})], size=23, color=INK, after=0, first=True, line=1.14,
+         scale=False)
+    ln = rect(s, x + 0.38, y + 3.2, cw - 0.76, 0.02, fill=FAINT)
+    _, ntf = textbox(s, x + 0.38, y + 3.32, cw - 0.76, 1.05, anchor=MSO_ANCHOR.MIDDLE)
+    para(ntf, [(note, {"italic": True})], size=18, color=col, bold=True, after=0,
+         first=True, line=1.12, scale=False)
 set_notes(s, "Most students already recognize direct copy-paste plagiarism as wrong; "
              "the harder concept — and the one worth spending more time on — is uncredited "
              "paraphrasing. Many students genuinely believe that rewording something in "
@@ -1182,25 +1198,25 @@ set_notes(s, "Most students already recognize direct copy-paste plagiarism as wr
 # ============================================================================
 s = base_slide()
 header(s, "bridge", "Why We Cite Sources", 19)
-_, tf = textbox(s, 0.7, 1.95, 11.9, 0.5)
-para(tf, [("Citation exists for three connected reasons:", {})], size=17,
-     color=INK, after=0, first=True)
+_, tf = textbox(s, 0.7, 1.9, 11.9, 0.5)
+para(tf, [("Citation exists for three connected reasons:", {})], size=21,
+     color=MUTED, after=0, first=True, scale=False)
 # center node
-ccx, ccy, cr = 2.65, 4.35, 1.5
+ccx, ccy, cr = 2.55, 4.25, 1.7
 center = s.shapes.add_shape(MSO_SHAPE.OVAL, Inches(ccx - cr/2), Inches(ccy - cr/2),
                             Inches(cr), Inches(cr))
 _shadow_off(center); _set_fill(center, CORAL); _no_line(center); soft_shadow(center)
 _, ctf = textbox(s, ccx - cr/2, ccy - cr/2, cr, cr, anchor=MSO_ANCHOR.MIDDLE)
-para(ctf, [("Citation", {})], size=20, color=WHITE, bold=True, font=FONT_H,
-     align=PP_ALIGN.CENTER, after=0, first=True)
+para(ctf, [("Citation", {})], size=25, color=WHITE, bold=True, font=FONT_H,
+     align=PP_ALIGN.CENTER, after=0, first=True, scale=False)
 reasons = [
     ("Giving credit", "acknowledging whose idea or words you used", C_HONESTY),
     ("Enabling verification", "letting readers check your sources for themselves", C_RESPECT),
     ("Joining the conversation", "showing how your work connects to existing knowledge", C_CONFID),
 ]
-bx = 5.2; bw = 7.3; bh = 1.15; by0 = 2.55
+bx = 5.3; bw = 7.3; bh = 1.22; by0 = 2.5
 for i, (t, d, col) in enumerate(reasons):
-    y = by0 + i * (bh + 0.28)
+    y = by0 + i * (bh + 0.19)
     # connector line
     conn = s.shapes.add_connector(2, Inches(ccx + cr/2 - 0.15), Inches(ccy),
                                   Inches(bx), Inches(y + bh/2))
@@ -1208,22 +1224,22 @@ for i, (t, d, col) in enumerate(reasons):
     _shadow_off(conn)
     b = rect(s, bx, y, bw, bh, fill=WHITE, line=FAINT,
              shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-    b.adjustments[0] = 0.12
+    b.adjustments[0] = 0.1
     soft_shadow(b, blur=0.05, dist=0.03, alpha=45000)
     rect(s, bx, y, 0.14, bh, fill=col, shape=MSO_SHAPE.ROUND_2_SAME_RECTANGLE)
-    numb = rect(s, bx + 0.35, y + bh/2 - 0.28, 0.56, 0.56, fill=col, shape=MSO_SHAPE.OVAL)
-    _, ntf = textbox(s, bx + 0.35, y + bh/2 - 0.28, 0.56, 0.56, anchor=MSO_ANCHOR.MIDDLE)
-    para(ntf, [(str(i+1), {})], size=17, color=WHITE, bold=True, font=FONT_H,
-         align=PP_ALIGN.CENTER, after=0, first=True)
-    _, btf = textbox(s, bx + 1.1, y + 0.12, bw - 1.3, bh - 0.2, anchor=MSO_ANCHOR.MIDDLE)
-    para(btf, [(t, {"bold": True, "color": col, "size": 16, "font": FONT_H}),
-               ("  —  " + d, {"size": 14, "color": INK})], after=0, first=True,
-         line=1.1)
-_, tf = textbox(s, 0.7, 6.65, 11.9, 0.5)
+    numb = rect(s, bx + 0.33, y + bh/2 - 0.29, 0.58, 0.58, fill=col, shape=MSO_SHAPE.OVAL)
+    _, ntf = textbox(s, bx + 0.33, y + bh/2 - 0.29, 0.58, 0.58, anchor=MSO_ANCHOR.MIDDLE)
+    para(ntf, [(str(i+1), {})], size=19, color=WHITE, bold=True, font=FONT_H,
+         align=PP_ALIGN.CENTER, after=0, first=True, scale=False)
+    _, btf = textbox(s, bx + 1.1, y + 0.08, bw - 1.3, bh - 0.14, anchor=MSO_ANCHOR.MIDDLE)
+    para(btf, [(t, {"bold": True, "color": col, "size": 21, "font": FONT_H})],
+         after=1, first=True, scale=False, line=1.0)
+    para(btf, [(d, {"size": 17, "color": INK})], after=0, scale=False, line=1.04)
+_, tf = textbox(s, 0.7, 6.66, 11.9, 0.42)
 para(tf, [("Citation isn't a punishment for “almost plagiarizing” — it's how "
            "honest research is supposed to work.", {})],
-     size=15, color=CORAL, italic=True, bold=True, align=PP_ALIGN.CENTER,
-     after=0, first=True)
+     size=17, color=CORAL, italic=True, bold=True, align=PP_ALIGN.CENTER,
+     after=0, first=True, scale=False)
 set_notes(s, "This slide answers the question students are often silently asking: 'Why "
              "does this even matter if I'm not trying to steal anything?' Reframe citation "
              "as a positive practice rather than a defensive one — it's not just about "
@@ -1239,39 +1255,40 @@ set_notes(s, "This slide answers the question students are often silently asking
 # ============================================================================
 s = base_slide()
 header(s, "bridge", "Plagiarism or Proper Credit?", 20)
-apply_chip(s, 0.7, 1.95, CORAL)
-_, tf = textbox(s, 2.55, 1.98, 10, 0.5, anchor=MSO_ANCHOR.MIDDLE)
+apply_chip(s, 0.7, 1.9, CORAL)
+_, tf = textbox(s, 2.55, 1.9, 10, 0.5, anchor=MSO_ANCHOR.MIDDLE)
 para(tf, [("Which version properly credits the source?", {"bold": True,
-           "size": 16, "color": CORAL})], after=0, first=True)
+           "size": 20, "color": CORAL})], after=0, first=True, scale=False)
 versions = [
     ("Version A", "“Coconut husk charcoal can effectively filter bacteria from contaminated water.”",
      RGBColor(0x9A,0xA5,0xAB), "MISSING A SOURCE"),
     ("Version B", "“According to Reyes (2022), coconut husk charcoal can effectively filter bacteria from contaminated water.”",
      C_HONESTY, "CREDITS THE SOURCE"),
 ]
-vw = 5.75; vh = 3.1; y = 2.7
+vw = 5.78; vh = 3.75; y = 2.55
 for i, (label, text, col, tag) in enumerate(versions):
-    x = 0.7 + i * (vw + 0.4)
+    x = 0.7 + i * (vw + 0.32)
     card = rect(s, x, y, vw, vh, fill=WHITE, line=col, line_w=2.0,
                 shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-    card.adjustments[0] = 0.04
+    card.adjustments[0] = 0.035
     soft_shadow(card)
-    rect(s, x, y, vw, 0.85, fill=col, shape=MSO_SHAPE.ROUND_2_SAME_RECTANGLE)
-    _, htf = textbox(s, x + 0.3, y, vw - 0.6, 0.85, anchor=MSO_ANCHOR.MIDDLE)
-    para(htf, [(label, {})], size=18, color=WHITE, bold=True, font=FONT_H, after=0,
-         first=True)
-    _, vtf = textbox(s, x + 0.35, y + 1.05, vw - 0.7, 1.4, anchor=MSO_ANCHOR.MIDDLE)
-    para(vtf, [(text, {"italic": True})], size=15, color=INK, after=0, first=True,
-         line=1.15)
-    tagb = rect(s, x + 0.35, y + vh - 0.65, vw - 0.7, 0.45, fill=col,
+    rect(s, x, y, vw, 0.9, fill=col, shape=MSO_SHAPE.ROUND_2_SAME_RECTANGLE)
+    _, htf = textbox(s, x + 0.3, y, vw - 0.6, 0.9, anchor=MSO_ANCHOR.MIDDLE)
+    para(htf, [(label, {})], size=23, color=WHITE, bold=True, font=FONT_H, after=0,
+         first=True, scale=False)
+    _, vtf = textbox(s, x + 0.38, y + 1.05, vw - 0.76, 1.8, anchor=MSO_ANCHOR.MIDDLE)
+    para(vtf, [(text, {"italic": True})], size=22, color=INK, after=0, first=True,
+         line=1.14, scale=False)
+    tagb = rect(s, x + 0.38, y + vh - 0.72, vw - 0.76, 0.5, fill=col,
                 shape=MSO_SHAPE.ROUNDED_RECTANGLE)
     tagb.adjustments[0] = 0.5
-    _, ttf = textbox(s, x + 0.35, y + vh - 0.65, vw - 0.7, 0.45, anchor=MSO_ANCHOR.MIDDLE)
-    para(ttf, [(tag, {})], size=12, color=WHITE, bold=True, font=FONT_H,
-         align=PP_ALIGN.CENTER, after=0, first=True)
-_, tf = textbox(s, 0.7, 6.1, 11.9, 0.5)
+    _, ttf = textbox(s, x + 0.38, y + vh - 0.72, vw - 0.76, 0.5, anchor=MSO_ANCHOR.MIDDLE)
+    para(ttf, [(tag, {})], size=15, color=WHITE, bold=True, font=FONT_H,
+         align=PP_ALIGN.CENTER, after=0, first=True, scale=False)
+_, tf = textbox(s, 0.7, 6.5, 11.9, 0.5)
 para(tf, [("Which version avoids plagiarism? What's missing from the other?", {})],
-     size=15, color=MUTED, italic=True, align=PP_ALIGN.CENTER, after=0, first=True)
+     size=18, color=MUTED, italic=True, align=PP_ALIGN.CENTER, after=0,
+     first=True, scale=False)
 set_notes(s, "This should feel almost too simple by this point — that's intentional, "
              "since it confirms students have internalized the core idea before adding "
              "citation mechanics on top. Version B is correct because it names the source "
@@ -1288,45 +1305,47 @@ set_notes(s, "This should feel almost too simple by this point — that's intent
 # ============================================================================
 s = base_slide()
 header(s, "citation", "Two Parts of Every Citation", 21)
-_, tf = textbox(s, 0.7, 1.95, 11.9, 0.5)
+_, tf = textbox(s, 0.7, 1.92, 11.9, 0.5)
 para(tf, [("Every complete citation has ", {}),
           ("two connected parts", {"bold": True, "color": PURPLE}),
-          (":", {})], size=17, after=0, first=True)
+          (":", {})], size=21, after=0, first=True, color=MUTED, scale=False)
 parts = [
     ("In-Text Citation", "A short note within your writing, pointing to a source",
      "(Reyes, 2022)", PURPLE),
     ("Reference List Entry", "A full entry at the end of your paper, giving complete source details",
      "Full publication details for Reyes' 2022 work", BLUE),
 ]
-pw = 5.15; ph = 3.3; y = 2.65
-xs = [0.9, 7.28]
+pw = 5.4; ph = 4.1; y = 2.5
+xs = [0.82, 7.11]
 for i, (t, d, ex, col) in enumerate(parts):
     x = xs[i]
     card = rect(s, x, y, pw, ph, fill=WHITE, line=FAINT,
                 shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-    card.adjustments[0] = 0.04
+    card.adjustments[0] = 0.035
     soft_shadow(card)
-    rect(s, x, y, pw, 0.9, fill=col, shape=MSO_SHAPE.ROUND_2_SAME_RECTANGLE)
-    _, htf = textbox(s, x + 0.3, y, pw - 0.6, 0.9, anchor=MSO_ANCHOR.MIDDLE)
-    para(htf, [(t, {})], size=18, color=WHITE, bold=True, font=FONT_H, after=0,
-         first=True)
-    _, dtf = textbox(s, x + 0.35, y + 1.1, pw - 0.7, 1.05)
-    para(dtf, [(d, {})], size=15, color=INK, after=0, first=True, line=1.15)
-    exb = rect(s, x + 0.35, y + ph - 1.0, pw - 0.7, 0.7, fill=RGBColor(0xF0,0xEC,0xF6) if i==0 else RGBColor(0xEA,0xF1,0xF6),
+    rect(s, x, y, pw, 0.95, fill=col, shape=MSO_SHAPE.ROUND_2_SAME_RECTANGLE)
+    _, htf = textbox(s, x + 0.3, y, pw - 0.6, 0.95, anchor=MSO_ANCHOR.MIDDLE)
+    para(htf, [(t, {})], size=24, color=WHITE, bold=True, font=FONT_H, after=0,
+         first=True, scale=False)
+    _, dtf = textbox(s, x + 0.38, y + 1.12, pw - 0.76, 1.7, anchor=MSO_ANCHOR.MIDDLE)
+    para(dtf, [(d, {})], size=23, color=INK, after=0, first=True, line=1.14,
+         scale=False)
+    exb = rect(s, x + 0.38, y + ph - 1.12, pw - 0.76, 0.88, fill=RGBColor(0xF0,0xEC,0xF6) if i==0 else RGBColor(0xEA,0xF1,0xF6),
                shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-    exb.adjustments[0] = 0.18
-    _, etf = textbox(s, x + 0.5, y + ph - 1.0, pw - 1.0, 0.7, anchor=MSO_ANCHOR.MIDDLE)
-    para(etf, [("Example:  ", {"size": 12, "color": MUTED, "bold": True}),
-               (ex, {"size": 13.5, "color": col, "bold": True, "font": FONT_H})],
-         after=0, first=True, line=1.05)
-# connecting arrow + dotted line
-conn = s.shapes.add_shape(MSO_SHAPE.LEFT_RIGHT_ARROW, Inches(6.15), Inches(4.05),
-                          Inches(1.03), Inches(0.5))
+    exb.adjustments[0] = 0.14
+    _, etf = textbox(s, x + 0.55, y + ph - 1.12, pw - 1.1, 0.88, anchor=MSO_ANCHOR.MIDDLE)
+    para(etf, [("Example:  ", {"size": 15, "color": MUTED, "bold": True})],
+         after=1, first=True, scale=False)
+    para(etf, [(ex, {"size": 17, "color": col, "bold": True, "font": FONT_H})],
+         after=0, scale=False, line=1.05)
+# connecting arrow
+conn = s.shapes.add_shape(MSO_SHAPE.LEFT_RIGHT_ARROW, Inches(6.28), Inches(4.15),
+                          Inches(0.95), Inches(0.55))
 _shadow_off(conn); _set_fill(conn, SAND_DK); _no_line(conn)
-_, tf = textbox(s, 0.7, 6.25, 11.9, 0.5)
+_, tf = textbox(s, 0.7, 6.78, 11.9, 0.45)
 para(tf, [("The short note in your text always has a matching full entry at "
-           "the end.", {})], size=15.5, color=PURPLE, italic=True, bold=True,
-     align=PP_ALIGN.CENTER, after=0, first=True)
+           "the end.", {})], size=18, color=PURPLE, italic=True, bold=True,
+     align=PP_ALIGN.CENTER, after=0, first=True, scale=False)
 set_notes(s, "Establish this two-part structure clearly before diving into either part "
              "individually — students need to understand that in-text citations and "
              "reference list entries are not two separate skills, but two connected halves "
@@ -1342,27 +1361,27 @@ set_notes(s, "Establish this two-part structure clearly before diving into eithe
 # ============================================================================
 s = base_slide()
 header(s, "citation", "APA In-Text Citations", 22)
-_, tf = textbox(s, 0.7, 1.95, 11.9, 0.5)
+_, tf = textbox(s, 0.7, 1.9, 11.9, 0.5)
 para(tf, [("This course uses ", {}),
           ("APA (American Psychological Association) style", {"bold": True, "color": PURPLE}),
-          (" for all citations.", {})], size=17, after=0, first=True)
+          (" for all citations.", {})], size=21, after=0, first=True, scale=False)
 # format callout
-fb = rect(s, 0.7, 2.6, 11.9, 0.85, fill=RGBColor(0xF0,0xEC,0xF6),
+fb = rect(s, 0.7, 2.5, 11.95, 0.95, fill=RGBColor(0xF0,0xEC,0xF6),
           shape=MSO_SHAPE.ROUNDED_RECTANGLE)
 fb.adjustments[0] = 0.12
-_, ftf = textbox(s, 1.0, 2.6, 11.3, 0.85, anchor=MSO_ANCHOR.MIDDLE)
-para(ftf, [("APA in-text citation format:   ", {"size": 15, "color": INK, "bold": True}),
-           ("(Author's Last Name, Year)", {"size": 17, "color": PURPLE, "bold": True, "italic": True, "font": FONT_H})],
-     after=0, first=True)
+_, ftf = textbox(s, 1.0, 2.5, 11.35, 0.95, anchor=MSO_ANCHOR.MIDDLE)
+para(ftf, [("APA in-text format:   ", {"size": 20, "color": INK, "bold": True}),
+           ("(Author's Last Name, Year)", {"size": 24, "color": PURPLE, "bold": True, "italic": True, "font": FONT_H})],
+     after=0, first=True, scale=False)
 styled_table(s, [
     ["Use Case", "Example"],
     ["Paraphrased idea", "Coconut husk charcoal has shown filtering potential in prior designs (Reyes, 2022)."],
-    [[("Direct quote ", {}), ("(add page number)", {"italic": True, "size": 13})],
+    [[("Direct quote ", {}), ("(add page no.)", {"italic": True, "size": 16})],
      [("Reyes (2022) found the design ", {}),
       ("“reduced bacterial presence by over 60%”", {"italic": True}),
       (" (p. 14).", {})]],
-], x=0.7, y=3.75, w=11.9, h=2.4, col_w=[3.4, 8.5], accent=PURPLE,
-   fsize=15, hsize=15.5)
+], x=0.7, y=3.65, w=11.95, h=3.0, col_w=[3.35, 8.6], accent=PURPLE,
+   fsize=21, hsize=22)
 set_notes(s, "Keep the focus tightly on the author-date format — this is the one pattern "
              "students need to master, and introducing multiple citation styles at this "
              "stage would only create confusion (that comparison is intentionally left for "
@@ -1379,10 +1398,10 @@ set_notes(s, "Keep the focus tightly on the author-date format — this is the o
 # ============================================================================
 s = base_slide()
 header(s, "citation", "Practice In-Text Citations", 23)
-apply_chip(s, 0.7, 1.95, PURPLE)
-_, tf = textbox(s, 2.55, 1.98, 10.0, 0.5, anchor=MSO_ANCHOR.MIDDLE)
-para(tf, [("Add a properly formatted APA in-text citation to each sentence.", {"bold": True, "size": 15.5, "color": PURPLE})],
-     after=0, first=True)
+apply_chip(s, 0.7, 1.9, PURPLE)
+_, tf = textbox(s, 2.55, 1.9, 10.0, 0.5, anchor=MSO_ANCHOR.MIDDLE)
+para(tf, [("Add a properly formatted APA in-text citation to each sentence.", {"bold": True, "size": 19, "color": PURPLE})],
+     after=0, first=True, scale=False)
 items = [
     ([("A 2021 study by Dela Cruz found that sand filtration removes 80% of "
        "sediment.", {})], "Paraphrase — write the citation."),
@@ -1390,21 +1409,21 @@ items = [
       ("“significantly improved water clarity within 48 hours.”", {"italic": True})],
      "Direct quote, page 9 — write the citation."),
 ]
-y = 2.85; ih = 1.75
+y = 2.72; ih = 2.0
 for i, (sent, hint) in enumerate(items):
     yy = y + i * (ih + 0.3)
-    card = rect(s, 0.7, yy, 11.9, ih, fill=WHITE, line=FAINT,
+    card = rect(s, 0.7, yy, 11.95, ih, fill=WHITE, line=FAINT,
                 shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-    card.adjustments[0] = 0.05
+    card.adjustments[0] = 0.04
     soft_shadow(card, blur=0.06, dist=0.03, alpha=45000)
-    num = rect(s, 1.0, yy + 0.35, 0.6, 0.6, fill=PURPLE, shape=MSO_SHAPE.OVAL)
-    _, ntf = textbox(s, 1.0, yy + 0.35, 0.6, 0.6, anchor=MSO_ANCHOR.MIDDLE)
-    para(ntf, [(str(i+1), {})], size=18, color=WHITE, bold=True, font=FONT_H,
-         align=PP_ALIGN.CENTER, after=0, first=True)
-    _, stf = textbox(s, 1.85, yy + 0.25, 10.4, 1.3, anchor=MSO_ANCHOR.MIDDLE)
-    para(stf, sent, size=16, color=INK, after=6, first=True, line=1.1)
-    para(stf, [("( " + hint + " )", {"italic": True, "color": PURPLE, "size": 13.5})],
-         after=0)
+    num = rect(s, 1.0, yy + ih/2 - 0.33, 0.66, 0.66, fill=PURPLE, shape=MSO_SHAPE.OVAL)
+    _, ntf = textbox(s, 1.0, yy + ih/2 - 0.33, 0.66, 0.66, anchor=MSO_ANCHOR.MIDDLE)
+    para(ntf, [(str(i+1), {})], size=22, color=WHITE, bold=True, font=FONT_H,
+         align=PP_ALIGN.CENTER, after=0, first=True, scale=False)
+    _, stf = textbox(s, 1.9, yy + 0.18, 10.35, ih - 0.36, anchor=MSO_ANCHOR.MIDDLE)
+    para(stf, sent, size=25, color=INK, after=8, first=True, line=1.1, scale=False)
+    para(stf, [("( " + hint + " )", {"italic": True, "color": PURPLE, "size": 18})],
+         after=0, scale=False)
 set_notes(s, "Give students two or three minutes to write both citations independently "
              "before reviewing as a class. Expected answers: (1) '...removes 80% of "
              "sediment (Dela Cruz, 2021).' and (2) '...within 48 hours' (Dela Cruz, 2021, "
@@ -1418,10 +1437,11 @@ set_notes(s, "Give students two or three minutes to write both citations indepen
 # ============================================================================
 s = base_slide()
 header(s, "citation", "APA Reference List Basics", 24)
-_, tf = textbox(s, 0.7, 1.95, 11.9, 0.5)
+_, tf = textbox(s, 0.7, 1.9, 11.9, 0.5)
 para(tf, [("Every source type has a specific ", {}),
           ("reference list", {"bold": True, "color": PURPLE}),
-          (" format. Three common types:", {})], size=17, after=0, first=True)
+          (" format. Three common types:", {})], size=21, after=0, first=True,
+     color=MUTED, scale=False)
 templates = [
     ("Book", MSO_SHAPE.RECTANGLE,
      "Author, A. A. (Year). Title of the work. Publisher.", C_HONESTY),
@@ -1430,29 +1450,29 @@ templates = [
     ("Website", MSO_SHAPE.ROUNDED_RECTANGLE,
      "Author, A. A. (Year, Month Day). Title of the page. Site Name. URL", C_CONFID),
 ]
-cw = 3.85; ch = 3.85; y = 2.65
+cw = 3.92; ch = 4.35; y = 2.5
 for i, (t, icon, tmpl, col) in enumerate(templates):
-    x = 0.7 + i * (cw + 0.28)
+    x = 0.7 + i * (cw + 0.29)
     card = rect(s, x, y, cw, ch, fill=WHITE, line=FAINT,
                 shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-    card.adjustments[0] = 0.045
+    card.adjustments[0] = 0.04
     soft_shadow(card)
     rect(s, x, y, cw, 0.16, fill=col, shape=MSO_SHAPE.ROUND_2_SAME_RECTANGLE)
     # icon
-    ic = s.shapes.add_shape(icon, Inches(x + cw/2 - 0.45), Inches(y + 0.5),
-                            Inches(0.9), Inches(0.72))
+    ic = s.shapes.add_shape(icon, Inches(x + cw/2 - 0.48), Inches(y + 0.45),
+                            Inches(0.96), Inches(0.76))
     _shadow_off(ic); _set_fill(ic, col); _no_line(ic)
     if icon == MSO_SHAPE.RECTANGLE:  # book spine detail
-        rect(s, x + cw/2 - 0.45, y + 0.5, 0.16, 0.72, fill=WHITE)
-    _, htf = textbox(s, x + 0.2, y + 1.45, cw - 0.4, 0.5, anchor=MSO_ANCHOR.MIDDLE)
-    para(htf, [(t, {})], size=18, color=col, bold=True, font=FONT_H,
-         align=PP_ALIGN.CENTER, after=0, first=True)
-    codeb = rect(s, x + 0.25, y + 2.05, cw - 0.5, 1.55, fill=RGBColor(0xF3,0xF6,0xF7),
+        rect(s, x + cw/2 - 0.48, y + 0.45, 0.17, 0.76, fill=WHITE)
+    _, htf = textbox(s, x + 0.2, y + 1.4, cw - 0.4, 0.55, anchor=MSO_ANCHOR.MIDDLE)
+    para(htf, [(t, {})], size=23, color=col, bold=True, font=FONT_H,
+         align=PP_ALIGN.CENTER, after=0, first=True, scale=False)
+    codeb = rect(s, x + 0.24, y + 2.05, cw - 0.48, 2.1, fill=RGBColor(0xF3,0xF6,0xF7),
                  shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-    codeb.adjustments[0] = 0.06
-    _, ctf = textbox(s, x + 0.42, y + 2.15, cw - 0.85, 1.35, anchor=MSO_ANCHOR.MIDDLE)
-    para(ctf, [(tmpl, {})], size=12.5, color=INK, font="Consolas", after=0,
-         first=True, line=1.2)
+    codeb.adjustments[0] = 0.05
+    _, ctf = textbox(s, x + 0.4, y + 2.15, cw - 0.8, 1.9, anchor=MSO_ANCHOR.MIDDLE)
+    para(ctf, [(tmpl, {})], size=16, color=INK, font="Consolas", after=0,
+         first=True, line=1.25, scale=False)
 set_notes(s, "Present these three templates as patterns to recognize, not to memorize by "
              "rote — students will look these up when writing real papers, so the goal is "
              "familiarity with the structure, not flawless recall under pressure. Point "
@@ -1484,19 +1504,19 @@ samples = [
         ("Community water testing guidelines.", {"italic": True}),
         (" DOST Philippines. https://www.dost.gov.ph", {})]),
 ]
-y = 2.3; rh = 1.35
+y = 2.25; rh = 1.42
 for i, (label, col, runs) in enumerate(samples):
-    yy = y + i * (rh + 0.22)
-    card = rect(s, 0.7, yy, 11.9, rh, fill=WHITE, line=FAINT,
+    yy = y + i * (rh + 0.2)
+    card = rect(s, 0.7, yy, 11.95, rh, fill=WHITE, line=FAINT,
                 shape=MSO_SHAPE.ROUNDED_RECTANGLE)
     card.adjustments[0] = 0.05
     soft_shadow(card, blur=0.06, dist=0.03, alpha=45000)
-    tab = rect(s, 0.7, yy, 2.3, rh, fill=col, shape=MSO_SHAPE.ROUND_2_SAME_RECTANGLE)
-    _, ltf = textbox(s, 0.8, yy, 2.1, rh, anchor=MSO_ANCHOR.MIDDLE)
-    para(ltf, [(label, {})], size=16, color=WHITE, bold=True, font=FONT_H,
-         align=PP_ALIGN.CENTER, after=0, first=True)
-    _, etf = textbox(s, 3.2, yy + 0.15, 9.15, rh - 0.3, anchor=MSO_ANCHOR.MIDDLE)
-    para(etf, runs, size=14.5, color=INK, after=0, first=True, line=1.15)
+    tab = rect(s, 0.7, yy, 2.35, rh, fill=col, shape=MSO_SHAPE.ROUND_2_SAME_RECTANGLE)
+    _, ltf = textbox(s, 0.78, yy, 2.2, rh, anchor=MSO_ANCHOR.MIDDLE)
+    para(ltf, [(label, {})], size=20, color=WHITE, bold=True, font=FONT_H,
+         align=PP_ALIGN.CENTER, after=0, first=True, scale=False)
+    _, etf = textbox(s, 3.25, yy + 0.12, 9.25, rh - 0.24, anchor=MSO_ANCHOR.MIDDLE)
+    para(etf, runs, size=20, color=INK, after=0, first=True, line=1.16, scale=False)
 set_notes(s, "This slide exists specifically so students can see a complete, realistic "
              "reference list — not just an abstract template. Walk through each entry and "
              "have students point out which part of the template (from Slide 24) each "
@@ -1511,20 +1531,20 @@ set_notes(s, "This slide exists specifically so students can see a complete, rea
 # ============================================================================
 s = base_slide()
 header(s, "citation", "Build a Reference List", 26)
-apply_chip(s, 0.7, 1.95, PURPLE)
-_, tf = textbox(s, 2.55, 1.98, 10.0, 0.5, anchor=MSO_ANCHOR.MIDDLE)
+apply_chip(s, 0.7, 1.9, PURPLE)
+_, tf = textbox(s, 2.55, 1.9, 10.0, 0.5, anchor=MSO_ANCHOR.MIDDLE)
 para(tf, [("Turn this source information into a properly formatted APA "
-           "reference entry.", {"bold": True, "size": 15, "color": PURPLE})],
-     after=0, first=True)
+           "reference entry.", {"bold": True, "size": 19, "color": PURPLE})],
+     after=0, first=True, scale=False)
 # source-detail panel
-srcpanel = rect(s, 0.7, 2.65, 6.1, 4.0, fill=WHITE, line=FAINT,
+srcpanel = rect(s, 0.7, 2.55, 6.15, 4.35, fill=WHITE, line=FAINT,
                 shape=MSO_SHAPE.ROUNDED_RECTANGLE)
 srcpanel.adjustments[0] = 0.03
 soft_shadow(srcpanel)
-rect(s, 0.7, 2.65, 6.1, 0.6, fill=PURPLE, shape=MSO_SHAPE.ROUND_2_SAME_RECTANGLE)
-_, htf = textbox(s, 0.95, 2.65, 5.6, 0.6, anchor=MSO_ANCHOR.MIDDLE)
-para(htf, [("SOURCE DETAILS", {})], size=13.5, color=WHITE, bold=True,
-     font=FONT_H, after=0, first=True)
+rect(s, 0.7, 2.55, 6.15, 0.68, fill=PURPLE, shape=MSO_SHAPE.ROUND_2_SAME_RECTANGLE)
+_, htf = textbox(s, 0.95, 2.55, 5.65, 0.68, anchor=MSO_ANCHOR.MIDDLE)
+para(htf, [("SOURCE DETAILS", {})], size=18, color=WHITE, bold=True,
+     font=FONT_H, after=0, first=True, scale=False)
 details = [
     ("Author:", "Dela Cruz, A."),
     ("Year:", "2021"),
@@ -1533,23 +1553,23 @@ details = [
     ("Volume/Issue:", "9(3)"),
     ("Pages:", "112–120"),
 ]
-_, dtf = textbox(s, 1.0, 3.45, 5.55, 3.0)
+_, dtf = textbox(s, 1.0, 3.4, 5.6, 3.4, anchor=MSO_ANCHOR.MIDDLE)
 for i, d in enumerate(details):
     lab, val = d[0], d[1]
     ital = len(d) > 2 and d[2]
-    para(dtf, [(lab + "  ", {"bold": True, "color": PURPLE, "size": 14.5, "font": FONT_H}),
-               (val, {"size": 14.5, "color": INK, "italic": bool(ital)})],
-         after=8, first=(i == 0), line=1.05)
+    para(dtf, [(lab + "  ", {"bold": True, "color": PURPLE, "size": 18, "font": FONT_H}),
+               (val, {"size": 18, "color": INK, "italic": bool(ital)})],
+         after=7, first=(i == 0), line=1.06, scale=False)
 # answer/work area
-wp = rect(s, 7.1, 2.65, 5.5, 4.0, fill=RGBColor(0xF3,0xEF,0xF8),
+wp = rect(s, 7.15, 2.55, 5.45, 4.35, fill=RGBColor(0xF3,0xEF,0xF8),
           shape=MSO_SHAPE.ROUNDED_RECTANGLE)
 wp.adjustments[0] = 0.03
-_, wtf = textbox(s, 7.4, 3.0, 4.9, 3.4, anchor=MSO_ANCHOR.TOP)
+_, wtf = textbox(s, 7.45, 2.95, 4.85, 3.7, anchor=MSO_ANCHOR.TOP)
 para(wtf, [("Write the full reference list entry:", {"bold": True, "color": PURPLE,
-            "size": 15, "font": FONT_H})], after=12, first=True)
-for _ in range(4):
-    para(wtf, [("_______________________________", {"color": RGBColor(0xB9,0xA8,0xD0), "size": 15})],
-         after=12)
+            "size": 19, "font": FONT_H})], after=18, first=True, scale=False)
+for _ in range(3):
+    para(wtf, [("______________________________", {"color": RGBColor(0xB9,0xA8,0xD0), "size": 19})],
+         after=20, scale=False)
 set_notes(s, "This is the culminating skills-practice slide for citation mechanics — "
              "students now assemble a complete entry from raw, unordered information "
              "rather than filling in a partial template. Expected answer: 'Dela Cruz, A. "
@@ -1565,11 +1585,11 @@ set_notes(s, "This is the culminating skills-practice slide for citation mechani
 # ============================================================================
 s = base_slide()
 header(s, "integrate", "Full Ethics and Citation Audit", 27)
-apply_chip(s, 0.7, 1.9, TEAL, text="APPLY IT — ONE LAST TIME", width=3.15)
-_, tf = textbox(s, 4.05, 1.87, 8.5, 0.66, anchor=MSO_ANCHOR.MIDDLE)
-para(tf, [("The Barangay Water Filter researchers are ready to submit their "
-           "final report. Audit their draft against everything covered today:", {"size": 13.5})],
-     after=0, first=True, line=1.1)
+apply_chip(s, 0.7, 1.86, TEAL, text="APPLY IT — ONE LAST TIME", width=3.3)
+_, tf = textbox(s, 4.2, 1.8, 8.35, 0.72, anchor=MSO_ANCHOR.MIDDLE)
+para(tf, [("The researchers are ready to submit their final report. Audit "
+           "their draft against everything covered today:", {"size": 18})],
+     after=0, first=True, line=1.08, color=MUTED, scale=False)
 checks = [
     [("Did they honestly report ", {}), ("all", {"bold": True}),
      (" results, not just favorable ones?", {})],
@@ -1579,22 +1599,22 @@ checks = [
     [("Is the earlier filter design properly ", {}), ("cited", {"bold": True}),
      (" — both in-text and in the reference list?", {})],
 ]
-cy = 2.75; chh = 0.68
+cy = 2.54; chh = 0.78
 for i, c in enumerate(checks):
-    yy = cy + i * (chh + 0.14)
-    card = rect(s, 0.7, yy, 11.9, chh, fill=WHITE, line=FAINT,
+    yy = cy + i * (chh + 0.04)
+    card = rect(s, 0.7, yy, 11.95, chh, fill=WHITE, line=FAINT,
                 shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-    card.adjustments[0] = 0.15
+    card.adjustments[0] = 0.12
     soft_shadow(card, blur=0.05, dist=0.03, alpha=40000)
-    box = rect(s, 1.0, yy + chh/2 - 0.22, 0.44, 0.44, fill=PAPER, line=TEAL,
+    box = rect(s, 1.0, yy + chh/2 - 0.26, 0.52, 0.52, fill=PAPER, line=TEAL,
                line_w=2.0, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
     box.adjustments[0] = 0.2
-    _, ctf = textbox(s, 1.7, yy, 10.6, chh, anchor=MSO_ANCHOR.MIDDLE)
-    para(ctf, c, size=15, color=INK, after=0, first=True, line=1.05)
-_, tf = textbox(s, 0.7, 6.65, 11.9, 0.5)
+    _, ctf = textbox(s, 1.8, yy, 10.5, chh, anchor=MSO_ANCHOR.MIDDLE)
+    para(ctf, c, size=19, color=INK, after=0, first=True, line=1.04, scale=False)
+_, tf = textbox(s, 0.7, 6.74, 11.9, 0.42)
 para(tf, [("If every box can be checked, the research is both scientifically "
-           "sound and ethically sound.", {})], size=15.5, color=TEAL, italic=True,
-     bold=True, align=PP_ALIGN.CENTER, after=0, first=True)
+           "sound and ethically sound.", {})], size=17, color=TEAL, italic=True,
+     bold=True, align=PP_ALIGN.CENTER, after=0, first=True, scale=False)
 set_notes(s, "Close the lecture by returning to the exact scenario from Slide 1, now "
              "fully resolved through everything students have learned — this bookends the "
              "lesson without introducing new content or previewing future lessons. Work "
@@ -1619,10 +1639,10 @@ styled_table(s, [
     ["6–11", "The four core ethical standards (Comp. 9)"],
     ["12–16", "Applying ethics across all stages of the research process (Comp. 9)"],
     ["17–20", "Plagiarism as the ethical bridge into citation (Comp. 9 → 10)"],
-    ["21–26", "APA citation mechanics — in-text and reference list (Comp. 10)"],
+    ["21–26", "APA citation mechanics: in-text and reference list (Comp. 10)"],
     ["27", "Integrated ethics + citation application (Comp. 9 & 10)"],
-], x=0.7, y=2.15, w=11.9, h=4.2, col_w=[2.2, 9.7], accent=TEAL, fsize=15,
-   hsize=16)
+], x=0.7, y=2.05, w=11.95, h=4.75, col_w=[1.95, 10.0], accent=TEAL, fsize=19,
+   hsize=21)
 set_notes(s, "Appendix: Slide-to-Competency Alignment Map. Slides 1-5 build the "
              "foundation (Comp. 9); Slides 6-11 cover the four core ethical standards "
              "(Comp. 9); Slides 12-16 apply ethics across all stages of the research "
