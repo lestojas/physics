@@ -26,27 +26,60 @@ def title_band(slide, section, title, subtitle=None, source=None, number=None):
 
 
 # ===========================================================================
+# TITLE / COVER SLIDE - Lecture 3
+# ===========================================================================
+s = d.new()
+c = base(s, "OPENER", decor_waves=False)
+rect(s, 0, 0, 13.333, 7.5, DEEP)
+# layered wave shapes bottom
+w1 = rect(s, -1, 5.4, 16, 3.2, _mix(DEEP, WHITE, 0.07), shape=MSO_SHAPE.OVAL)
+w2 = rect(s, -2, 6.0, 18, 3.2, _mix(DEEP, TEAL, 0.5), shape=MSO_SHAPE.OVAL)
+w3 = rect(s, -1, 6.6, 17, 3.2, TEAL, shape=MSO_SHAPE.OVAL)
+textbox(s, 0.9, 1.25, 11.5, 0.45,
+        [{"text": "STEM SENIOR HIGH SCHOOL RESEARCH", "size": 16,
+          "color": SAND, "bold": True}])
+textbox(s, 0.9, 1.8, 6.0, 0.75,
+        [{"text": "Lecture 3", "size": 30, "color": _mix(WHITE, TEAL, 0.2),
+          "bold": True}])
+textbox(s, 0.9, 2.5, 11.8, 1.95,
+        [{"text": "Review of Literature for Identifying Research Problems",
+          "size": 44, "color": WHITE, "bold": True, "line_spacing": 0.98}])
+rect(s, 0.93, 4.55, 2.0, 0.06, SAND)
+textbox(s, 0.9, 4.78, 11.5, 0.5,
+        [{"text": "Slide-by-Slide Content Script  |  Competencies 11-16",
+          "size": 19, "color": _mix(WHITE, TEAL, 0.28), "italic": True}])
+# source-key legend pills
+legend = [("TEXTBOOK-BASED", SKY), ("GUIDE-BASED", CORAL), ("INSTRUCTOR-CREATED", AQUA)]
+lx = 0.9
+for lbl, col in legend:
+    lw = 0.12 * len(lbl) + 0.5
+    p = rect(s, lx, 5.5, lw, 0.42, col, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
+    textbox(s, lx, 5.49, lw, 0.42, [{"text": lbl, "size": 12, "color": WHITE,
+            "bold": True, "align": PP_ALIGN.CENTER}], anchor=MSO_ANCHOR.MIDDLE)
+    lx += lw + 0.25
+textbox(s, 0.9, 7.02, 11.5, 0.38,
+        [{"text": "Running case study: one coastal-barangay plastic-waste story carried through every stage.",
+          "size": 11.5, "color": WHITE, "italic": True}])
+set_notes(s, "Title slide. Introduce the lecture: this is Lecture 3, focused on reviewing literature to identify a research problem, covering competencies 11 through 16 for STEM senior high school research. Point out the three source types used throughout the deck - textbook-based, guide-based, and instructor-created - and mention that a single coastal plastic-waste case study runs through the entire lecture as a continuous thread.")
+
+# ===========================================================================
 # SLIDE 1 - The Research Problem Journey (SECTION OPENER)
 # ===========================================================================
 s = d.new()
 c = base(s, "OPENER", decor_waves=False)
-# full-bleed hero band
 rect(s, 0, 0, 13.333, 7.5, DEEP)
-# layered wave shapes bottom
-w1 = rect(s, -1, 5.7, 16, 3, _mix(DEEP, WHITE, 0.08), shape=MSO_SHAPE.OVAL)
 w2 = rect(s, -2, 6.2, 18, 3, _mix(DEEP, TEAL, 0.5), shape=MSO_SHAPE.OVAL)
 w3 = rect(s, -1, 6.7, 17, 3, TEAL, shape=MSO_SHAPE.OVAL)
-textbox(s, 0.9, 0.75, 11.5, 0.4,
-        [{"text": "LECTURE 3  -  STEM SENIOR HIGH SCHOOL RESEARCH", "size": 13,
-          "color": SAND, "bold": True}])
-textbox(s, 0.9, 1.15, 11.6, 1.7,
-        [{"text": "The Research Problem Journey", "size": 46, "color": WHITE,
+textbox(s, 0.9, 0.7, 11.5, 0.4,
+        [{"text": "SECTION OPENER", "size": 14, "color": SAND, "bold": True}])
+textbox(s, 0.9, 1.12, 11.6, 1.0,
+        [{"text": "The Research Problem Journey", "size": 40, "color": WHITE,
           "bold": True, "line_spacing": 0.98}])
-textbox(s, 0.9, 2.55, 11.4, 0.55,
-        [{"text": "Review of Literature for Identifying Research Problems  |  Competencies 11-16",
-          "size": 16, "color": _mix(WHITE, TEAL, 0.25), "italic": True}])
+textbox(s, 0.9, 2.1, 11.5, 0.5,
+        [{"text": "Today's journey, six stops:", "size": 22,
+          "color": _mix(WHITE, TEAL, 0.25), "italic": True}])
 # six-node chevron flow
-chevron_flow(s, 0.9, 3.35, 11.55, 0.95, [
+chevron_flow(s, 0.9, 2.85, 11.55, 1.05, [
     (1, "Evaluate sources"),
     (2, "Synthesize literature"),
     (3, "Formulate the problem"),
@@ -61,20 +94,20 @@ cw = (11.55 - 0.12 * 5) / 6
 for i, q in enumerate(quals):
     if q:
         cx = 0.9 + i * (cw + 0.12)
-        textbox(s, cx + 0.5, 4.34, cw, 0.35,
-                [{"text": q, "size": 9.5, "color": _mix(WHITE, TEAL, 0.35),
+        textbox(s, cx + 0.5, 3.96, cw, 0.35,
+                [{"text": q, "size": 10, "color": _mix(WHITE, TEAL, 0.35),
                   "italic": True, "align": PP_ALIGN.CENTER}])
 callout_txt = ("Each stop builds on the one before it - you cannot skip a step "
                "and still end up with a defensible research problem.")
-cc = rect(s, 0.9, 4.95, 11.55, 0.62, _mix(DEEP, WHITE, 0.12),
+cc = rect(s, 0.9, 4.75, 11.55, 0.85, _mix(DEEP, WHITE, 0.12),
           shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-rect(s, 0.9, 4.95, 0.09, 0.62, SAND, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-textbox(s, 1.15, 4.95, 11.1, 0.62,
-        [{"text": callout_txt, "size": 14, "color": WHITE, "italic": True}],
-        anchor=MSO_ANCHOR.MIDDLE)
-textbox(s, 0.9, 7.05, 11.5, 0.35,
+rect(s, 0.9, 4.75, 0.09, 0.85, SAND, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
+textbox(s, 1.2, 4.75, 11.05, 0.85,
+        [{"text": callout_txt, "size": 18, "color": WHITE, "italic": True,
+          "line_spacing": 1.02}], anchor=MSO_ANCHOR.MIDDLE)
+textbox(s, 0.9, 7.02, 11.5, 0.38,
         [{"text": "Running case study: one coastal-barangay plastic-waste story carried through every stage.",
-          "size": 10.5, "color": WHITE, "italic": True}])
+          "size": 11.5, "color": WHITE, "italic": True}])
 set_notes(s, "Open by naming the destination before the details: by the end of this lecture, every group will walk away with a complete, defensible research problem package - not just a topic. Frame the six stops as a single pipeline, not six unrelated skills. Tell them we will use one running example (coastal plastic waste) so they can watch the same piece of research evolve through every stage, and a second example (dengue) that they will build up themselves, piece by piece, across several practice slides.")
 
 # ===========================================================================
@@ -87,7 +120,7 @@ bullets(s, 0.62, 2.35, 7.2, 4, [
     {"text": "A STEM research group wants to study plastic waste in a coastal barangay.", "gap": 14},
     {"text": "A search turns up: **3 government reports, 4 peer-reviewed journal articles, 12 news articles, 20+ blog posts and social media threads.**", "gap": 14},
     {"text": "The real question isn't *\u201CHow much can I find?\u201D* - it's *\u201CWhich of these can I actually trust and use?\u201D*", "gap": 14},
-], c, size=17)
+], c, size=24)
 # visual: mixed pile of source icons in a "search results" panel
 card(s, 8.2, 2.35, 4.5, 4.3, WHITE, CLOUD)
 rect(s, 8.2, 2.35, 4.5, 0.55, c, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
@@ -210,7 +243,7 @@ bullets(s, 0.62, 2.4, 6.7, 4, [
     {"text": "The group has now filtered their list down to **8 credible, relevant sources** on coastal plastic waste.", "gap": 16},
     {"text": "Reading each one in isolation still leaves them with 8 separate summaries - *not a research direction.*", "gap": 16},
     {"text": "The next skill: *reading across* sources instead of *reading through* them one at a time.", "gap": 16},
-], c, size=17)
+], c, size=24)
 # visual: 8 scattered docs -> organized table
 for i, (dx, dy) in enumerate([(7.7,2.4),(8.5,2.55),(9.4,2.35),(10.2,2.6),
                                (7.9,3.3),(8.8,3.15),(9.7,3.35),(10.5,3.2)]):
@@ -329,7 +362,7 @@ bullets(s, 0.62, 2.25, 6.6, 4.2, [
     {"text": "A topic mentioned but not directly investigated", "level": 1, "gap": 14},
     {"text": "Researchers often signal a gap with phrases like *\u201Cwhat remains to be explored\u201D* or *\u201Clittle empirical research\u201D* on a topic.", "gap": 14},
     {"text": "Naming the gap precisely is what turns a stack of readings into a direction for new research.", "gap": 8},
-], c, size=15.5)
+], c, size=17)
 # Venn diagram (3 circles) on right
 cx0, cy0 = 9.9, 4.15
 r_ = 1.15
@@ -462,14 +495,14 @@ card(s, 0.62, 3.85, 5.95, 2.6, WHITE, CLOUD)
 rect(s, 0.62, 3.85, 5.95, 0.55, SKY, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
 textbox(s, 0.62, 3.85, 5.95, 0.55, [{"text": "Gap statement", "size": 15,
         "color": WHITE, "bold": True, "align": PP_ALIGN.CENTER}], anchor=MSO_ANCHOR.MIDDLE)
-textbox(s, 0.9, 4.6, 5.4, 1.7, [{"text": "Describes what's *missing in the literature.*  It is diagnostic - about the literature.",
-        "size": 15, "color": INK, "line_spacing": 1.1}], anchor=MSO_ANCHOR.MIDDLE)
+textbox(s, 0.9, 4.55, 5.4, 1.8, [{"text": "Describes what's *missing in the literature.*  It is diagnostic - about the literature.",
+        "size": 19, "color": INK, "line_spacing": 1.08}], anchor=MSO_ANCHOR.MIDDLE)
 card(s, 6.77, 3.85, 5.95, 2.6, WHITE, CLOUD)
 rect(s, 6.77, 3.85, 5.95, 0.55, c, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
 textbox(s, 6.77, 3.85, 5.95, 0.55, [{"text": "Problem statement", "size": 15,
         "color": WHITE, "bold": True, "align": PP_ALIGN.CENTER}], anchor=MSO_ANCHOR.MIDDLE)
-textbox(s, 7.05, 4.6, 5.4, 1.7, [{"text": "Goes one step further - it *commits to studying that gap directly,* and defends why it deserves attention.",
-        "size": 15, "color": INK, "line_spacing": 1.1}], anchor=MSO_ANCHOR.MIDDLE)
+textbox(s, 7.05, 4.55, 5.4, 1.8, [{"text": "Goes one step further - it *commits to studying that gap directly,* and defends why it deserves attention.",
+        "size": 19, "color": INK, "line_spacing": 1.08}], anchor=MSO_ANCHOR.MIDDLE)
 arrow_between(s, 6.4, 4.85, 0.5, 0.55, c)
 set_notes(s, "Keep this transition brief but explicit, since students often treat the gap statement and the problem statement as the same thing. The gap statement is diagnostic - it's about the literature. The problem statement is directive - it's about this study. The next several slides go into real depth on how to build one properly, since a rushed problem statement is the single most common weak point in student research proposals.")
 
@@ -636,7 +669,7 @@ bullets(s, 0.62, 2.2, 7.0, 4.3, [
     {"text": "**Root cause** - the underlying reason that gives rise to the symptoms; addressing it produces a lasting solution.", "gap": 12},
     {"text": "A single symptom rarely points to one clear cause - like a headache that could point to dozens of conditions. It's usually a *pattern* of symptoms, examined together, that narrows down the real explanation.", "gap": 12},
     {"text": "Mistaking a symptom for the root cause leads to solutions that only provide temporary relief.", "gap": 8},
-], c, size=14)
+], c, size=16)
 set_notes(s, "The medical-diagnosis comparison is worth dwelling on: doctors don't diagnose from one symptom in isolation, they look at a cluster of symptoms occurring together. The same logic applies to research problems - low attendance alone doesn't tell you why students are disengaged, but low attendance combined with high missing-work rates combined with low participation starts to sketch a real pattern. This reframes 'digging deeper' as a structured, evidence-based process, not just guessing.")
 
 # ===========================================================================
@@ -683,7 +716,7 @@ bullets(s, 0.62, 2.3, 7.1, 4, [
     {"text": "Return to your narrowed dengue scenario from Slide 22.", "gap": 12},
     {"text": "**Starting symptom:** low household compliance with mosquito-breeding-site elimination.", "gap": 12},
     {"text": "In pairs, run your own \u201Cwhy\u201D chain - **at least three levels deep** - to propose a plausible root cause.", "gap": 12},
-], c, size=15)
+], c, size=18)
 card(s, 0.62, 5.35, 12.1, 1.15, _mix(CORAL, WHITE, 0.85), _mix(CORAL, WHITE, 0.5))
 rect(s, 0.62, 5.35, 0.11, 1.15, CORAL, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
 textbox(s, 0.95, 5.35, 11.5, 1.15, [
@@ -773,8 +806,8 @@ yy = 2.7
 for title, body, col in steps30:
     card(s, 1.6, yy, 10.1, 1.05, WHITE, CLOUD)
     rect(s, 1.6, yy, 3.4, 1.05, col, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-    textbox(s, 1.75, yy, 3.1, 1.05, [{"text": title, "size": 15, "color": WHITE, "bold": True, "line_spacing": 0.95}], anchor=MSO_ANCHOR.MIDDLE)
-    textbox(s, 5.2, yy, 6.3, 1.05, [{"text": body, "size": 14, "color": INK, "line_spacing": 1.03}], anchor=MSO_ANCHOR.MIDDLE)
+    textbox(s, 1.75, yy, 3.1, 1.05, [{"text": title, "size": 17, "color": WHITE, "bold": True, "line_spacing": 0.95}], anchor=MSO_ANCHOR.MIDDLE)
+    textbox(s, 5.2, yy, 6.3, 1.05, [{"text": body, "size": 18, "color": INK, "line_spacing": 1.03}], anchor=MSO_ANCHOR.MIDDLE)
     yy += 1.15
     if yy < 5.2:
         arrow_between(s, 6.4, yy - 0.13, 0.4, 0.15, c, "down")
@@ -987,7 +1020,7 @@ bullets(s, 0.62, 2.5, 7.0, 3.5, [
     {"text": "The group has a strong problem statement and an aligned research question.", "gap": 16},
     {"text": "A reader - a teacher, a panel, a barangay official - will still ask: *\u201CSo what? Why does this matter enough to study?\u201D*", "gap": 16},
     {"text": "A problem statement alone doesn't answer that. It needs to be **argued for**, not just announced.", "gap": 16},
-], c, size=17)
+], c, size=24)
 # big "So what?" graphic
 sw = rect(s, 8.2, 2.7, 4.4, 3.0, _mix(c, WHITE, 0.12), shape=MSO_SHAPE.ROUNDED_RECTANGLE, shadow=True)
 textbox(s, 8.2, 2.9, 4.4, 1.5, [{"text": "\u201CSo what?\u201D", "size": 34, "color": c, "bold": True, "align": PP_ALIGN.CENTER}], anchor=MSO_ANCHOR.MIDDLE)
@@ -1088,7 +1121,7 @@ bullets(s, 0.62, 2.5, 7.0, 3.5, [
     {"text": "The group now has a problem, a question, and a justified argument for why it matters.", "gap": 16},
     {"text": "One task remains: being honest about what the study *takes for granted* and what it *cannot fully cover.*", "gap": 16},
     {"text": "Every real study - published or student-led - has **both.**", "gap": 16},
-], c, size=17)
+], c, size=24)
 # two-column reassurance graphic
 card(s, 8.2, 2.6, 4.4, 1.55, WHITE, CLOUD)
 rect(s, 8.2, 2.6, 4.4, 0.48, AQUA, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
