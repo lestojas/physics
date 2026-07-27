@@ -735,61 +735,86 @@ notes(s, "Point out that \"tangible\" is often the criterion beginning researche
       "checkmarks) that can repeat later as a self-assessment tool.")
 
 # =========================================================================
-# SLIDE 23 - Three Building Blocks
+# SLIDE 23 - The Four Components of a Problem Statement
 # =========================================================================
 s = new_slide()
 y = header(s, "Section 5 \u00b7 Formulating the Problem Statement (Competency 13)",
-           "Three Building Blocks: Context, Relevance, Strategy", 23, title_size=26)
-items = [
-    ("Context", "the background and current situation surrounding the issue"),
-    ("Relevance", "why the issue matters, and who is affected if it stays unresolved"),
-    ("Strategy", "the general goal and approach your study will take to address it"),
+           "The Four Components of a Problem Statement", 23, title_size=27)
+_, tf = textbox(s, 0.85, y - 0.05, SW - 1.7, 0.32)
+p = para(tf, first=True, space_after=0)
+_run(p, "A strong statement needs at least one full sentence per component.", 14, MUTED, italic=True)
+data = [
+    ["Component", "Purpose", "Key Question It Answers"],
+    ["Background context", "Establishes the broader setting in which the problem exists",
+     "What does the reader need to know to understand why this matters?"],
+    ["Specific problem or gap", "Names the precise issue, contradiction, or knowledge gap the study addresses",
+     "What exactly is wrong, missing, or unresolved?"],
+    ["Implications", "Explains the consequences of leaving the problem unresolved",
+     "Who is affected, and what are the costs of inaction?"],
+    ["Objectives or aims", "States what the study will do in response to the gap",
+     "What will this research investigate or accomplish?"],
 ]
-widths = [10.6, 8.6, 6.6]
-colors = [PRIMARY, ACCENT, SUCCESS]
-funnel(s, SW / 2, y + 0.15, items, widths, colors, box_h=0.85, gap=0.16, size=19)
-b = rrect(s, SW / 2 - 4.0, y + 3.25, 8.0, 0.68, fill=INK, radius=0.14, shadow=True)
-fill_frame(b, [("\u2193  These three, written in order, build a complete problem statement", 16.5, WHITE, True)], align=CENTER)
-notes(s, "Present this as a practical writing formula, not an abstract theory \u2014 students often freeze "
-      "when told to \"just write a problem statement,\" so giving them three concrete building blocks to "
-      "write in sequence makes the task approachable. Note that this structure works whether the final "
-      "study is fully quantitative or a quantitative-led mixed methods design.\n\nVisual: a funnel diagram "
-      "narrowing from Context (widest) to Relevance to Strategy (narrowest), ending in a single "
-      "problem-statement sentence.")
+cc = {(1, 0): PRIMARY_LT, (2, 0): ACCENT_LT, (3, 0): AMBER_LT, (4, 0): SUCCESS_LT}
+styled_table(s, 0.85, y + 0.38, SW - 1.7, data, col_widths=[1.0, 1.5, 1.55],
+             size=15, header_size=16, row_h=0.9, header_h=0.55, cell_colors=cc)
+notes(s, "Present this as the universal four-part anatomy of a problem statement \u2014 every effective "
+      "research problem statement contains these four components in some form, regardless of field or "
+      "format. Tell students a strong problem statement needs at least one full sentence per component "
+      "\u2014 skipping any one of the four leaves the reader with an unanswered question: why does this "
+      "setting matter (context)? what exactly is missing (gap)? who is affected if nothing changes "
+      "(implications)? and what will this study actually do (objectives)? Note that these four components "
+      "do the same job as a general \"why this study matters\" explanation, just broken into finer, "
+      "checkable parts.\n\nVisual: a four-row reference table matching this exact structure, formatted so "
+      "students can reuse it directly as a drafting template when writing their own problem statement.")
 
 # =========================================================================
-# SLIDE 24 - Example: Writing a Problem Statement Step by Step
+# SLIDE 24 - Example: One Sentence per Component
 # =========================================================================
 s = new_slide()
 y = header(s, "Section 5 \u00b7 Formulating the Problem Statement (Competency 13)",
-           "Example \u2014 Writing a Problem Statement Step by Step", 24, title_size=25)
+           "Example \u2014 One Sentence per Component", 24, title_size=27)
 eg_tag(s, 0.85, y - 0.02, "Instructor-Created Example \u00b7 Example A topic")
-rows = [
-    ("Context:", "Many coastal barangays rely on unsafe drinking water sources, and low-cost solar distillers have been proposed as a solution", PRIMARY),
-    ("Relevance:", "Existing studies test either distiller efficiency or water safety standards, but rarely both together in an actual barangay setting", ACCENT),
-    ("Strategy:", "This study will test the distiller's real-world effect on microbial water safety", SUCCESS),
+x0 = 0.85
+cw = (SW - 1.7 - 0.5) / 2
+top = y + 0.5
+bottom = 6.72
+h = bottom - top
+comp_colors = [PRIMARY, ACCENT, "C0870A", SUCCESS]
+labels = ["Background context:", "Specific problem or gap:", "Implications:", "Objectives or aims:"]
+sentences = [
+    "Many coastal barangays in the Philippines depend on shallow wells and rainwater catchments that are vulnerable to microbial contamination, and low-cost solar water distillers have been promoted as an accessible treatment option.",
+    "However, existing studies evaluate either the distiller's efficiency or general water safety standards separately, with very few directly measuring the distiller's actual effect on microbial contamination in a real barangay setting.",
+    "Without this evidence, communities and local health workers risk relying on a technology whose real protective effect on drinking water safety remains unverified, which could expose residents to preventable waterborne illness.",
+    "This study, therefore, aims to determine the effect of a low-cost solar water distiller on the microbial safety of drinking water in a coastal barangay in Zambales.",
 ]
-cy = y + 0.5
-for lab, body, col in rows:
-    tab = rrect(s, 0.85, cy, 0.12, 0.68, fill=col, radius=0.5)
-    _, tf = textbox(s, 1.15, cy, SW - 2.1, 0.75, anchor=MID)
-    p = para(tf, first=True, space_after=0, line_spacing=1.05)
-    _run(p, lab + "  ", 18, col, bold=True, font=F_HEAD)
-    _run(p, body, 18, INK)
-    cy += 0.78
-# final boxed statement
-fb = rrect(s, 0.85, cy + 0.05, SW - 1.7, 1.15, fill=INK, radius=0.08, shadow=True)
-_, tf = textbox(s, 1.2, cy + 0.05, SW - 2.4, 1.15, anchor=MID)
-p = para(tf, first=True, space_after=3, line_spacing=1.05)
-_run(p, "FINAL PROBLEM STATEMENT", 13, AMBER, bold=True, font=F_HEAD)
-p = para(tf, space_after=0, line_spacing=1.08)
-_run(p, "\u201cThis study addresses the limited evidence on whether a low-cost solar water distiller "
-        "measurably improves the microbial safety of drinking water in a coastal barangay setting.\u201d",
-     17.5, WHITE, italic=True)
-notes(s, "Read the final boxed statement aloud and ask students to identify which sentence came from "
-      "Context, which from Relevance, and which from Strategy \u2014 this reverse-engineering check reinforces "
-      "the formula. Note how directly this statement traces back to the Topic 3/Summary gap identified in "
-      "Slide 18.\n\nVisual: none additional beyond the highlighted final-statement box.")
+# LEFT card - the scaffold, one sentence per component
+card(s, x0, top, cw, h)
+card_header(s, x0, top, cw, "BUILD: ONE SENTENCE PER COMPONENT", INK, size=14.5)
+_, tf = textbox(s, x0 + 0.28, top + 0.72, cw - 0.56, h - 0.85)
+first = True
+for lab, sent, col in zip(labels, sentences, comp_colors):
+    p = para(tf, first=first, space_after=5, line_spacing=1.03)
+    first = False
+    _run(p, lab + " ", 13, col, bold=True, font=F_HEAD)
+    _run(p, sent, 13, INK)
+# RIGHT card - the finished, submission-ready paragraph
+card(s, x0 + cw + 0.5, top, cw, h, fill="FBFDFE", line=SUCCESS)
+card_header(s, x0 + cw + 0.5, top, cw, "FINISHED PROBLEM STATEMENT", SUCCESS, size=14.5)
+_, tf = textbox(s, x0 + cw + 0.78, top + 0.72, cw - 0.56, h - 0.85)
+p = para(tf, first=True, space_after=6, line_spacing=1.16)
+_run(p, "\u201c" + " ".join(sentences) + "\u201d", 13, INK, italic=True)
+p = para(tf, space_after=0, line_spacing=1.0)
+_run(p, "The four components read as one natural paragraph \u2014 a drafting scaffold, not labeled boxes.",
+     11.5, MUTED, italic=True)
+notes(s, "Build this slide sentence by sentence, revealing one component at a time, so students see the "
+      "paragraph accumulate piece by piece rather than appearing all at once as a finished product. Point "
+      "out that the finished paragraph reads as one natural piece of academic writing \u2014 the four "
+      "components are a drafting scaffold, not four visibly separate boxes that must remain labeled in the "
+      "final write-up. Note how directly the Specific Problem/Gap sentence traces back to the Topic "
+      "3/Summary gap identified back in Slide 18, and how the Objectives sentence will resurface almost "
+      "unchanged as the general research question in the next section.\n\nVisual: reveal the four labeled "
+      "sentences in sequence (build animation), then highlight the final combined paragraph in a bordered "
+      "box to show the finished, submission-ready product.")
 
 # =========================================================================
 # SLIDE 25 - Common Pitfalls in Problem Statements
@@ -798,20 +823,25 @@ s = new_slide()
 y = header(s, "Section 5 \u00b7 Formulating the Problem Statement (Competency 13)",
            "Common Pitfalls in Problem Statements", 25, title_size=28)
 data = [
-    ["Pitfall", "Fix"],
-    ["Too broad: \u201cWater pollution is a big problem.\u201d", "Narrow to a specific variable, population, or setting"],
-    ["Too vague: \u201cSomething should be done about dengue.\u201d", "State exactly what is missing or unresolved"],
-    ["Merely descriptive: \u201cMany barangays use rainwater.\u201d", "Add why this is an unresolved issue worth studying"],
-    ["Unanswerable: \u201cIs clean water important?\u201d", "Rephrase around something investigable with data"],
+    ["Pitfall", "Missing Component", "Fix"],
+    ["Too broad: \u201cWater pollution is a big problem.\u201d", "Specific problem or gap",
+     "Narrow to a specific variable, population, or setting"],
+    ["Too vague: \u201cSomething should be done about dengue.\u201d", "Objectives or aims",
+     "State exactly what the study will investigate or accomplish"],
+    ["Merely descriptive: \u201cMany barangays use rainwater.\u201d", "Implications",
+     "Add why this is an unresolved issue worth studying"],
+    ["Unanswerable: \u201cIs clean water important?\u201d", "Specific problem or gap",
+     "Rephrase around something investigable with data"],
 ]
-styled_table(s, 0.85, y + 0.25, SW - 1.7, data, col_widths=[1.15, 1.0],
-             size=18, header_size=18, row_h=0.86, header_h=0.58,
-             header_fill=DANGER)
+cc = {(1, 1): DANGER_LT, (2, 1): DANGER_LT, (3, 1): DANGER_LT, (4, 1): DANGER_LT}
+styled_table(s, 0.85, y + 0.25, SW - 1.7, data, col_widths=[1.35, 0.95, 1.35],
+             size=15.5, header_size=17, row_h=0.9, header_h=0.58,
+             header_fill=DANGER, cell_colors=cc)
 notes(s, "Go through each pitfall using a \"spot what's wrong\" approach before revealing the fix \u2014 this "
-      "keeps students actively diagnosing rather than passively reading. Connect the \"merely descriptive\" "
-      "pitfall back to Slide 22's criteria: a true problem statement must show why something is "
-      "unresolved, not just describe a situation.\n\nVisual: none additional; the table's two-column "
-      "contrast is sufficient.")
+      "keeps students actively diagnosing rather than passively reading. Reframe each pitfall as a missing "
+      "component from Slide 23's four-part structure \u2014 editing becomes a checklist task (\"which of the "
+      "four parts is absent?\") instead of a vague stylistic judgment.\n\nVisual: none additional; the "
+      "table's three-column structure is sufficient.")
 
 # =========================================================================
 # SLIDE 26 - Application: Diagnose and Fix
@@ -835,11 +865,12 @@ for i, st in enumerate(statements):
     _run(p, st, 22, INK, italic=True)
     cy += 1.12
 instruction_bar(s, 0.85, cy - 0.02, SW - 1.7,
-                "In pairs: name the pitfall, then rewrite using the Context \u2013 Relevance \u2013 Strategy formula.")
-notes(s, "Have students work in pairs to name which pitfall each statement falls into, then rewrite it "
-      "using the Context\u2013Relevance\u2013Strategy formula from Slide 23. Circulate and prompt students who "
-      "write a \"fixed\" version that is still too broad \u2014 a common second-round mistake.\n\nVisual: none "
-      "required; this is a peer-editing activity.")
+                "In pairs: name the missing component, then rewrite with one sentence per component (Slide 24).")
+notes(s, "Have students work in pairs to name which of the four components (Background Context, Specific "
+      "Problem/Gap, Implications, Objectives/Aims) is missing from each statement, then rewrite it by "
+      "adding at least one sentence for every component, following the model on Slide 24. Circulate and "
+      "watch for a common second-round mistake: students patch one missing component but leave another "
+      "one still absent.\n\nVisual: none required; this is a peer-editing activity.")
 
 # =========================================================================
 # SLIDE 27 - From Problem Statement to Research Questions
