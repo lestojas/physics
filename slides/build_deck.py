@@ -873,447 +873,970 @@ notes(s, "Have students work in pairs to name which of the four components (Back
       "one still absent.\n\nVisual: none required; this is a peer-editing activity.")
 
 # =========================================================================
-# SLIDE 27 - From Problem Statement to Research Questions
+# SECTION 6 (Part III) - RESEARCH QUESTIONS AND HYPOTHESES (Competency 14)
 # =========================================================================
-s = new_slide()
-y = header(s, "Section 6 \u00b7 Research Questions and Hypotheses (Competency 14)",
-           "From Problem Statement to Research Questions", 27, title_size=27)
-# left problem node
-ph = 1.4
-pby = y + 1.1
-pnode = rrect(s, 0.9, pby, 3.4, ph, fill=INK, radius=0.1, shadow=True)
-fill_frame(pnode, [("Problem Statement\nnames the issue", 17, WHITE, True)], align=CENTER)
-rqs = ["Research Question 1", "Research Question 2", "Research Question 3"]
-qx = 6.6
-qh = 0.72
-qy = y + 0.35
-for i, q in enumerate(rqs):
-    b = rrect(s, qx, qy, 5.4, qh, fill=PRIMARY if i != 2 else PRIMARY_DK, radius=0.15, shadow=True)
-    fill_frame(b, [(q, 18, WHITE, True)], align=CENTER)
-    connector(s, 4.3, pby + ph / 2, qx, qy + qh / 2, color=ACCENT, w=2.2)
-    qy += qh + 0.5
-bullets(s, 0.9, y + 3.1, SW - 1.9, [
-    "A problem statement names the issue",
-    "Research questions break that issue into specific, answerable pieces",
-    "One problem statement can lead to one or several research questions",
-], size=19, gap=6, bullet_color=PRIMARY, h=1.6)
-notes(s, "Use Example A's problem statement from Slide 24 and ask students what specific question it "
-      "raises \u2014 guide them toward something like \"Is there a significant difference in microbial "
-      "contamination before and after distillation?\" This models the narrowing process concretely before "
-      "the formal criteria are introduced.\n\nVisual: a single arrow diagram \u2014 \"Problem Statement\" "
-      "branching into two or three \"Research Question\" boxes.")
+EB6 = "Section 6 \u00b7 Research Questions & Hypotheses (Competency 14)"
+EB7 = "Section 7 \u00b7 Justifying the Problem with CER (Competency 15)"
+EB8 = "Section 8 \u00b7 Assumptions & Limitations (Competency 16)"
 
-# =========================================================================
-# SLIDE 28 - Qualities of a Good Research Question
-# =========================================================================
+
+def roadmap(slide, y, active=-1, done=None):
+    done = done or set()
+    stages = ["Research Problem", "Research Questions & Hypotheses",
+              "Justifying the Problem (CER)", "Assumptions & Limitations"]
+    x = 0.85
+    bw = 2.5
+    gap = 0.55
+    h = 0.95
+    for i, st in enumerate(stages):
+        if i in done:
+            col = SUCCESS
+        elif i == active:
+            col = ACCENT
+        else:
+            col = PRIMARY
+        b = rrect(slide, x, y, bw, h, fill=col, radius=0.16, shadow=True)
+        tf = b.text_frame
+        tf.word_wrap = True
+        tf.vertical_anchor = MID
+        tf.margin_left = Pt(7)
+        tf.margin_right = Pt(7)
+        p = tf.paragraphs[0]
+        p.alignment = CENTER
+        p.line_spacing = 1.0
+        _run(p, ("\u2713 " if i in done else "") + st, 13, WHITE, bold=True, font=F_HEAD)
+        if i < 3:
+            right_arrow(slide, x + bw + 0.04, y + h / 2, color=INK, w=0.46, h=0.3)
+        x += bw + gap
+
+
+def scenario_card(slide, x, y, w, h, text, size=18, fill=INK, tcolor=WHITE, label=None):
+    c = rrect(slide, x, y, w, h, fill=fill, radius=0.08, shadow=True)
+    rrect(slide, x + 0.0, y, 0.13, h, fill=ACCENT, radius=0.0)
+    _, tf = textbox(slide, x + 0.42, y + 0.18, w - 0.7, h - 0.36, anchor=MID)
+    first = True
+    if label:
+        p = para(tf, first=True, space_after=6)
+        _run(p, label, 13, AMBER, bold=True, font=F_HEAD)
+        first = False
+    p = para(tf, first=first, space_after=0, line_spacing=1.16)
+    _run(p, text, size, tcolor, italic=True)
+    return c
+
+
+# ---- Slide 27 (Part III / 1) Today's Journey ---------------------------
 s = new_slide()
-y = header(s, "Section 6 \u00b7 Research Questions and Hypotheses (Competency 14)",
-           "Qualities of a Good Research Question", 28, title_size=28)
-qual = [
-    ("Clear", "uses precise, unambiguous language", PRIMARY),
-    ("Focused", "addresses one specific issue, not several at once", ACCENT),
-    ("Answerable", "can actually be investigated through data collection", SUCCESS),
+y = header(s, EB6, "Today's Journey \u2014 Problem to Proof", 27, title_size=30)
+roadmap(s, y + 0.12, active=1)
+bullets(s, 0.9, y + 1.45, SW - 1.9, [
+    [("Today we complete the ", False), ("backbone of Chapter 1", True, False, PRIMARY),
+     (" of your research paper.", False)],
+    [("You already have a research ", False), ("problem", True, False, ACCENT),
+     (". Today you learn to (1) turn it into answerable questions, (2) defend why it matters, "
+      "and (3) be honest about what your study can and cannot claim.", False)],
+], size=24, gap=14)
+notes(s, "Open by reminding students that a research problem alone is not researchable \u2014 it is too "
+      "broad to investigate directly. Emphasize that everything covered today builds directly toward the "
+      "manuscript sections they will eventually defend orally, so today's skills are rehearsal for their "
+      "research defense, not just requirements to fulfill. Preview that by the end of the lecture, they "
+      "will have drafted their own research questions, a CER-based justification paragraph, and a first "
+      "attempt at their study's assumptions and limitations.\n\nVisual: a three-node flowchart spanning "
+      "the top of the slide, used as a recurring \"you are here\" tracker on later section-divider slides.")
+
+# ---- Slide 28 (Part III / 2) A Reef in Trouble ------------------------
+s = new_slide()
+y = header(s, EB6, "A Reef in Trouble \u2014 Setting the Scene", 28, title_size=30)
+eg_tag(s, 0.85, y - 0.02, "Instructor-Created Example \u00b7 Davao Gulf coral reef")
+scenario_card(s, 0.85, y + 0.45, SW - 1.7, 2.35,
+              "A marine biology student in Davao City notices that coral cover near the Pujada Bay area "
+              "of the Davao Gulf has visibly declined over the past decade. Fisherfolk report smaller "
+              "catches. News articles mention \u201ccoral bleaching\u201d and \u201csedimentation from coastal "
+              "development.\u201d She wants to study this \u2014 but where does she even start asking questions?",
+              size=18, label="THE SCENARIO")
+bullets(s, 0.9, y + 3.05, SW - 1.9, [
+    [("This is a ", False), ("research problem", True, False, ACCENT),
+     (": real, broad, and not yet answerable through investigation.", False)],
+    [("Instructor-Created Example", True, False, PRIMARY),
+     (" (grounded in publicly documented Davao Gulf coral reef conditions).", False)],
+], size=21, gap=8)
+# two anchor chips
+for i, (lab, col) in enumerate([("Coral reef \u2014 nursery habitat", PRIMARY),
+                                ("Fisherfolk \u2014 livelihood at stake", SUCCESS)]):
+    cx = 0.9 + i * 6.0
+    chip = rrect(s, cx, y + 4.35, 5.6, 0.55, fill=col, radius=0.2)
+    fill_frame(chip, [(lab, 15, WHITE, True)], align=CENTER)
+notes(s, "Use this scenario as the anchor for the entire Research Questions section. Ask students: \"If "
+      "she wrote her whole thesis around 'coral reefs are declining,' could she ever finish?\" Guide them "
+      "to see that a problem this size cannot be investigated as-is \u2014 it must be broken into smaller, "
+      "focused, answerable pieces. This felt difficulty is exactly why research questions exist.\n\n"
+      "Visual: a stylized map of Davao Gulf with a marker on the coastal study site, paired with two "
+      "small icons \u2014 a coral reef and a fishing boat \u2014 to visually anchor the scenario.")
+
+# ---- Slide 29 (Part III / 3) Why a Problem Alone Is Not Enough --------
+s = new_slide()
+y = header(s, EB6, "Why a Problem Alone Is Not Enough", 29, title_size=30)
+data = [
+    ["Research Problem (broad)", "Research Question (focused)"],
+    ["\u201cCoral reefs in Davao Gulf are declining.\u201d",
+     "\u201cWhat is the percentage of live coral cover at three reef sites in Davao Gulf?\u201d"],
+    ["\u201cFarmers are struggling with pests.\u201d",
+     "\u201cWhat is the level of pesticide resistance among fall armyworm populations in a selected "
+     "corn-growing municipality?\u201d"],
 ]
-cw = (SW - 1.7 - 2 * 0.5) / 3
-for i, (t, d, col) in enumerate(qual):
-    px = 0.85 + i * (cw + 0.5)
-    card(s, px, y + 0.35, cw, 3.1)
-    circ = rect(s, px + cw / 2 - 0.5, y + 0.7, 1.0, 1.0, fill=col, kind=MSO_SHAPE.OVAL, shadow=True)
-    fill_frame(circ, [("\u2713", 34, WHITE, True)], align=CENTER)
-    _, tf = textbox(s, px + 0.2, y + 1.85, cw - 0.4, 0.45)
+cc = {(1, 0): AMBER_LT, (2, 0): AMBER_LT, (1, 1): SUCCESS_LT, (2, 1): SUCCESS_LT}
+styled_table(s, 0.85, y + 0.2, SW - 1.7, data, col_widths=[1, 1.15],
+             size=17, header_size=18, row_h=1.15, header_h=0.6, header_fill=INK, cell_colors=cc)
+bullets(s, 0.9, y + 3.35, SW - 1.9, [
+    [("A ", False), ("research question ", True, False, PRIMARY), ("narrows", False, True),
+     (" the problem into something specific, focused, and answerable through data collection.", False)],
+    [("This is the first job of Competency 14: narrowing a problem statement into one or more research "
+      "questions.", False)],
+], size=20, gap=7)
+notes(s, "This slide operationalizes Creswell's core idea that research questions and hypotheses are the "
+      "next signposts after the purpose statement \u2014 they translate the study's broad intent into "
+      "precise, investigable questions. Point out that both example problems above were the size of a "
+      "whole news headline, while both example questions could realistically be answered using a specific "
+      "data-collection method (water quality testing, insect sampling) within a school year.")
+
+# ---- Slide 30 (Part III / 4) Application: Narrow Your Own Problem -----
+s = new_slide()
+y = header(s, EB6, "Application \u2014 Narrow Your Own Problem", 30, title_size=30)
+eg_tag(s, 0.85, y - 0.02, "Instructor-Created Practice Activity \u00b7 Think\u2013Pair\u2013Share")
+scenario_card(s, 0.85, y + 0.5, SW - 1.7, 1.15,
+              "Post-harvest losses among small rice farmers in Mindanao are high.",
+              size=22, fill=INK, label="GIVEN BROAD PROBLEM")
+bullets(s, 0.9, y + 1.95, SW - 1.9, [
+    [("In pairs, narrow this into ", False), ("one specific, focused research question", True, False, PRIMARY),
+     (".", False)],
+    [("Test it against this checklist: Is it ", False), ("clear", False, True),
+     ("? Is it ", False), ("specific", False, True),
+     ("? Can it be ", False), ("answered through investigation", False, True), (" (not opinion)?", False)],
+], size=23, gap=12)
+instruction_bar(s, 0.85, y + 3.95, SW - 1.7,
+                "3\u20134 minutes, then two or three pairs share out.", color=AMBER)
+notes(s, "Give students 3\u20134 minutes, then cold-call two or three pairs. A strong answer might resemble: "
+      "\"What is the percentage of post-harvest rice loss attributable to inadequate drying facilities in "
+      "[municipality]?\" A weak answer to watch for: \"Why do farmers lose their harvest?\" \u2014 flag this "
+      "now as an example of a question that is too broad and too causal-sounding, and tell students you "
+      "will return to why \"why\" questions behave differently in Part IV.")
+
+# ---- Slide 31 (Part III / 5) Three Qualities of a Good RQ -------------
+s = new_slide()
+y = header(s, EB6, "Three Qualities of a Good Research Question", 31, title_size=29)
+triad = [
+    ("C", "Clear", "anyone reading it understands exactly what is being asked, without further explanation", PRIMARY),
+    ("F", "Focused", "narrow enough to be thoroughly answered within your study's timeframe and resources", ACCENT),
+    ("A", "Answerable", "resolved through data (measurement, observation, interview), not through opinion or debate", SUCCESS),
+]
+cw = (SW - 1.7 - 2 * 0.45) / 3
+for i, (icon, t, d, col) in enumerate(triad):
+    px = 0.85 + i * (cw + 0.45)
+    card(s, px, y + 0.3, cw, 3.15)
+    circ = rect(s, px + cw / 2 - 0.55, y + 0.65, 1.1, 1.1, fill=col, kind=MSO_SHAPE.OVAL, shadow=True)
+    fill_frame(circ, [(icon, 34, WHITE, True)], align=CENTER)
+    _, tf = textbox(s, px + 0.2, y + 1.9, cw - 0.4, 0.45)
     p = para(tf, first=True, align=CENTER, space_after=4)
     _run(p, t, 23, INK, bold=True, font=F_HEAD)
-    _, tf = textbox(s, px + 0.3, y + 2.35, cw - 0.6, 1.0, anchor=MSO_ANCHOR.TOP)
+    _, tf = textbox(s, px + 0.3, y + 2.4, cw - 0.6, 1.0, anchor=MSO_ANCHOR.TOP)
     p = para(tf, first=True, align=CENTER, space_after=0, line_spacing=1.08)
-    _run(p, d, 17, MUTED)
-notes(s, "Point out that \"answerable\" is the criterion students most often miss \u2014 a research question "
-      "phrased as an opinion (\"Should schools invest in solar energy?\") cannot be answered with data the "
-      "way a phrased comparison or relationship question can.\n\nVisual: none required; keep this a clean "
-      "checklist.")
+    _run(p, d, 16, MUTED)
+notes(s, "These three qualities exist because a research question performs a very specific job: it must "
+      "guide what data you will collect. If a question fails any one of the three tests, a student will "
+      "not know what to measure, survey, or observe. Model quickly rejecting a question like \"Is climate "
+      "change bad for coral reefs?\" \u2014 it fails \"answerable through investigation\" because \"bad\" is a "
+      "value judgment, not a measurable variable.\n\nVisual: a checklist icon set (checkmark/clock/"
+      "magnifying-glass) matched to each quality, reusable later as a rubric graphic.")
 
-# =========================================================================
-# SLIDE 29 - Example: Turning a Problem Into Questions
-# =========================================================================
+# ---- Slide 32 (Part III / 6) Application: Diagnose the RQ ------------
 s = new_slide()
-y = header(s, "Section 6 \u00b7 Research Questions and Hypotheses (Competency 14)",
-           "Example \u2014 Turning a Problem Into Questions", 29, title_size=28)
-eg_tag(s, 0.85, y - 0.02, "Instructor-Created Example \u00b7 Example A topic")
-card(s, 0.85, y + 0.6, SW - 1.7, 1.4)
-card_header(s, 0.85, y + 0.6, SW - 1.7, "PROBLEM STATEMENT (from Slide 24)", INK, size=15)
-_, tf = textbox(s, 1.2, y + 1.4, SW - 2.4, 0.6, anchor=MID)
-p = para(tf, first=True, space_after=0, line_spacing=1.05)
-_run(p, "Limited evidence on whether the distiller improves microbial water safety.", 20, INK)
-down_arrow(s, SW / 2, y + 2.15, color=ACCENT, w=0.55, h=0.4)
-card(s, 0.85, y + 2.7, SW - 1.7, 1.5, fill="FBFDFE", line=PRIMARY)
-card_header(s, 0.85, y + 2.7, SW - 1.7, "RESEARCH QUESTION", PRIMARY, size=15)
-_, tf = textbox(s, 1.2, y + 3.5, SW - 2.4, 0.7, anchor=MID)
-p = para(tf, first=True, space_after=0, line_spacing=1.08)
-_run(p, "\u201cWhat is the difference in microbial contamination levels of drinking water before and after "
-        "solar distillation treatment?\u201d", 21, INK, italic=True)
-notes(s, "Ask students to check this question against the three qualities from Slide 28 \u2014 is it clear, "
-      "focused, and answerable? This rehearses evaluation, not just recall, and prepares them to critique "
-      "their own questions later.\n\nVisual: none additional.")
-
-# =========================================================================
-# SLIDE 30 - Introducing the Hypothesis
-# =========================================================================
-s = new_slide()
-y = header(s, "Section 6 \u00b7 Research Questions and Hypotheses (Competency 14)",
-           "Introducing the Hypothesis", 30)
-card(s, 0.85, y + 0.5, SW - 1.7, 1.7, fill=PRIMARY_LT, line=PRIMARY)
-_, tf = textbox(s, 1.3, y + 0.5, SW - 2.6, 1.7, anchor=MID)
-p = para(tf, first=True, space_after=0, line_spacing=1.1)
-_run(p, "A ", 24, INK)
-_run(p, "hypothesis", 24, PRIMARY_DK, bold=True, italic=True)
-_run(p, " is a predicted answer to a research question, stated before data is collected.", 24, INK)
-b = rrect(s, 0.85, y + 2.6, SW - 1.7, 1.5, fill=CARD, line=LINE, radius=0.1, shadow=True)
-_, tf = textbox(s, 1.3, y + 2.6, SW - 2.6, 1.5, anchor=MID)
-p = para(tf, first=True, space_after=0, line_spacing=1.15)
-_run(p, "Quantitative studies typically use ", 22, INK)
-_run(p, "hypotheses", 22, ACCENT, bold=True)
-_run(p, "; purely exploratory studies may use ", 22, INK)
-_run(p, "research questions only", 22, SUCCESS, bold=True)
-_run(p, ".", 22, INK)
-notes(s, "Keep this brief and definitional \u2014 the point is only to introduce hypotheses as the "
-      "quantitative counterpart to research questions, not to reopen the qualitative-vs-quantitative "
-      "discussion from Lecture 1 in depth. Reassure students that since this course is building toward "
-      "quantitative and mixed methods studies, they will usually be writing both a research question and "
-      "its matching hypothesis.\n\nVisual: none required.")
-
-# =========================================================================
-# SLIDE 31 - Variables in a Hypothesis
-# =========================================================================
-s = new_slide()
-y = header(s, "Section 6 \u00b7 Research Questions and Hypotheses (Competency 14)",
-           "Variables in a Hypothesis", 31)
-by = y + 0.65
-iv = rrect(s, 1.3, by, 4.2, 1.7, fill=PRIMARY, radius=0.1, shadow=True)
-tf = iv.text_frame; tf.word_wrap = True; tf.vertical_anchor = MID
-p = tf.paragraphs[0]; p.alignment = CENTER; p.line_spacing = 1.05
-_run(p, "INDEPENDENT VARIABLE\n", 17, WHITE, bold=True, font=F_HEAD)
-_run(p, "the factor being tested or changed\n", 15, "EAF6F8")
-_run(p, "(e.g., use of the solar distiller)", 15, AMBER, italic=True)
-a = rect(s, 5.75, by + 0.55, 1.6, 0.55, fill=INK, kind=MSO_SHAPE.RIGHT_ARROW)
-fill_frame(a, [("affects", 13, WHITE, True)], align=CENTER)
-dv = rrect(s, 7.85, by, 4.2, 1.7, fill=SUCCESS, radius=0.1, shadow=True)
-tf = dv.text_frame; tf.word_wrap = True; tf.vertical_anchor = MID
-p = tf.paragraphs[0]; p.alignment = CENTER; p.line_spacing = 1.05
-_run(p, "DEPENDENT VARIABLE\n", 17, WHITE, bold=True, font=F_HEAD)
-_run(p, "the outcome being measured\n", 15, "E6F5F2")
-_run(p, "(e.g., microbial contamination level)", 15, AMBER, italic=True)
-b = rrect(s, 0.85, by + 2.35, SW - 1.7, 0.75, fill=PRIMARY_LT, radius=0.1)
-_, tf = textbox(s, 1.2, by + 2.35, SW - 2.4, 0.75, anchor=MID)
-p = para(tf, first=True, space_after=0, line_spacing=1.0)
-_run(p, "A hypothesis predicts how the independent variable affects the dependent variable.", 20, INK_SOFT, bold=True)
-notes(s, "Keep this at the level needed only to write a hypothesis \u2014 detailed measurement scales and "
-      "operationalization are beyond this lesson. Reconnect to Slide 17's Topic 1/Topic 2 structure: the "
-      "independent and dependent variables here are the same two variables the literature review was built "
-      "around.\n\nVisual: a variable relationship diagram \u2014 an \"Independent Variable\" box with an arrow "
-      "pointing to a \"Dependent Variable\" box.")
-
-# =========================================================================
-# SLIDE 32 - Null vs Alternative Hypothesis
-# =========================================================================
-s = new_slide()
-y = header(s, "Section 6 \u00b7 Research Questions and Hypotheses (Competency 14)",
-           "Null vs. Alternative Hypothesis", 32)
-two_column(s, y + 0.05,
-    left={"title": "NULL HYPOTHESIS  (H\u2080)", "band": MUTED,
-          "items": ["States there is no significant difference or relationship"], "size": 22},
-    right={"title": "ALTERNATIVE HYPOTHESIS  (H\u2081)", "band": PRIMARY,
-           "items": ["States there is a significant difference or relationship"], "size": 22},
-    bottom=y + 1.95)
-# Example A box
-b = rrect(s, 0.85, y + 2.2, SW - 1.7, 1.75, fill=INK, radius=0.08, shadow=True)
-_, tf = textbox(s, 1.25, y + 2.2, SW - 2.5, 1.75, anchor=MID)
-p = para(tf, first=True, space_after=6, line_spacing=1.05)
-_run(p, "EXAMPLE A", 13, AMBER, bold=True, font=F_HEAD)
-p = para(tf, space_after=5, line_spacing=1.05)
-_run(p, "H\u2080  ", 20, "9FB8C8", bold=True)
-_run(p, "There is no significant difference in contamination levels before and after distillation.", 19, WHITE)
-p = para(tf, space_after=0, line_spacing=1.05)
-_run(p, "H\u2081  ", 20, AMBER, bold=True)
-_run(p, "There is a significant difference.", 19, WHITE)
-notes(s, "Define these two terms only \u2014 do not move into how they are statistically tested, since that "
-      "belongs to a later methodology lesson. Frame the null and alternative hypothesis as two competing "
-      "predictions the eventual data collection will help decide between.\n\nVisual: none additional; the "
-      "two-column layout with the paired example is sufficient.")
-
-# =========================================================================
-# SLIDE 33 - Writing RQs & Hypotheses for Quantitative/Mixed Studies
-# =========================================================================
-s = new_slide()
-y = header(s, "Section 6 \u00b7 Research Questions and Hypotheses (Competency 14)",
-           "Writing RQs & Hypotheses for Quantitative / Mixed Studies", 33, title_size=24)
+y = header(s, EB6, "Application \u2014 Diagnose the Research Question", 32, title_size=29)
+eg_tag(s, 0.85, y - 0.02, "Instructor-Created Practice Activity")
 data = [
-    ["Question Type", "Sentence Starter", "Best Fit"],
-    ["Descriptive", "\u201cWhat is the level / extent of\u2026?\u201d", "Quantitative"],
-    ["Comparative", "\u201cIs there a difference between\u2026?\u201d", "Quantitative"],
-    ["Relationship", "\u201cIs there a relationship / effect between\u2026?\u201d", "Quantitative"],
-    ["Follow-up qualitative", "\u201cHow do participants experience / explain\u2026?\u201d", "Added in mixed methods designs"],
+    ["Question", "Verdict"],
+    ["\u201cWhat is the coral bleaching severity index of three reef sites in Davao Gulf during the dry season?\u201d", "discuss"],
+    ["\u201cAre corals important?\u201d", "discuss"],
+    ["\u201cWhat is the relationship between soil nitrogen levels and corn yield in a selected Davao del Norte farm?\u201d", "discuss"],
 ]
-cc = {(4, 2): ACCENT_LT}
-styled_table(s, 0.85, y + 0.35, SW - 1.7, data, col_widths=[1.0, 1.7, 1.2],
-             size=18, header_size=18, row_h=0.76, header_h=0.58, cell_colors=cc)
-notes(s, "Explain that in a fully quantitative study, all research questions typically follow the "
-      "descriptive, comparative, or relationship formats shown here, each paired with a matching "
-      "hypothesis. In a mixed methods study, researchers often keep the quantitative question and "
-      "hypothesis as the main driver, then add one qualitative follow-up question to explore why or how "
-      "the quantitative result occurred \u2014 this is the practical bridge between the two approaches without "
-      "turning today's lesson into a full mixed methods design lecture.\n\nVisual: none additional; the "
-      "reference table itself functions as a usable writing tool.")
+cc = {(1, 1): AMBER_LT, (2, 1): AMBER_LT, (3, 1): AMBER_LT}
+styled_table(s, 0.85, y + 0.5, SW - 1.7, data, col_widths=[2.6, 0.7],
+             size=17, header_size=17, row_h=0.9, header_h=0.55, cell_colors=cc)
+instruction_bar(s, 0.85, y + 3.85, SW - 1.7,
+                "Sort each as \u2713 Strong or \u2717 Needs Revision \u2014 and say why.")
+notes(s, "Walk through each row as a class. The first and third are strong \u2014 specific, measurable, and "
+      "clearly scoped to a site/timeframe. The second fails on all three qualities: it is vague, "
+      "unbounded, and answerable by simple opinion. Use this to reinforce the diagnostic habit before "
+      "moving into hypotheses.")
 
-# =========================================================================
-# SLIDE 34 - Example: The Complete Chain
-# =========================================================================
+# ---- Slide 33 (Part III / 7) When Does a Study Need a Hypothesis? ----
 s = new_slide()
-y = header(s, "Section 6 \u00b7 Research Questions and Hypotheses (Competency 14)",
-           "Example \u2014 The Complete Chain", 34)
-eg_tag(s, 0.85, y - 0.02, "Instructor-Created Example \u00b7 Example A topic")
-vchain(s, 2.3, y + 0.55, 8.7, [
-    ("Problem Statement:", "limited evidence on whether the distiller improves microbial water safety"),
-    ("Research Question:", "Is there a significant difference in microbial contamination before and after distillation?"),
-    ("Hypothesis (H\u2081):", "there is a significant difference in contamination levels before and after treatment"),
-    ("Mixed methods add-on:", "How do barangay residents perceive the safety of the distilled water?"),
-], box_h=0.86, gap=0.26, colors=[INK, PRIMARY, ACCENT, SUCCESS], text_size=16)
-notes(s, "Trace the chain top to bottom, showing students that every element they've learned so far "
-      "connects \u2014 nothing here was invented from scratch; each line grew directly out of the one above "
-      "it. This slide functions as a model answer students can compare their own work against in the "
-      "following activity.\n\nVisual: a vertical chain diagram with connecting arrows between each of the "
-      "four boxes, visually reinforcing continuity.")
+y = header(s, EB6, "When Does a Study Need a Hypothesis?", 33, title_size=30)
+top = rrect(s, SW / 2 - 3.6, y + 0.1, 7.2, 0.95, fill=INK, radius=0.1, shadow=True)
+_, tf = textbox(s, SW / 2 - 3.4, y + 0.1, 6.8, 0.95, anchor=MID)
+p = para(tf, first=True, space_after=0, align=CENTER, line_spacing=1.05)
+_run(p, "Does your study test a ", 16, WHITE)
+_run(p, "predicted relationship or difference", 16, AMBER, bold=True)
+_run(p, " between variables using statistics?", 16, WHITE)
+# branches
+by = y + 1.7
+lx, rx = 2.1, 8.0
+bw = 3.2
+connector(s, SW / 2 - 1.5, y + 1.05, lx + bw / 2, by, color=PRIMARY, w=2.5)
+connector(s, SW / 2 + 1.5, y + 1.05, rx + bw / 2, by, color=ACCENT, w=2.5)
+lbl = rect(s, SW / 2 - 2.7, y + 1.18, 0.7, 0.42, fill=PRIMARY, kind=MSO_SHAPE.OVAL)
+fill_frame(lbl, [("YES", 12, WHITE, True)], align=CENTER)
+lbl = rect(s, SW / 2 + 2.0, y + 1.18, 0.7, 0.42, fill=ACCENT, kind=MSO_SHAPE.OVAL)
+fill_frame(lbl, [("NO", 12, WHITE, True)], align=CENTER)
+for lab, sub, col, bx in [("Quantitative study", "Write a HYPOTHESIS", PRIMARY, lx),
+                          ("Qualitative study", "Use RESEARCH QUESTIONS only (no hypothesis)", ACCENT, rx)]:
+    c1 = rrect(s, bx, by, bw, 0.62, fill=col, radius=0.14, shadow=True)
+    fill_frame(c1, [(lab, 16, WHITE, True)], align=CENTER)
+    down_arrow(s, bx + bw / 2, by + 0.68, color=INK, h=0.24)
+    c2 = rrect(s, bx, by + 0.98, bw, 0.8, fill=CARD, line=col, radius=0.12, shadow=True)
+    fill_frame(c2, [(sub, 15.5, INK, True)], align=CENTER)
+bullets(s, 0.9, y + 3.75, SW - 1.9, [
+    [("A ", False), ("hypothesis", True, True, PRIMARY),
+     (" is a researcher's predicted answer to a research question, later tested with statistics.", False)],
+    [("Qualitative", True, True, ACCENT),
+     (" research uses questions only \u2014 the researcher deliberately avoids predicting a direction, "
+      "since the goal is to explore meaning, not test a prediction.", False)],
+], size=18, gap=6)
+notes(s, "This is the conceptual heart of today's first major idea. Many students think \"hypothesis\" is "
+      "a mandatory part of every research paper \u2014 correct this directly. If a student's coral reef study "
+      "is quantitative (\"What is the relationship between sedimentation levels and live coral cover "
+      "percentage?\"), it needs a hypothesis. If a classmate is doing a qualitative study (\"What are the "
+      "lived experiences of small-scale fisherfolk adapting to declining coral reef health in Davao "
+      "Gulf?\"), no hypothesis is needed or appropriate \u2014 only a central question and sub-questions.\n\n"
+      "Visual: the decision-tree flowchart, colored to separate the quantitative and qualitative "
+      "branches \u2014 reusable as a quick-reference poster.")
 
-# =========================================================================
-# SLIDE 35 - Application: Draft Your Own Chain
-# =========================================================================
+# ---- Slide 34 (Part III / 8) Application: Hypothesis or Not? ---------
 s = new_slide()
-y = header(s, "Section 6 \u00b7 Research Questions and Hypotheses (Competency 14)",
-           "Application \u2014 Draft Your Own Chain", 35)
-eg_tag(s, 0.85, y - 0.02, "Activity template \u00b7 Example B topic or your own")
-template_card(s, 0.85, y + 0.5, SW - 1.7, 4.3, [
-    "Problem Statement:", "Research Question:", "Hypothesis (H\u2081):",
-    "(Optional mixed methods add-on question):",
-], size=23)
-notes(s, "Have students complete this individually using either Example B (dengue prediction) or their own "
-      "emerging topic, then trade with a partner to check each line against the criteria taught earlier "
-      "(researchable problem statement, clear/focused/answerable RQ, testable hypothesis). This is the "
-      "lesson's main checkpoint before moving into justification.\n\nVisual: none needed; the template "
-      "drives the activity.")
+y = header(s, EB6, "Application \u2014 Hypothesis or Not?", 34, title_size=30)
+eg_tag(s, 0.85, y - 0.02, "Instructor-Created Practice Activity")
+data = [
+    ["Study Description", "Needs a Hypothesis?"],
+    ["Comparing average water turbidity between two reef sites using measured data", "\u2713  /  \u2717"],
+    ["Exploring how fisherfolk describe changes in their livelihood over 10 years through interviews", "\u2713  /  \u2717"],
+    ["Testing whether a new organic fertilizer increases mung bean yield compared to a control group", "\u2713  /  \u2717"],
+]
+cc = {(1, 1): PRIMARY_LT, (2, 1): PRIMARY_LT, (3, 1): PRIMARY_LT}
+styled_table(s, 0.85, y + 0.5, SW - 1.7, data, col_widths=[2.4, 0.9],
+             size=17, header_size=17, row_h=0.85, header_h=0.55, cell_colors=cc)
+instruction_bar(s, 0.85, y + 3.75, SW - 1.7,
+                "Scan for comparison / relationship words (\u201ccompare, relationship, effect, increase\u201d).")
+notes(s, "Row 1 and Row 3 are quantitative comparisons \u2014 both need hypotheses. Row 2 is qualitative and "
+      "exploratory \u2014 no hypothesis, only a central question and sub-questions. Use this to cement the "
+      "pattern-recognition skill: students should learn to scan a study description for "
+      "comparison/relationship language (\"compare,\" \"relationship,\" \"effect,\" \"increase\") as the "
+      "signal that a hypothesis is expected.")
 
-# =========================================================================
-# SLIDE 36 - Justifying Why This Problem Matters
-# =========================================================================
+# ---- Slide 35 (Part III / 9) How Many Questions Should You Have? -----
 s = new_slide()
-y = header(s, "Section 7 \u00b7 Justifying the Problem with CER (Competency 15)",
-           "Justifying Why This Problem Matters", 36, title_size=28)
-b1 = rrect(s, 1.4, y + 0.4, SW - 2.8, 0.9, fill=CARD, line=LINE, radius=0.12, shadow=True)
-_, tf = textbox(s, 1.75, y + 0.4, SW - 3.4, 0.9, anchor=MID)
+y = header(s, EB6, "How Many Questions Should You Have?", 35, title_size=30)
+data = [
+    ["Research Type", "Structure", "Typical Count"],
+    ["Quantitative (SOP format)", "1 general objective + several specific sub-questions",
+     "At least 3 specific sub-questions, each tied to a measurable variable"],
+    ["Qualitative", "1\u20132 central questions + narrower sub-questions",
+     "5\u20137 sub-questions per central question (Creswell; capped near a dozen total per Miles & Huberman)"],
+    ["Mixed Methods", "Separate quantitative + qualitative questions, plus one question about integrating both datasets",
+     "1 quantitative set + 1 qualitative set + 1 mixed methods question"],
+]
+cc = {(1, 0): PRIMARY_LT, (2, 0): ACCENT_LT, (3, 0): SUCCESS_LT}
+styled_table(s, 0.85, y + 0.2, SW - 1.7, data, col_widths=[0.9, 1.6, 1.5],
+             size=15.5, header_size=16, row_h=1.15, header_h=0.55, cell_colors=cc)
+notes(s, "This slide directly answers a question students almost always ask: \"How many research "
+      "questions do I need?\" For quantitative SHS papers, the Philippine convention (seen in Practical "
+      "Research 2) is a Statement of the Problem (SOP): one general objective, followed by at least three "
+      "specific objectives, each pointing to a variable the study will measure. For qualitative work, "
+      "Creswell recommends one or two broad central questions broken into five to seven sub-questions \u2014 "
+      "enough to guide an interview without overwhelming the participant or the researcher. Stress that "
+      "these are conventions, not rigid laws, but departing from them without reason will raise questions "
+      "during a defense panel.")
+
+# ---- Slide 36 (Part III / 10) Worked Example SOP (Coral Reef) --------
+s = new_slide()
+y = header(s, EB6, "Worked Example \u2014 A Full SOP (Coral Reef)", 36, title_size=29)
+eg_tag(s, 0.85, y - 0.02, "Instructor-Created Example \u00b7 Philippine SHS SOP format")
+go = rrect(s, 0.85, y + 0.5, SW - 1.7, 1.15, fill=INK, radius=0.08, shadow=True)
+_, tf = textbox(s, 1.2, y + 0.5, SW - 2.4, 1.15, anchor=MID)
+p = para(tf, first=True, space_after=4, line_spacing=1.02)
+_run(p, "GENERAL OBJECTIVE", 13, AMBER, bold=True, font=F_HEAD)
+p = para(tf, space_after=0, line_spacing=1.08)
+_run(p, "This study aims to assess the ", 17, WHITE)
+_run(p, "coral reef health", 17, "9FE3D6", bold=True)
+_run(p, " and its relationship to ", 17, WHITE)
+_run(p, "coastal sedimentation levels", 17, "9FE3D6", bold=True)
+_run(p, " in a selected barangay along Davao Gulf.", 17, WHITE)
+_, tf = textbox(s, 0.9, y + 1.85, SW - 1.9, 0.35)
 p = para(tf, first=True, space_after=0)
-_run(p, "A problem statement says ", 22, INK)
-_run(p, "what", 22, PRIMARY, bold=True)
-_run(p, " you will study", 22, INK)
-b2 = rrect(s, 1.4, y + 1.5, SW - 2.8, 0.9, fill=CARD, line=LINE, radius=0.12, shadow=True)
-_, tf = textbox(s, 1.75, y + 1.5, SW - 3.4, 0.9, anchor=MID)
+_run(p, "Specifically, it seeks to answer:", 16, MUTED, bold=True, italic=True)
+qs = [
+    "What is the percent live coral cover of the selected reef site?",
+    "What is the turbidity level (a measure of sedimentation) of the surrounding water?",
+    "Is there a significant relationship between turbidity level and percent live coral cover?",
+]
+cy = y + 2.35
+for i, q in enumerate(qs):
+    col = SUCCESS if i == 2 else PRIMARY
+    badge = rect(s, 1.0, cy, 0.46, 0.46, fill=col, kind=MSO_SHAPE.OVAL)
+    fill_frame(badge, [(str(i + 1), 17, WHITE, True)], align=CENTER)
+    _, tf = textbox(s, 1.65, cy - 0.05, SW - 2.6, 0.6, anchor=MID)
+    p = para(tf, first=True, space_after=0, line_spacing=1.02)
+    _run(p, q, 19, INK)
+    cy += 0.68
+notes(s, "Walk through why this example works: the general objective states the overall intent in one "
+      "sentence; each specific question isolates a single measurable variable or relationship; and the "
+      "final question is explicitly relational, signaling that this study will need a hypothesis and an "
+      "inferential statistical test. Note for students that specific objective #3, phrased as a "
+      "relationship, is the one that will pair with a directional hypothesis in the next slide.")
+
+# ---- Slide 37 (Part III / 11) Worked Example SOP (Agriculture) -------
+s = new_slide()
+y = header(s, EB6, "Worked Example \u2014 A Full SOP (Agriculture)", 37, title_size=29)
+eg_tag(s, 0.85, y - 0.02, "Instructor-Created Example")
+go = rrect(s, 0.85, y + 0.5, SW - 1.7, 1.15, fill=INK, radius=0.08, shadow=True)
+_, tf = textbox(s, 1.2, y + 0.5, SW - 2.4, 1.15, anchor=MID)
+p = para(tf, first=True, space_after=4, line_spacing=1.02)
+_run(p, "GENERAL OBJECTIVE", 13, AMBER, bold=True, font=F_HEAD)
+p = para(tf, space_after=0, line_spacing=1.08)
+_run(p, "This study aims to determine the ", 17, WHITE)
+_run(p, "effect of organic foliar fertilizer application", 17, "9FE3D6", bold=True)
+_run(p, " on the ", 17, WHITE)
+_run(p, "yield of eggplant (Solanum melongena)", 17, "9FE3D6", bold=True)
+_run(p, " in a selected farm in Davao del Sur.", 17, WHITE)
+_, tf = textbox(s, 0.9, y + 1.85, SW - 1.9, 0.35)
 p = para(tf, first=True, space_after=0)
-_run(p, "A justification explains ", 22, INK)
-_run(p, "why it deserves", 22, ACCENT, bold=True)
-_run(p, " to be studied", 22, INK)
-b3 = rrect(s, 1.4, y + 2.7, SW - 2.8, 1.15, fill=INK, radius=0.1, shadow=True)
-_, tf = textbox(s, 1.75, y + 2.7, SW - 3.4, 1.15, anchor=MID)
+_run(p, "Specifically, it seeks to answer:", 16, MUTED, bold=True, italic=True)
+qs = [
+    "What is the average yield (kg per plot) of eggplant grown with organic foliar fertilizer?",
+    "What is the average yield of eggplant grown without organic foliar fertilizer (control)?",
+    "Is there a significant difference in yield between the two groups?",
+]
+cy = y + 2.35
+for i, q in enumerate(qs):
+    col = SUCCESS if i == 2 else PRIMARY
+    badge = rect(s, 1.0, cy, 0.46, 0.46, fill=col, kind=MSO_SHAPE.OVAL)
+    fill_frame(badge, [(str(i + 1), 17, WHITE, True)], align=CENTER)
+    _, tf = textbox(s, 1.65, cy - 0.05, SW - 2.6, 0.6, anchor=MID)
+    p = para(tf, first=True, space_after=0, line_spacing=1.02)
+    _run(p, q, 19, INK)
+    cy += 0.68
+notes(s, "Contrast this with the coral reef example: this SOP is built around a group comparison "
+      "(treatment vs. control) rather than a relationship between two continuous variables. Point out that "
+      "specific objective #3 signals a comparison-type hypothesis (testing a difference between groups), "
+      "while the coral reef example's #3 signals a relationship-type hypothesis (testing an association "
+      "between two variables). Both are equally valid \u2014 the phrasing simply depends on the design.")
+
+# ---- Slide 38 (Part III / 12) A Light Touch on Variables -------------
+s = new_slide()
+y = header(s, EB6, "A Light Touch on Variables", 38, title_size=30)
+by = y + 0.4
+iv = rrect(s, 1.5, by, 4.3, 1.3, fill=PRIMARY, radius=0.1, shadow=True)
+fill_frame(iv, [("INDEPENDENT VARIABLE\n", 16, WHITE, True), ("predictor / cause", 14, "EAF6F8")], align=CENTER)
+a = rect(s, 6.0, by + 0.4, 1.3, 0.5, fill=INK, kind=MSO_SHAPE.RIGHT_ARROW)
+dv = rrect(s, 7.5, by, 4.3, 1.3, fill=SUCCESS, radius=0.1, shadow=True)
+fill_frame(dv, [("DEPENDENT VARIABLE\n", 16, WHITE, True), ("outcome / effect", 14, "E6F5F2")], align=CENTER)
+bullets(s, 0.9, y + 2.05, SW - 1.9, [
+    [("Coral reef: ", True, False, PRIMARY), ("sedimentation / turbidity level", False, True),
+     (" (independent) \u2192 ", False), ("live coral cover", False, True), (" (dependent)", False)],
+    [("Agriculture: ", True, False, PRIMARY), ("fertilizer application", False, True),
+     (" (independent) \u2192 ", False), ("eggplant yield", False, True), (" (dependent)", False)],
+    [("We name variables here ", False), ("only so you can phrase a hypothesis correctly", True),
+     (" \u2014 not to master variable measurement, which belongs to your methodology lecture.", False)],
+], size=20, gap=9)
+notes(s, "Keep this brief and functional, exactly as intended \u2014 this is a preferred, not highly "
+      "required, sub-topic, and the goal is only enough vocabulary to write a well-formed hypothesis. Do "
+      "not go into operationalization, levels of measurement, or scales; explicitly tell students that is "
+      "coming in the methodology lecture. This scoping statement protects today's lecture from sprawling "
+      "into statistics.")
+
+# ---- Slide 39 (Part III / 13) Application: Label the Variables -------
+s = new_slide()
+y = header(s, EB6, "Application \u2014 Label the Variables", 39, title_size=30)
+eg_tag(s, 0.85, y - 0.02, "Instructor-Created Practice Activity")
+data = [
+    ["Study", "Independent Variable", "Dependent Variable"],
+    ["\u201cEffect of shade netting on seedling survival rate\u201d", "", ""],
+    ["\u201cRelationship between water temperature and coral bleaching extent\u201d", "", ""],
+]
+cc = {(1, 1): AMBER_LT, (1, 2): AMBER_LT, (2, 1): AMBER_LT, (2, 2): AMBER_LT}
+styled_table(s, 0.85, y + 0.5, SW - 1.7, data, col_widths=[1.8, 1.1, 1.1],
+             size=17, header_size=16, row_h=1.0, header_h=0.6, cell_colors=cc)
+instruction_bar(s, 0.85, y + 3.35, SW - 1.7,
+                "Quick 2-minute oral drill \u2014 which variable is the presumed cause, which the effect?")
+notes(s, "Quick, low-stakes drill \u2014 2 minutes, whole-class oral answers. The purpose is purely to build "
+      "fluency identifying which variable is the presumed cause (independent) and which is the presumed "
+      "effect (dependent), since this fluency is what makes writing a clear, directional hypothesis "
+      "possible in the next slides.")
+
+# ---- Slide 40 (Part III / 14) Null vs Alternative Hypothesis ---------
+s = new_slide()
+y = header(s, EB6, "Null vs. Alternative Hypothesis", 40, title_size=30)
+two_column(s, y + 0.05,
+    left={"title": "NULL HYPOTHESIS  (H\u2080)", "band": MUTED, "head_size": 18,
+          "items": [
+              "States there is no significant relationship or difference.",
+              [("Example: ", True, False, MUTED),
+               ("\u201cThere is no significant relationship between turbidity and live coral cover.\u201d", False, True)],
+          ], "size": 19, "gap": 10},
+    right={"title": "ALTERNATIVE HYPOTHESIS  (H\u2081)", "band": PRIMARY, "head_size": 18,
+           "items": [
+               "States there is a significant relationship or difference \u2014 often stated directionally.",
+               [("Example: ", True, False, PRIMARY),
+                ("\u201cThere is a significant negative relationship between turbidity and live coral cover \u2014 "
+                 "the higher the turbidity, the lower the coral cover.\u201d", False, True)],
+           ], "size": 19, "gap": 10},
+    bottom=y + 3.15)
+b = rrect(s, 0.85, y + 3.4, SW - 1.7, 0.7, fill=AMBER_LT, radius=0.1)
+_, tf = textbox(s, 1.2, y + 3.4, SW - 2.4, 0.7, anchor=MID)
+p = para(tf, first=True, space_after=0, line_spacing=1.0)
+_run(p, "We define these terms today. ", 17, INK, bold=True)
+_run(p, "Testing them with p-values and significance levels is deferred to your statistics lecture.", 17, INK_SOFT)
+notes(s, "Emphasize this is a definition-only stop, consistent with the boundary set in the outline \u2014 do "
+      "not let the discussion drift into explaining p-values or test selection, since that content is "
+      "explicitly deferred. Highlight Creswell's point that most researchers ultimately report an "
+      "alternative, and preferably directional, hypothesis, because a directional hypothesis communicates "
+      "the researcher's specific prediction rather than merely asserting that \"some difference\" exists.")
+
+# ---- Slide 41 (Part III / 15) Application: Write H0 and Ha -----------
+s = new_slide()
+y = header(s, EB6, "Application \u2014 Write H\u2080 and H\u2081 (Agriculture)", 41, title_size=28)
+eg_tag(s, 0.85, y - 0.02, "Instructor-Created Practice Activity")
+scenario_card(s, 0.85, y + 0.5, SW - 1.7, 1.0,
+              "Given specific objective #3 from the Agriculture SOP (Slide 37): \u201cIs there a significant "
+              "difference in yield between the two groups?\u201d",
+              size=17, fill=INK, tcolor=WHITE, label=None)
+template_card(s, 0.85, y + 1.75, SW - 1.7, 2.4, [
+    "H\u2080  (null):",
+    "H\u2081  (alternative \u2014 make it directional: which group yields more, and why?):",
+], size=21)
+notes(s, "Give students two minutes to draft both hypotheses individually, then have three volunteers "
+      "share their H\u2081 aloud. A strong directional answer: \"Eggplant plots treated with organic foliar "
+      "fertilizer will have significantly higher yield than untreated plots.\" Praise directional language "
+      "(higher, lower, greater, more) over vague language (\"will be different\").")
+
+# ---- Slide 42 (Part III / 16) Scripts for Quantitative Questions -----
+s = new_slide()
+y = header(s, EB6, "Scripts for Writing Quantitative Questions", 42, title_size=28)
+card(s, 0.85, y + 0.25, SW - 1.7, 1.15, fill="FBFDFE", line=PRIMARY)
+card_header(s, 0.85, y + 0.25, SW - 1.7, "DESCRIPTIVE SCRIPT", PRIMARY, size=15, h=0.5)
+_, tf = textbox(s, 1.2, y + 0.82, SW - 2.4, 0.55, anchor=MID)
 p = para(tf, first=True, space_after=0, line_spacing=1.05)
-_run(p, "Tool for building this justification:  the ", 20, WHITE)
-_run(p, "Claim \u2013 Evidence \u2013 Reasoning (CER)", 20, AMBER, bold=True)
-_run(p, " framework", 20, WHITE)
-notes(s, "Frame CER as solving a real writing problem: many students can state a problem but struggle to "
-      "argue convincingly for its importance. Preview that CER gives them a repeatable three-part "
-      "structure for that argument, built directly from material they already have \u2014 their literature "
-      "synthesis.\n\nVisual: none required; a brief framing slide.")
+_run(p, "\u201cWhat is the [level / frequency / percentage] of ______ (variable) among ______ "
+        "(participants / site)?\u201d", 18, INK, italic=True)
+card(s, 0.85, y + 1.55, SW - 1.7, 1.3, fill="FBFDFE", line=ACCENT)
+card_header(s, 0.85, y + 1.55, SW - 1.7, "RELATIONSHIP / DIRECTIONAL SCRIPT", ACCENT, size=15, h=0.5)
+_, tf = textbox(s, 1.2, y + 2.12, SW - 2.4, 0.7, anchor=MID)
+p = para(tf, first=True, space_after=0, line_spacing=1.05)
+_run(p, "\u201cIt is predicted that there will be a relationship between ______ (predictor) and ______ "
+        "(outcome), such that ______ (direction of the effect).\u201d", 18, INK, italic=True)
+b = rrect(s, 0.85, y + 3.05, SW - 1.7, 1.05, fill=INK, radius=0.08, shadow=True)
+_, tf = textbox(s, 1.2, y + 3.05, SW - 2.4, 1.05, anchor=MID)
+p = para(tf, first=True, space_after=3, line_spacing=1.0)
+_run(p, "APPLIED \u2014 CORAL REEF", 12.5, AMBER, bold=True, font=F_HEAD)
+p = para(tf, space_after=0, line_spacing=1.05)
+_run(p, "\u201cIt is predicted that there will be a relationship between turbidity level and live coral "
+        "cover, such that higher turbidity is associated with lower coral cover.\u201d", 16.5, WHITE, italic=True)
+notes(s, "These are direct adaptations of Creswell's scripting technique for descriptive and "
+      "relationship-oriented quantitative questions. Scripts function like sentence frames in language "
+      "learning \u2014 they reduce the cognitive load of \"what do I even write\" so students can focus on "
+      "getting their variables and direction correct. Encourage students to keep these two scripts in "
+      "their notes as their go-to templates for the rest of the course.")
+
+# ---- Slide 43 (Part III / 17) Scripts for Qualitative Questions ------
+s = new_slide()
+y = header(s, EB6, "Scripts for Writing Qualitative Questions", 43, title_size=28)
+card(s, 0.85, y + 0.3, SW - 1.7, 1.2, fill="FBFDFE", line=ACCENT)
+card_header(s, 0.85, y + 0.3, SW - 1.7, "CENTRAL QUESTION SCRIPT", ACCENT, size=15, h=0.5)
+_, tf = textbox(s, 1.2, y + 0.88, SW - 2.4, 0.6, anchor=MID)
+p = para(tf, first=True, space_after=0, line_spacing=1.05)
+_run(p, "\u201c______ (How or What) is the ______ (central phenomenon) for ______ (participants) at ______ "
+        "(research site)?\u201d", 18, INK, italic=True)
+b = rrect(s, 0.85, y + 1.65, SW - 1.7, 1.1, fill=INK, radius=0.08, shadow=True)
+_, tf = textbox(s, 1.2, y + 1.65, SW - 2.4, 1.1, anchor=MID)
+p = para(tf, first=True, space_after=3, line_spacing=1.0)
+_run(p, "APPLIED \u2014 INSTRUCTOR-CREATED EXAMPLE", 12.5, AMBER, bold=True, font=F_HEAD)
+p = para(tf, space_after=0, line_spacing=1.06)
+_run(p, "\u201cHow do small-scale fisherfolk in a selected Davao Gulf coastal barangay describe changes in "
+        "their livelihood amid declining coral reef health?\u201d", 16.5, WHITE, italic=True)
+bullets(s, 0.9, y + 2.95, SW - 1.9, [
+    [("Two habits to flag: qualitative questions open with ", False), ("how", True, True, ACCENT),
+     (" or ", False), ("what", True, True, ACCENT),
+     (" (not ", False), ("why", True, True, DANGER),
+     (", which implies cause-and-effect), and they focus on a ", False),
+     ("single central phenomenon", True), (".", False)],
+], size=18, gap=6)
+notes(s, "Explicitly connect this back to Slide 30, where a \"why\" question was flagged as a caution. "
+      "Explain that why tends to smuggle in causal, quantitative thinking, which conflicts with "
+      "qualitative research's exploratory purpose. Model quickly revising \"Why do fisherfolk struggle "
+      "economically?\" into \"How do fisherfolk describe their economic struggles?\" so students see the "
+      "transformation in real time.")
+
+# ---- Slide 44 (Part III / 18) Workshop: Draft Your Own SOP -----------
+s = new_slide()
+y = header(s, EB6, "Workshop \u2014 Draft Your Own SOP", 44, title_size=30)
+eg_tag(s, 0.85, y - 0.02, "Instructor-Created Practice Activity \u00b7 10\u201315 minutes")
+steps = [
+    [("Write your ", False), ("general objective", True, False, PRIMARY), (" (1 sentence).", False)],
+    [("Write ", False), ("at least 3 specific research questions", True, False, PRIMARY),
+     (" (quantitative) or 1 central question + 5\u20137 sub-questions (qualitative).", False)],
+    [("If quantitative and relational/comparative, draft your ", False),
+     ("H\u2080 and directional H\u2081", True, False, ACCENT), (".", False)],
+    [("Trade papers and check each question against the ", False),
+     ("Clear\u2013Focused\u2013Answerable", True, False, SUCCESS), (" checklist (Slide 31).", False)],
+]
+cy = y + 0.55
+for i, st in enumerate(steps):
+    b = rrect(s, 0.85, cy, SW - 1.7, 0.82, fill=CARD, line=LINE, radius=0.1, shadow=True)
+    badge = rect(s, 1.1, cy + 0.19, 0.44, 0.44, fill=PRIMARY, kind=MSO_SHAPE.OVAL)
+    fill_frame(badge, [(str(i + 1), 17, WHITE, True)], align=CENTER)
+    _, tf = textbox(s, 1.72, cy, SW - 1.7 - 1.15, 0.82, anchor=MID)
+    p = para(tf, first=True, space_after=0, line_spacing=1.02)
+    for seg in st:
+        t = seg[0]
+        bold = seg[1] if len(seg) > 1 else False
+        ital = seg[2] if len(seg) > 2 else False
+        col = seg[3] if len(seg) > 3 else INK
+        _run(p, t, 18, col, bold, ital)
+    cy += 0.94
+notes(s, "This is the pivot point of the lecture: from modeling to production. Circulate actively during "
+      "this workshop \u2014 the most common errors to watch for are (1) specific questions that don't map to "
+      "a measurable variable, (2) qualitative questions that sneak in \"why,\" and (3) hypotheses stated "
+      "non-directionally (\"there is a difference\" instead of specifying which group is higher). Reserve "
+      "the last two minutes for two or three students to read their general objective and first specific "
+      "question aloud for whole-class feedback \u2014 this doubles as informal rehearsal for oral defense, "
+      "which Part IV will build on directly.")
 
 # =========================================================================
-# SLIDE 37 - Breaking Down Claim, Evidence, Reasoning
+# SECTION 7 (Part IV) - JUSTIFYING THE PROBLEM WITH CER (Competency 15)
 # =========================================================================
+
+# ---- Slide 45 (Part IV / 19) From "What" to "So What" ----------------
 s = new_slide()
-y = header(s, "Section 7 \u00b7 Justifying the Problem with CER (Competency 15)",
-           "Breaking Down Claim, Evidence, Reasoning", 37, title_size=28)
+y = header(s, EB7, "From \u201cWhat\u201d to \u201cSo What\u201d", 45, title_size=30)
+roadmap(s, y + 0.12, active=2, done={0, 1})
+bullets(s, 0.9, y + 1.45, SW - 1.9, [
+    [("You now know ", False), ("what", True, True, PRIMARY),
+     (" you will investigate. A research panel's very next question will be: ", False),
+     ("\u201cSo what? Why does this matter?\u201d", True, False, ACCENT)],
+    [("Today you learn a reusable structure for answering that question with ", False),
+     ("evidence", True, False, SUCCESS), (", not just enthusiasm.", False)],
+], size=24, gap=14)
+notes(s, "Frame this transition explicitly as the moment students move from designing a study to "
+      "defending it. Tell students that \"why does this matter\" is one of the first questions asked in "
+      "almost every research defense, and that today's framework is the tool they will use to answer it "
+      "\u2014 both in writing (Chapter 1) and out loud (their defense).")
+
+# ---- Slide 46 (Part IV / 20) Introducing CER -------------------------
+s = new_slide()
+y = header(s, EB7, "Introducing Claim \u2013 Evidence \u2013 Reasoning", 46, title_size=28)
 cer = [
-    ("Claim", "this problem is worth studying", PRIMARY),
-    ("Evidence", "findings and gaps drawn from your literature synthesis", ACCENT),
-    ("Reasoning", "the explicit logic connecting the evidence to the claim", SUCCESS),
+    ("CLAIM", "the problem is worth studying", PRIMARY),
+    ("EVIDENCE", "literature findings / gaps you found", ACCENT),
+    ("REASONING", "explicit logic linking evidence to the claim", SUCCESS),
 ]
-cw = (SW - 1.7 - 2 * 0.4) / 3
+cw = (SW - 1.7 - 2 * 0.55) / 3
 for i, (t, d, col) in enumerate(cer):
-    px = 0.85 + i * (cw + 0.4)
-    card(s, px, y + 0.25, cw, 2.5)
-    card_header(s, px, y + 0.25, cw, t.upper(), col, size=19, h=0.65)
-    _, tf = textbox(s, px + 0.28, y + 1.05, cw - 0.56, 1.6, anchor=MSO_ANCHOR.TOP)
-    p = para(tf, first=True, space_after=0, line_spacing=1.12)
-    _run(p, d, 20, INK)
+    px = 0.85 + i * (cw + 0.55)
+    b = rrect(s, px, y + 0.15, cw, 1.35, fill=col, radius=0.12, shadow=True)
+    tf = b.text_frame; tf.word_wrap = True; tf.vertical_anchor = MID
+    p = tf.paragraphs[0]; p.alignment = CENTER; p.line_spacing = 1.02
+    _run(p, t + "\n", 19, WHITE, bold=True, font=F_HEAD)
+    _run(p, d, 14, "F2F7F9")
     if i < 2:
-        a = rect(s, px + cw - 0.02, y + 1.25, 0.44, 0.4, fill=INK, kind=MSO_SHAPE.RIGHT_ARROW)
-b = rrect(s, 0.85, y + 3.05, SW - 1.7, 0.85, fill=PRIMARY_LT, radius=0.1)
-_, tf = textbox(s, 1.2, y + 3.05, SW - 2.4, 0.85, anchor=MID)
-p = para(tf, first=True, space_after=0, line_spacing=1.05)
-_run(p, "CER = ", 18, PRIMARY_DK, bold=True)
-_run(p, "you assert something, back it with real findings, and explain why those findings support your assertion.", 18, INK_SOFT)
-notes(s, "Emphasize that Evidence in a CER paragraph should come straight from the synthesis work done in "
-      "Section 3 \u2014 this is not new information, but a repackaging of what students already found. "
-      "Reasoning is the part students most often skip; without it, a paragraph is just a claim next to a "
-      "citation, with no argument connecting them.\n\nVisual: a three-part concept map with arrows: Claim "
-      "\u2192 supported by \u2192 Evidence \u2192 explained by \u2192 Reasoning, looping back to reinforce the Claim.")
+        a = rect(s, px + cw + 0.06, y + 0.6, 0.42, 0.45, fill=INK, kind=MSO_SHAPE.RIGHT_ARROW)
+bullets(s, 0.9, y + 1.75, SW - 1.9, [
+    [("CER", True, False, INK),
+     (" builds a convincing, evidence-based argument for why your research problem matters.", False)],
+    [("Claim", True, False, PRIMARY), (" = your assertion that the problem is significant and worth studying.", False)],
+    [("Evidence", True, False, ACCENT), (" = literature findings, statistics, or documented gaps that support the claim.", False)],
+    [("Reasoning", True, False, SUCCESS),
+     (" = the explicit logical bridge connecting evidence back to the claim \u2014 the step students most often skip.", False)],
+], size=17, gap=6)
+notes(s, "CER is a familiar structure from science class (used for evidence-based argumentation in lab "
+      "reports), and this slide's job is to show students it transfers directly to justifying a research "
+      "problem. Stress that Reasoning is not a summary of the evidence \u2014 it is the sentence that "
+      "explicitly explains why the evidence proves the claim. Most weak \"Background of the Study\" "
+      "sections in student papers have Claim and Evidence but skip Reasoning entirely, leaving the "
+      "connection for the reader to guess.")
 
-# =========================================================================
-# SLIDE 38 - Example: A Worked CER Paragraph
-# =========================================================================
+# ---- Slide 47 (Part IV / 21) Worked CER Paragraph (Coral Reef) -------
 s = new_slide()
-y = header(s, "Section 7 \u00b7 Justifying the Problem with CER (Competency 15)",
-           "Example \u2014 A Worked CER Paragraph", 38)
-eg_tag(s, 0.85, y - 0.02, "Instructor-Created Example \u00b7 Example A topic")
-# legend
+y = header(s, EB7, "Worked Example \u2014 CER Paragraph (Coral Reef)", 47, title_size=27)
+eg_tag(s, 0.85, y - 0.02, "Instructor-Created Example")
 lx = 0.85
 for t, col in [("Claim", PRIMARY), ("Evidence", ACCENT), ("Reasoning", SUCCESS)]:
     dot = rect(s, lx, y + 0.5, 0.26, 0.26, fill=col, kind=MSO_SHAPE.OVAL)
-    _, tf = textbox(s, lx + 0.34, y + 0.44, 1.7, 0.35, anchor=MID)
+    _, tf = textbox(s, lx + 0.34, y + 0.44, 1.9, 0.35, anchor=MID)
     p = para(tf, first=True, space_after=0)
     _run(p, t, 15, INK, bold=True, font=F_HEAD)
-    lx += 2.0
-card(s, 0.85, y + 1.0, SW - 1.7, 3.0, fill="FBFDFE", line=LINE)
-_, tf = textbox(s, 1.3, y + 1.25, SW - 2.6, 2.5, anchor=MID)
-p = para(tf, first=True, space_after=0, line_spacing=1.3)
-_run(p, "[Claim] ", 20, PRIMARY, bold=True)
-_run(p, "Testing the solar distiller's effect on microbial water safety is a worthwhile research problem. ", 20, INK)
-_run(p, "[Evidence] ", 20, ACCENT, bold=True)
-_run(p, "Existing studies test distiller efficiency or water safety separately, but rarely evaluate both together in an actual barangay setting. ", 20, INK)
-_run(p, "[Reasoning] ", 20, SUCCESS, bold=True)
-_run(p, "Because coastal communities are adopting these distillers based on efficiency claims alone, verifying their actual effect on water safety directly addresses a real, practical gap in current knowledge.", 20, INK)
-notes(s, "Read the paragraph aloud once as a whole, then a second time pausing to label each bracketed "
-      "part. Ask students to notice that this exact paragraph could be dropped directly into the "
-      "introduction of a research proposal \u2014 this is a real, usable piece of writing, not just a "
-      "classroom exercise.\n\nVisual: colour-code or bracket-label the three sentence parts directly on the "
-      "slide so students can visually trace Claim, Evidence, and Reasoning.")
+    lx += 2.05
+card(s, 0.85, y + 0.95, SW - 1.7, 3.7, fill="FBFDFE", line=LINE)
+_, tf = textbox(s, 1.3, y + 1.15, SW - 2.6, 3.3, anchor=MID)
+p = para(tf, first=True, space_after=0, line_spacing=1.24)
+_run(p, "[CLAIM] ", 19, PRIMARY, bold=True)
+_run(p, "Investigating coral reef degradation in Davao Gulf is an urgent research priority. ", 19, INK)
+_run(p, "[EVIDENCE] ", 19, ACCENT, bold=True)
+_run(p, "Regional marine surveys have documented declining live coral cover linked to coastal "
+        "sedimentation and rising sea surface temperatures, while local fisherfolk report shrinking "
+        "catches over the past decade. ", 19, INK)
+_run(p, "[REASONING] ", 19, SUCCESS, bold=True)
+_run(p, "Because coral reefs serve as the primary nursery habitat for many commercially important fish "
+        "species, continued degradation directly threatens both marine biodiversity and the food security "
+        "of coastal communities \u2014 meaning the problem is not just ecological, but also has direct human "
+        "consequences that justify immediate study.", 19, INK)
+notes(s, "Read this paragraph aloud slowly, pointing to each bracketed label as you go. Emphasize that "
+      "the Reasoning sentence is doing real argumentative work \u2014 it is not restating the evidence, it is "
+      "explaining the mechanism (reef as nursery habitat) that connects declining coral cover to a "
+      "consequence the reader will find compelling (food security). This is the sentence structure "
+      "students should aim to replicate.")
+
+# ---- Slide 48 (Part IV / 22) Spot the Missing Reasoning --------------
+s = new_slide()
+y = header(s, EB7, "Application \u2014 Spot the Missing Reasoning", 48, title_size=28)
+eg_tag(s, 0.85, y - 0.02, "Instructor-Created Practice Activity")
+card(s, 0.85, y + 0.5, SW - 1.7, 1.8, fill=CARD, line=PRIMARY)
+_, tf = textbox(s, 1.3, y + 0.7, SW - 2.6, 1.4, anchor=MID)
+p = para(tf, first=True, space_after=0, line_spacing=1.2)
+_run(p, "\u201cPest resistance among corn farmers is a growing concern. Studies show that fall armyworm "
+        "populations in several Mindanao provinces have developed resistance to common pesticides, and "
+        "farmer surveys report declining yields.\u201d", 20, INK)
+bullets(s, 0.9, y + 2.55, SW - 1.9, [
+    [("This paragraph has a ", False), ("Claim", True, False, PRIMARY), (" and ", False),
+     ("Evidence", True, False, ACCENT), (" \u2014 but is missing ", False),
+     ("Reasoning", True, False, SUCCESS),
+     (". In pairs, write one sentence that connects the evidence to why this problem deserves study.", False)],
+], size=19, gap=6)
+instruction_bar(s, 0.85, y + 3.75, SW - 1.7, "3\u20134 minutes, then two pairs share their Reasoning sentence.")
+notes(s, "Give students 3\u20134 minutes, then have two pairs share their Reasoning sentence. A strong answer "
+      "links the evidence to a broader consequence: \"Because pesticide resistance forces farmers into "
+      "costlier and more frequent chemical applications, unresolved resistance threatens both farm "
+      "profitability and long-term soil and environmental health.\" Use weaker answers (ones that simply "
+      "restate the evidence) as a teaching moment \u2014 ask the class, \"Does this sentence explain why, or "
+      "does it just repeat what?\"")
+
+# ---- Slide 49 (Part IV / 23) Label a Full Paragraph ------------------
+s = new_slide()
+y = header(s, EB7, "Guided Practice \u2014 Label a Full Paragraph", 49, title_size=28)
+eg_tag(s, 0.85, y - 0.02, "Instructor-Created Practice Activity")
+card(s, 0.85, y + 0.5, SW - 1.7, 2.75, fill=CARD, line=PRIMARY)
+_, tf = textbox(s, 1.3, y + 0.72, SW - 2.6, 2.3, anchor=MID)
+p = para(tf, first=True, space_after=0, line_spacing=1.28)
+_run(p, "\u201cImproving post-harvest handling of rice is a pressing issue for small farmers. National "
+        "agriculture data show that up to 16% of harvested rice is lost before it reaches market due to "
+        "poor drying and storage facilities. Since post-harvest losses directly reduce farmer income "
+        "without any corresponding increase in production cost, addressing this gap offers one of the "
+        "most cost-effective ways to improve farmer livelihoods without expanding farmland.\u201d", 19, INK)
+instruction_bar(s, 0.85, y + 3.5, SW - 1.7,
+                "Label each sentence:  C (Claim)  \u00b7  E (Evidence)  \u00b7  R (Reasoning).")
+notes(s, "Reveal the answer after students attempt it individually: sentence 1 = Claim, sentence 2 = "
+      "Evidence, sentence 3 = Reasoning. This example is slightly more advanced than Slide 47 because the "
+      "Reasoning sentence uses comparative logic (\"without any corresponding increase in production "
+      "cost\") \u2014 point this out as a more sophisticated way to argue significance: showing the problem is "
+      "solvable efficiently, not just that it is big.")
+
+# ---- Slide 50 (Part IV / 24) Writing Workshop: CER Justification -----
+s = new_slide()
+y = header(s, EB7, "Writing Workshop \u2014 Draft Your CER Justification", 50, title_size=26)
+eg_tag(s, 0.85, y - 0.02, "Instructor-Created Practice Activity \u00b7 15 minutes, individual")
+steps = [
+    [("Write your ", False), ("Claim", True, False, PRIMARY), (" sentence (the problem is worth studying).", False)],
+    [("Write 1\u20132 ", False), ("Evidence", True, False, ACCENT),
+     (" sentences (literature findings or documented gaps \u2014 real or plausible placeholders to verify later).", False)],
+    [("Write your ", False), ("Reasoning", True, False, SUCCESS),
+     (" sentence \u2014 explicitly explain why the evidence proves the claim.", False)],
+    [("Underline your Reasoning: does it explain a ", False), ("mechanism or consequence", True),
+     (", or just restate the evidence?", False)],
+]
+cy = y + 0.55
+for i, st in enumerate(steps):
+    b = rrect(s, 0.85, cy, SW - 1.7, 0.82, fill=CARD, line=LINE, radius=0.1, shadow=True)
+    badge = rect(s, 1.1, cy + 0.19, 0.44, 0.44, fill=SUCCESS, kind=MSO_SHAPE.OVAL)
+    fill_frame(badge, [(str(i + 1), 17, WHITE, True)], align=CENTER)
+    _, tf = textbox(s, 1.72, cy, SW - 1.7 - 1.15, 0.82, anchor=MID)
+    p = para(tf, first=True, space_after=0, line_spacing=1.02)
+    for seg in st:
+        t = seg[0]
+        bold = seg[1] if len(seg) > 1 else False
+        ital = seg[2] if len(seg) > 2 else False
+        col = seg[3] if len(seg) > 3 else INK
+        _run(p, t, 17.5, col, bold, ital)
+    cy += 0.94
+notes(s, "This paragraph is essentially the seed of their eventual \"Background of the Study\" section. "
+      "Circulate and specifically probe any student whose Reasoning sentence simply repeats their "
+      "Evidence \u2014 ask them directly, \"Why does that fact matter?\" and have them speak the answer before "
+      "writing it down; this oral-to-written technique often produces a much stronger Reasoning sentence "
+      "than writing alone.")
+
+# ---- Slide 51 (Part IV / 25) Speaking Workshop: Defend Aloud ---------
+s = new_slide()
+y = header(s, EB7, "Speaking Workshop \u2014 Defend Your Claim Aloud", 51, title_size=26)
+eg_tag(s, 0.85, y - 0.02, "Instructor-Created Practice Activity \u00b7 Defense simulation, 10 min")
+steps = [
+    [("Partner A reads their ", False), ("Claim sentence only", True, False, PRIMARY),
+     (" \u2014 no evidence, no reasoning yet.", False)],
+    [("Partner B asks: ", False), ("\u201cSo what? Why should anyone study that?\u201d", True, False, ACCENT)],
+    [("Partner A answers ", False), ("out loud, from memory", True, False, SUCCESS),
+     (", using their Evidence and Reasoning \u2014 no reading from paper.", False)],
+    [("Switch roles.", False)],
+]
+cy = y + 0.55
+for i, st in enumerate(steps):
+    b = rrect(s, 0.85, cy, SW - 1.7, 0.72, fill=CARD, line=LINE, radius=0.1, shadow=True)
+    badge = rect(s, 1.1, cy + 0.14, 0.44, 0.44, fill=INK, kind=MSO_SHAPE.OVAL)
+    fill_frame(badge, [(str(i + 1), 16, WHITE, True)], align=CENTER)
+    _, tf = textbox(s, 1.72, cy, SW - 1.7 - 1.15, 0.72, anchor=MID)
+    p = para(tf, first=True, space_after=0, line_spacing=1.0)
+    for seg in st:
+        t = seg[0]
+        bold = seg[1] if len(seg) > 1 else False
+        ital = seg[2] if len(seg) > 2 else False
+        col = seg[3] if len(seg) > 3 else INK
+        _run(p, t, 17.5, col, bold, ital)
+    cy += 0.82
+b = rrect(s, 0.85, cy + 0.02, SW - 1.7, 0.62, fill=AMBER_LT, radius=0.1)
+_, tf = textbox(s, 1.2, cy + 0.02, SW - 2.4, 0.62, anchor=MID)
+p = para(tf, first=True, space_after=0)
+_run(p, "This is exactly the kind of question a research panel will ask during your defense.", 16.5, INK, bold=True)
+notes(s, "This activity deliberately mimics the pressure of an oral defense: being asked \"so what?\" cold, "
+      "without the safety of reading a script. Tell students that panelists rarely accept \"because it's "
+      "an important issue\" as an answer \u2014 they want the specific mechanism or consequence, which is "
+      "exactly what the Reasoning step trains them to articulate. After the paired rounds, ask for one or "
+      "two volunteers to answer \"so what?\" in front of the whole class, and give the class 30 seconds to "
+      "identify whether the answer contained a genuine Reasoning step or only repeated Evidence.\n\n"
+      "Visual: none required \u2014 a simple on-screen timer is sufficient support.")
+
+# ---- Slide 52 (Part IV / 26) Common CER Pitfalls in a Defense --------
+s = new_slide()
+y = header(s, EB7, "Common CER Pitfalls in a Defense", 52, title_size=29)
+data = [
+    ["Pitfall", "Fix"],
+    ["Evidence with no source or citation (\u201cstudies show...\u201d)",
+     "Name the actual source, or say \u201cbased on my preliminary reading of...\u201d"],
+    ["Reasoning that just restates Evidence in different words",
+     "Ask: what happens next if this problem is ignored? State that consequence."],
+    ["Claim stated as pure opinion (\u201cthis is a very important topic\u201d)",
+     "Ground the claim in a measurable stake \u2014 lives affected, income lost, species threatened"],
+]
+styled_table(s, 0.85, y + 0.3, SW - 1.7, data, col_widths=[1.05, 1.15],
+             size=17.5, header_size=18, row_h=1.0, header_h=0.58, header_fill=DANGER)
+notes(s, "These three pitfalls are the most common reasons a panel pushes back during the justification "
+      "portion of a defense. Walking through them explicitly gives students a self-editing checklist they "
+      "can apply to their own Chapter 1 draft before submission, not just today's practice paragraph.")
 
 # =========================================================================
-# SLIDE 39 - Application: Spot the Claim, Evidence, Reasoning
+# SECTION 8 (Part V) - ASSUMPTIONS AND LIMITATIONS (Competency 16)
 # =========================================================================
-s = new_slide()
-y = header(s, "Section 7 \u00b7 Justifying the Problem with CER (Competency 15)",
-           "Application \u2014 Spot the Claim, Evidence, Reasoning", 39, title_size=27)
-eg_tag(s, 0.85, y - 0.02, "Instructor-Created Example \u00b7 Example B topic")
-card(s, 0.85, y + 0.55, SW - 1.7, 2.85, fill=CARD, line=PRIMARY)
-_, tf = textbox(s, 1.3, y + 0.8, SW - 2.6, 2.35, anchor=MID)
-p = para(tf, first=True, space_after=0, line_spacing=1.3)
-_run(p, "\u201cImproving dengue prediction models is an important research problem. Most existing models rely "
-        "only on rainfall and temperature, leaving out human mobility patterns that influence outbreak "
-        "spread. Since mobility data is now more accessible through mobile network records, incorporating "
-        "it could meaningfully improve prediction accuracy for local health units.\u201d", 20, INK)
-instruction_bar(s, 0.85, y + 3.6, SW - 1.7,
-                "Individually: label each sentence as Claim, Evidence, or Reasoning \u2014 then compare with a partner.")
-notes(s, "Have students individually label each sentence as Claim, Evidence, or Reasoning, then compare "
-      "with a partner before a whole-class check. Use any disagreement as a teaching moment \u2014 reasoning "
-      "sentences are often the ones students misidentify as evidence, since both sentences discuss the "
-      "same topic.\n\nVisual: none additional; students annotate directly on a printed or digital copy of "
-      "the paragraph.")
 
-# =========================================================================
-# SLIDE 40 - Assumptions vs Limitations
-# =========================================================================
+# ---- Slide 53 (Part V / 27) Even the Best Study Has Boundaries -------
 s = new_slide()
-y = header(s, "Section 8 \u00b7 Assumptions and Limitations (Competency 16)",
-           "Assumptions vs. Limitations", 40)
+y = header(s, EB8, "Even the Best Study Has Boundaries", 53, title_size=30)
+roadmap(s, y + 0.12, active=3, done={0, 1, 2})
+bullets(s, 0.9, y + 1.45, SW - 1.9, [
+    [("No study \u2014 not even a professionally funded one \u2014 can measure everything, control everything, "
+      "or prove itself beyond all doubt.", False)],
+    [("Today's skill is not weakness \u2014 it is ", False), ("precision", True, False, ACCENT),
+     (": telling your reader exactly what your study takes for granted, and exactly where its findings "
+      "stop applying.", False)],
+], size=23, gap=14)
+notes(s, "Set the emotional tone here deliberately \u2014 many students believe naming limitations makes "
+      "their study look weak, and this slide exists to preempt that misconception before the formal "
+      "definitions arrive. Tell them a panel is far more suspicious of a paper that claims no limitations "
+      "than one that names them clearly.")
+
+# ---- Slide 54 (Part V / 28) Assumptions vs Limitations Defined -------
+s = new_slide()
+y = header(s, EB8, "Assumptions vs. Limitations \u2014 Defined", 54, title_size=29)
 two_column(s, y + 0.1,
-    left={"title": "ASSUMPTIONS", "band": PRIMARY, "head_size": 19,
+    left={"title": "ASSUMPTIONS", "band": PRIMARY, "head_size": 19, "icon": "\u2713",
           "items": [
-              "Things you take as true / given, without directly testing them",
-              [("Example: ", True, False, PRIMARY), ("participants will answer survey questions honestly", False, True)],
-          ], "size": 21, "gap": 12},
-    right={"title": "LIMITATIONS", "band": ACCENT, "head_size": 19,
+              "What you take as true or given, without directly testing it, in order for your study to proceed.",
+              [("Example: ", True, False, PRIMARY),
+               ("\u201cIt is assumed that survey respondents answered honestly.\u201d", False, True)],
+          ], "size": 20, "gap": 12},
+    right={"title": "LIMITATIONS", "band": ACCENT, "head_size": 19, "icon": "!",
            "items": [
-               "Constraints or weaknesses in the study's design or scope",
-               [("Example: ", True, False, ACCENT), ("the study only covers one barangay, so results may not generalize", False, True)],
-           ], "size": 21, "gap": 12},
-    bottom=y + 3.7)
-notes(s, "Explain the core distinction simply: assumptions are things you trust to be true because "
-      "testing them isn't practical, while limitations are things you openly admit might weaken your "
-      "conclusions. Both are a normal, expected part of any real study \u2014 including this framing prevents "
-      "students from feeling like naming a limitation is confessing to a flawed project.\n\nVisual: none "
-      "additional; the two-column table carries the concept clearly.")
+               "The constraints or weaknesses of your study \u2014 factors beyond your control that may affect your findings.",
+               [("Example: ", True, False, ACCENT),
+                ("\u201cThis study is limited by a small sample size of 30 farmers, which may not represent the "
+                 "entire municipality.\u201d", False, True)],
+           ], "size": 20, "gap": 12},
+    bottom=y + 3.85)
+notes(s, "The clearest way to distinguish these for students: an assumption is a condition you believe is "
+      "true but cannot fully verify, while a limitation is a constraint you already know exists. "
+      "Assumptions are about trust in your data-gathering process; limitations are about the boundaries of "
+      "what your method can achieve.")
 
-# =========================================================================
-# SLIDE 41 - Why Naming Limitations Builds Credibility
-# =========================================================================
+# ---- Slide 55 (Part V / 29) Application: Sort Assumption or Limitation
 s = new_slide()
-y = header(s, "Section 8 \u00b7 Assumptions and Limitations (Competency 16)",
-           "Why Naming Limitations Builds Credibility", 41, title_size=28)
-# before / after
-bw = (SW - 1.7 - 0.5) / 2
-card(s, 0.85, y + 0.3, bw, 2.0)
-card_header(s, 0.85, y + 0.3, bw, "HIDES ITS LIMITATIONS", DANGER, size=17, icon="\u2715")
-_, tf = textbox(s, 1.15, y + 1.1, bw - 0.6, 1.15, anchor=MID)
-p = para(tf, first=True, space_after=0, line_spacing=1.12)
-_run(p, "Looks either naive or dishonest to a careful reader", 21, INK)
-card(s, 0.85 + bw + 0.5, y + 0.3, bw, 2.0)
-card_header(s, 0.85 + bw + 0.5, y + 0.3, bw, "NAMES ITS LIMITATIONS", SUCCESS, size=17, icon="\u2713")
-_, tf = textbox(s, 0.85 + bw + 0.8, y + 1.1, bw - 0.6, 1.15, anchor=MID)
-p = para(tf, first=True, space_after=0, line_spacing=1.12)
-_run(p, "Shows the researcher understands the boundaries of their own claims", 21, INK)
-b = rrect(s, 0.85, y + 2.7, SW - 1.7, 1.0, fill=INK, radius=0.1, shadow=True)
-_, tf = textbox(s, 1.2, y + 2.7, SW - 2.4, 1.0, anchor=MID)
-p = para(tf, first=True, space_after=0, line_spacing=1.05)
-_run(p, "Limitations do not weaken a study \u2014 ", 22, WHITE, bold=True)
-_run(p, "hiding them does.", 22, AMBER, bold=True)
-notes(s, "Reinforce this with a quick example: if a study only samples one school but claims its findings "
-      "apply to \"all Filipino students,\" a reader will distrust the whole study; naming that limitation "
-      "instead protects the researcher's credibility and shows scientific maturity.\n\nVisual: none "
-      "required; a short reflective framing slide.")
+y = header(s, EB8, "Application \u2014 Sort Assumption or Limitation", 55, title_size=28)
+eg_tag(s, 0.85, y - 0.02, "Instructor-Created Practice Activity")
+data = [
+    ["Statement", "Assumption or Limitation?"],
+    ["\u201cIt is assumed that the water quality test kits used provide accurate turbidity readings.\u201d", ""],
+    ["\u201cThe study only measured coral cover during the dry season and may not reflect wet-season conditions.\u201d", ""],
+    ["\u201cIt is assumed that farmer-respondents accurately recalled their harvest yields from memory.\u201d", ""],
+    ["\u201cOnly one farm cooperative in Davao del Sur was included due to time and travel constraints.\u201d", ""],
+]
+cc = {(1, 1): AMBER_LT, (2, 1): AMBER_LT, (3, 1): AMBER_LT, (4, 1): AMBER_LT}
+styled_table(s, 0.85, y + 0.5, SW - 1.7, data, col_widths=[2.3, 1.0],
+             size=16, header_size=16, row_h=0.72, header_h=0.55, cell_colors=cc)
+notes(s, "Rows 1 and 3 are assumptions (trust placed in an instrument or a respondent's honesty/memory); "
+      "rows 2 and 4 are limitations (known constraints on scope or timing). After students sort these, "
+      "ask: \"Could row 1 become a limitation if you had reason to doubt the test kits?\" \u2014 this shows "
+      "students the categories depend on the researcher's actual confidence level, not a fixed rule.")
 
-# =========================================================================
-# SLIDE 42 - Example: Assumptions & Limitations for a Real Study
-# =========================================================================
+# ---- Slide 56 (Part V / 30) Why Naming Limitations Builds Credibility
 s = new_slide()
-y = header(s, "Section 8 \u00b7 Assumptions and Limitations (Competency 16)",
-           "Example \u2014 Assumptions & Limitations for a Real Study", 42, title_size=26)
-eg_tag(s, 0.85, y - 0.02, "Instructor-Created Example \u00b7 Example A topic")
-two_column(s, y + 0.5,
-    left={"title": "ASSUMPTIONS", "band": PRIMARY, "head_size": 19,
-          "items": [
-              "the water samples collected are representative of the barangay's typical water source",
-              "the testing equipment used gives accurate microbial readings",
-          ], "size": 21, "gap": 12},
-    right={"title": "LIMITATIONS", "band": ACCENT, "head_size": 19,
-           "items": [
-               "the study covers only one barangay over a short testing period, so results may not apply to other coastal communities or seasons",
-           ], "size": 21, "gap": 12},
-    bottom=y + 4.0)
-notes(s, "Point out how directly these lines connect to the study's actual design choices \u2014 assumptions "
-      "and limitations are not generic disclaimers, they are specific to what this particular study did "
-      "and did not do. Ask students what would happen to the assumptions list if the researcher instead "
-      "tested the equipment's accuracy directly \u2014 it would move from \"assumption\" to \"verified fact,\" a "
-      "subtle but important shift.\n\nVisual: none additional; the two labeled lists are sufficient.")
-
-# =========================================================================
-# SLIDE 43 - Application: Identify Assumptions and Limitations
-# =========================================================================
-s = new_slide()
-y = header(s, "Section 8 \u00b7 Assumptions and Limitations (Competency 16)",
-           "Application \u2014 Identify Assumptions and Limitations", 43, title_size=26)
-eg_tag(s, 0.85, y - 0.02, "Instructor-Created Example \u00b7 Example B topic")
-b = rrect(s, 0.85, y + 0.55, SW - 1.7, 1.15, fill=INK, radius=0.1, shadow=True)
-_, tf = textbox(s, 1.2, y + 0.55, SW - 2.4, 1.15, anchor=MID)
+y = header(s, EB8, "Why Naming Limitations Builds Credibility", 56, title_size=28)
+# path 1 (negative)
+r1 = rrect(s, 0.85, y + 0.5, 5.0, 1.6, fill=DANGER_LT, line=DANGER, radius=0.1)
+_, tf = textbox(s, 1.15, y + 0.5, 4.5, 1.6, anchor=MID)
 p = para(tf, first=True, space_after=0, line_spacing=1.1)
-_run(p, "SCENARIO   ", 14, AMBER, bold=True, font=F_HEAD)
-_run(p, "A study uses one year of rainfall, temperature, and mobile network mobility data from a "
-        "single city to test a new dengue prediction model.", 20, WHITE)
+_run(p, "Study claims \u201cno limitations\u201d", 18, DANGER, bold=True)
+a = rect(s, 6.0, y + 1.05, 0.9, 0.5, fill=DANGER, kind=MSO_SHAPE.RIGHT_ARROW)
+r1b = rrect(s, 7.05, y + 0.5, 5.4, 1.6, fill=CARD, line=DANGER, radius=0.1)
+_, tf = textbox(s, 7.35, y + 0.5, 4.8, 1.6, anchor=MID)
+p = para(tf, first=True, space_after=0, line_spacing=1.12)
+_run(p, "Panel doubts the researcher's self-awareness and rigor", 18, INK)
+# path 2 (positive)
+r2 = rrect(s, 0.85, y + 2.35, 5.0, 1.7, fill=SUCCESS_LT, line=SUCCESS, radius=0.1)
+_, tf = textbox(s, 1.15, y + 2.35, 4.5, 1.7, anchor=MID)
+p = para(tf, first=True, space_after=0, line_spacing=1.1)
+_run(p, "Study names limitations clearly", 18, SUCCESS, bold=True)
+a = rect(s, 6.0, y + 3.0, 0.9, 0.5, fill=SUCCESS, kind=MSO_SHAPE.RIGHT_ARROW)
+r2b = rrect(s, 7.05, y + 2.35, 5.4, 1.7, fill=CARD, line=SUCCESS, radius=0.1)
+_, tf = textbox(s, 7.35, y + 2.35, 4.8, 1.7, anchor=MID)
+p = para(tf, first=True, space_after=0, line_spacing=1.12)
+_run(p, "Panel sees the researcher understands their method's boundaries \u2192 trusts the findings that remain", 18, INK)
+notes(s, "This is the conceptual core of the section. Every professional, peer-reviewed study names its "
+      "limitations \u2014 it is not an admission of failure but a sign of methodological maturity. Make the "
+      "analogy explicit: a doctor who tells you the exact margin of error on a diagnostic test is more "
+      "trustworthy than one who claims 100% certainty. Naming limitations is how a researcher shows "
+      "control over their own claims.")
+
+# ---- Slide 57 (Part V / 31) Worked Example A&L (Coral Reef) ----------
+s = new_slide()
+y = header(s, EB8, "Worked Example \u2014 Assumptions & Limitations (Coral Reef)", 57, title_size=24)
+eg_tag(s, 0.85, y - 0.02, "Instructor-Created Example")
+two_column(s, y + 0.5,
+    left={"title": "ASSUMPTIONS", "band": PRIMARY, "head_size": 18,
+          "items": [
+              "The water quality testing equipment produces accurate and consistent readings across all sampling sites.",
+              "The selected reef sites are representative of general reef conditions within the barangay's coastal zone.",
+          ], "size": 18, "gap": 10},
+    right={"title": "LIMITATIONS", "band": ACCENT, "head_size": 18,
+           "items": [
+               "Data collection was limited to a single dry-season sampling period and does not capture seasonal variation.",
+               "Only three reef sites in one barangay were covered; results cannot be generalized to the entire Davao Gulf coastline.",
+           ], "size": 18, "gap": 10},
+    bottom=y + 4.0)
+notes(s, "Notice both assumptions are about trusting the instrument and the sample's representativeness, "
+      "while both limitations are about scope \u2014 timing and geographic coverage. This paired structure (2 "
+      "assumptions, 2 limitations) is a reasonable minimum for an SHS-level paper; more may be added as "
+      "the actual methodology develops.")
+
+# ---- Slide 58 (Part V / 32) Worked Example A&L (Agriculture) ---------
+s = new_slide()
+y = header(s, EB8, "Worked Example \u2014 Assumptions & Limitations (Agriculture)", 58, title_size=24)
+eg_tag(s, 0.85, y - 0.02, "Instructor-Created Example")
+two_column(s, y + 0.5,
+    left={"title": "ASSUMPTIONS", "band": PRIMARY, "head_size": 18,
+          "items": [
+              "All experimental and control plots received equal sunlight and watering except for the fertilizer treatment being tested.",
+              "Respondent-farmers reported their historical yield data accurately.",
+          ], "size": 18, "gap": 10},
+    right={"title": "LIMITATIONS", "band": ACCENT, "head_size": 18,
+           "items": [
+               "The study was conducted on a single farm, so results may not apply to farms with different soil or climate.",
+               "The experiment ran for only one growing cycle, and results may vary across seasons or years.",
+           ], "size": 18, "gap": 10},
+    bottom=y + 4.0)
+notes(s, "Point out the parallel structure with the coral reef example \u2014 this consistency is intentional "
+      "and something students should imitate: assumptions cluster around trust in controlled conditions or "
+      "respondent honesty, while limitations cluster around generalizability and time constraints. Ask "
+      "students to predict: \"What limitation would appear if this experiment had also been affected by an "
+      "unexpected typhoon?\" \u2014 guide them toward recognizing environmental/external disruptions as a "
+      "third common category of limitation.")
+
+# ---- Slide 59 (Part V / 33) Application: Draft Your Own --------------
+s = new_slide()
+y = header(s, EB8, "Application \u2014 Draft Your Own", 59, title_size=30)
+eg_tag(s, 0.85, y - 0.02, "Instructor-Created Practice Activity \u00b7 10 minutes")
 bw = (SW - 1.7 - 0.5) / 2
-for title, col, bx in [("List \u2265 2 Assumptions", PRIMARY, 0.85),
-                        ("List \u2265 2 Limitations", ACCENT, 0.85 + bw + 0.5)]:
-    card(s, bx, y + 1.95, bw, 2.15)
-    card_header(s, bx, y + 1.95, bw, title, col, size=17)
+for title, col, bx in [("Write 2 ASSUMPTIONS", PRIMARY, 0.85),
+                       ("Write 2 LIMITATIONS", ACCENT, 0.85 + bw + 0.5)]:
+    card(s, bx, y + 0.5, bw, 2.4)
+    card_header(s, bx, y + 0.5, bw, title, col, size=17)
+    sub = ("what are you trusting to be true without testing it?" if col == PRIMARY
+           else "what constraints (time, sample, scope, instruments, events) affect the study?")
+    _, tf = textbox(s, bx + 0.3, y + 1.15, bw - 0.6, 0.5)
+    p = para(tf, first=True, space_after=0, line_spacing=1.0)
+    _run(p, sub, 14, MUTED, italic=True)
     for k in range(2):
-        rl = rrect(s, bx + 0.35, y + 2.9 + k * 0.55, bw - 0.7, 0.045, fill=LINE, radius=0.5)
-instruction_bar(s, 0.85, y + 4.25, SW - 1.7,
-                "In pairs: don't confuse a limitation (only one city) with an assumption (mobility data reflects real movement).")
-notes(s, "Circulate as students work in pairs; a common early mistake is confusing a limitation (\"only "
-      "one city was studied\") with an assumption (\"mobility data accurately reflects real movement "
-      "patterns\") \u2014 use this as a chance to reinforce the distinction from Slide 40 one more time before "
-      "wrapping up.\n\nVisual: none required; discussion-based activity.")
+        rrect(s, bx + 0.35, y + 1.75 + k * 0.5, bw - 0.7, 0.045, fill=LINE, radius=0.5)
+instruction_bar(s, 0.85, y + 3.15, SW - 1.7,
+                "Trade with a partner: can they tell your assumptions from your limitations without help?")
+notes(s, "The final check in step 3 is the real test of mastery \u2014 if a partner cannot distinguish an "
+      "assumption from a limitation without explanation, the statement is probably miscategorized or "
+      "poorly worded. Circulate and watch for the most common student error: listing a limitation (\"small "
+      "sample size\") disguised as an assumption (\"it is assumed the small sample is enough\").")
+
+# ---- Slide 60 (Part V / 34) Looking Ahead ----------------------------
+s = new_slide()
+y = header(s, EB8, "Looking Ahead \u2014 Limitations Shape Your Method", 60, title_size=27)
+bullets(s, 0.9, y + 0.55, SW - 1.9, [
+    [("Some limitations you just wrote \u2014 sample size, timing, instrument choice \u2014 are ", False),
+     ("not fixed", True, False, ACCENT),
+     (". They will directly shape the ", False), ("methodology decisions", True, False, PRIMARY),
+     (" you make next: how you sample, what instruments you choose, and how you schedule data collection.", False)],
+    [("Naming a limitation today is often the first step toward ", False),
+     ("designing around it", True, False, SUCCESS), (" tomorrow.", False)],
+], size=24, gap=16)
+b = rrect(s, 0.85, y + 3.1, SW - 1.7, 1.0, fill=INK, radius=0.1, shadow=True)
+_, tf = textbox(s, 1.2, y + 3.1, SW - 2.4, 1.0, anchor=MID)
+p = para(tf, first=True, space_after=0, line_spacing=1.05)
+_run(p, "Research Questions & Hypotheses  +  CER Justification  +  Assumptions & Limitations  ", 16, WHITE, bold=True)
+_run(p, "=  the complete Chapter 1.", 16, AMBER, bold=True)
+notes(s, "Keep this brief, exactly as scoped \u2014 its purpose is only to motivate students toward the "
+      "upcoming methodology content, not to teach any methodology itself. Close by reminding students that "
+      "today's three skills \u2014 writing research questions and hypotheses, justifying the problem through "
+      "CER, and naming assumptions and limitations \u2014 together complete Chapter 1 of their manuscript, "
+      "and that all three are exactly what a defense panel will ask them to explain and defend out loud.")
+
+# ---- Slide 61 (Part V / 35) Recap: Today's Three Competencies --------
+s = new_slide()
+y = header(s, EB8, "Recap \u2014 Today's Three Competencies", 61, title_size=29)
+comp = [
+    ("Competency 14", "Research Questions & Hypotheses",
+     "Narrow the problem into clear, focused, answerable questions; write directional hypotheses when quantitative", PRIMARY),
+    ("Competency 15", "CER Justification",
+     "Build a Claim\u2013Evidence\u2013Reasoning argument for why the problem matters", ACCENT),
+    ("Competency 16", "Assumptions & Limitations",
+     "Name what you take as true (assumptions) and what constrains your study (limitations)", SUCCESS),
+]
+cw = (SW - 1.7 - 2 * 0.4) / 3
+for i, (comp_no, title, desc, col) in enumerate(comp):
+    px = 0.85 + i * (cw + 0.4)
+    card(s, px, y + 0.25, cw, 3.15)
+    card_header(s, px, y + 0.25, cw, comp_no, col, size=17, h=0.6)
+    _, tf = textbox(s, px + 0.28, y + 1.0, cw - 0.56, 0.7)
+    p = para(tf, first=True, space_after=0, line_spacing=1.0)
+    _run(p, title, 18, INK, bold=True, font=F_HEAD)
+    _, tf = textbox(s, px + 0.28, y + 1.75, cw - 0.56, 1.6, anchor=MSO_ANCHOR.TOP)
+    p = para(tf, first=True, space_after=0, line_spacing=1.12)
+    _run(p, desc, 15.5, MUTED)
+b = rrect(s, 0.85, y + 3.6, SW - 1.7, 0.62, fill=INK, radius=0.1)
+_, tf = textbox(s, 1.2, y + 3.6, SW - 2.4, 0.62, anchor=MID)
+p = para(tf, first=True, space_after=0)
+_run(p, "Together, these three skills complete the ", 16, WHITE)
+_run(p, "argumentative backbone of Chapter 1", 16, AMBER, bold=True)
+_run(p, " \u2014 and the core of what you will defend.", 16, WHITE)
+notes(s, "Use this closing slide as a rapid-fire oral review \u2014 call on students to define each competency "
+      "in one sentence, in their own words, without looking at their notes. This final retrieval practice "
+      "reinforces retention and gives one last low-stakes rehearsal of explaining these concepts aloud, "
+      "mirroring the defense-style speaking they will need later.")
 
 # =========================================================================
 # SLIDE 44 - The Complete Research Reasoning Chain (recap)
@@ -1359,7 +1882,7 @@ connector(s, positions[3][0] + bw2 / 2, rowy[0] + 1.25,
 _, tf = textbox(s, 0.85, 5.95, SW - 1.7, 0.9, anchor=MSO_ANCHOR.TOP)
 p = para(tf, first=True, space_after=0, align=CENTER, line_spacing=1.1)
 _run(p, "One continuous argument \u2014 every stage feeds directly into the next.", 18, PRIMARY_LT, italic=True)
-footer(s, 44)
+footer(s, 62)
 notes(s, "Close by tracing the full chain from top to bottom once more, reminding students that every "
       "stage they practiced today feeds directly into the next \u2014 this is not a checklist of separate "
       "skills but one continuous argument. Briefly note that the limitations they just identified will "
