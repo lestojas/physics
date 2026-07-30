@@ -4,20 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Falling Target — PHYlip's Simulators</title>
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="../styles.css">
 </head>
 <body>
 <div class="app">
-  <aside class="sidebar">
-    <p class="brand">PHYlip's <span class="accent">Simulators</span></p>
-    <p class="brand-sub">Interactive physics simulators</p>
-    <p class="nav-label">Simulators</p>
-    <ul class="nav">
-      <li><a href="index.html"><span class="num">☰</span><span class="t"><b>Home</b><small>Overview</small></span></a></li>
-      <li><a href="falling-target.html" class="active"><span class="num">1</span><span class="t"><b>Falling Target</b><small>Monkey &amp; hunter</small></span></a></li>
-      <li><a href="velocity-components.html"><span class="num">2</span><span class="t"><b>Velocity Components</b><small>Two jobs at once</small></span></a></li>
-    </ul>
-  </aside>
+  <aside id="app-sidebar" class="sidebar"></aside>
 
   <main class="content">
     <div class="wrap">
@@ -323,5 +314,6 @@
   setStatus("ready");
 })();
 </script>
+<script src="../sidebar.js"></script>
 </body>
 </html>

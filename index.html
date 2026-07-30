@@ -8,16 +8,7 @@
 </head>
 <body>
 <div class="app">
-  <aside class="sidebar">
-    <p class="brand">PHYlip's <span class="accent">Simulators</span></p>
-    <p class="brand-sub">Interactive physics simulators</p>
-    <p class="nav-label">Simulators</p>
-    <ul class="nav">
-      <li><a href="index.html" class="active"><span class="num">☰</span><span class="t"><b>Home</b><small>Overview</small></span></a></li>
-      <li><a href="falling-target.html"><span class="num">1</span><span class="t"><b>Falling Target</b><small>Monkey &amp; hunter</small></span></a></li>
-      <li><a href="velocity-components.html"><span class="num">2</span><span class="t"><b>Velocity Components</b><small>Two jobs at once</small></span></a></li>
-    </ul>
-  </aside>
+  <aside id="app-sidebar" class="sidebar"></aside>
 
   <main class="content">
     <div class="wrap">
@@ -25,12 +16,12 @@
       <p class="subtitle">A collection of interactive physics simulators. Pick one from the sidebar, or a card below.</p>
 
       <div class="cards">
-        <a class="card" href="falling-target.html">
+        <a class="card" href="sims/falling-target.html">
           <span class="badge">Simulator 1</span>
           <h3>Falling Target</h3>
           <p>Aim a projectile directly at a target and fire the instant it's released. It always hits — because both fall the same distance in the same time.</p>
         </a>
-        <a class="card" href="velocity-components.html">
+        <a class="card" href="sims/velocity-components.html">
           <span class="badge">Simulator 2</span>
           <h3>Velocity Components</h3>
           <p>See how a launch velocity at an angle splits into an independent horizontal push and vertical push, and how the trade-off changes with angle.</p>
@@ -39,5 +30,6 @@
     </div>
   </main>
 </div>
+<script src="sidebar.js"></script>
 </body>
 </html>
