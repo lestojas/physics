@@ -105,6 +105,18 @@
   };
 
   let anim = null, t = 0, firing = false, lastTs = null, finished = false;
+  let showPreview = false, previewTimer = null;
+
+  // Briefly show the parabolic path while idle (before launch), then hide it.
+  function flashPreview() {
+    clearTimeout(previewTimer);
+    showPreview = true;
+    drawScene();
+    previewTimer = setTimeout(function () {
+      showPreview = false;
+      if (!firing && !finished) drawScene();
+    }, 1000);
+  }
 
   function params() {
     const v = parseFloat(speedEl.value);
@@ -183,8 +195,8 @@
       ctx.globalAlpha = 1;
     }
 
-    // faint full trajectory (only once fired)
-    if (firing || finished) {
+    // faint full trajectory: always after firing; a brief preview while idle
+    if (firing || finished || showPreview) {
       ctx.strokeStyle = "rgba(126,231,135,0.25)"; ctx.lineWidth = 2;
       ctx.beginPath();
       let first = true;
@@ -292,6 +304,7 @@
 
   function fire() {
     cancelAnimationFrame(anim);
+    clearTimeout(previewTimer); showPreview = false;
     t = 0; lastTs = null; firing = true; finished = false;
     out.status.className = "status ready"; out.status.textContent = "Firing…";
     anim = requestAnimationFrame(step);
@@ -299,19 +312,19 @@
   function reset() {
     cancelAnimationFrame(anim);
     anim = null; firing = false; finished = false; t = 0; lastTs = null;
-    updateReadouts(); drawScene(); setStatus("ready");
+    updateReadouts(); setStatus("ready"); flashPreview();
   }
 
   [speedEl, distEl, heightEl].forEach((el) =>
-    el.addEventListener("input", () => { updateReadouts(); if (!firing) { finished = false; drawScene(); } })
+    el.addEventListener("input", () => { updateReadouts(); if (!firing) { finished = false; flashPreview(); } })
   );
   [aimEl, dropEl].forEach((el) => el.addEventListener("change", drawScene));
   document.getElementById("fire").addEventListener("click", fire);
   document.getElementById("reset").addEventListener("click", reset);
 
   updateReadouts();
-  drawScene();
   setStatus("ready");
+  flashPreview();
 })();
 </script>
 <script src="../sidebar.js"></script>
