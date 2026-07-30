@@ -10,14 +10,13 @@
 <div class="app">
   <aside class="sidebar">
     <p class="brand">PHYlip's <span class="accent">Simulators</span></p>
-    <p class="brand-sub">Interactive projectile-motion demos</p>
+    <p class="brand-sub">Interactive physics simulators</p>
     <p class="nav-label">Simulators</p>
     <ul class="nav">
       <li><a href="index.html"><span class="num">☰</span><span class="t"><b>Home</b><small>Overview</small></span></a></li>
       <li><a href="falling-target.html" class="active"><span class="num">1</span><span class="t"><b>Falling Target</b><small>Monkey &amp; hunter</small></span></a></li>
       <li><a href="velocity-components.html"><span class="num">2</span><span class="t"><b>Velocity Components</b><small>Two jobs at once</small></span></a></li>
     </ul>
-    <div class="sidebar-footer">Pure kinematics · g = 9.8 m/s²<br>No air resistance</div>
   </aside>
 
   <main class="content">
@@ -193,17 +192,19 @@
       ctx.globalAlpha = 1;
     }
 
-    // faint full trajectory
-    ctx.strokeStyle = "rgba(126,231,135,0.25)"; ctx.lineWidth = 2;
-    ctx.beginPath();
-    let first = true;
-    for (let tt = 0; tt <= p.tEnd + 0.001; tt += p.tEnd / 120 || 1) {
-      const pp = projPos(p, tt);
-      if (pp.y < 0) break;
-      const X = sc.toX(pp.x), Y = sc.toY(pp.y);
-      if (first) { ctx.moveTo(X, Y); first = false; } else ctx.lineTo(X, Y);
+    // faint full trajectory (only once fired)
+    if (firing || finished) {
+      ctx.strokeStyle = "rgba(126,231,135,0.25)"; ctx.lineWidth = 2;
+      ctx.beginPath();
+      let first = true;
+      for (let tt = 0; tt <= p.tEnd + 0.001; tt += p.tEnd / 120 || 1) {
+        const pp = projPos(p, tt);
+        if (pp.y < 0) break;
+        const X = sc.toX(pp.x), Y = sc.toY(pp.y);
+        if (first) { ctx.moveTo(X, Y); first = false; } else ctx.lineTo(X, Y);
+      }
+      ctx.stroke();
     }
-    ctx.stroke();
 
     const tt = firing || finished ? Math.min(t, p.tEnd) : 0;
     const pr = projPos(p, tt);

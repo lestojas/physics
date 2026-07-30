@@ -10,14 +10,13 @@
 <div class="app">
   <aside class="sidebar">
     <p class="brand">PHYlip's <span class="accent">Simulators</span></p>
-    <p class="brand-sub">Interactive projectile-motion demos</p>
+    <p class="brand-sub">Interactive physics simulators</p>
     <p class="nav-label">Simulators</p>
     <ul class="nav">
       <li><a href="index.html"><span class="num">☰</span><span class="t"><b>Home</b><small>Overview</small></span></a></li>
       <li><a href="falling-target.html"><span class="num">1</span><span class="t"><b>Falling Target</b><small>Monkey &amp; hunter</small></span></a></li>
       <li><a href="velocity-components.html" class="active"><span class="num">2</span><span class="t"><b>Velocity Components</b><small>Two jobs at once</small></span></a></li>
     </ul>
-    <div class="sidebar-footer">Pure kinematics · g = 9.8 m/s²<br>No air resistance</div>
   </aside>
 
   <main class="content">
@@ -126,6 +125,7 @@
   let anim = null;
   let flightT = 0;
   let launching = false;
+  let showPath = false;
 
   function params() {
     const v = parseFloat(speedEl.value);
@@ -189,7 +189,7 @@
     }
 
     ctx.lineWidth = 2;
-    drawTrajectory(p, sc, p.tFlight, "rgba(126,231,135,0.28)");
+    if (showPath) drawTrajectory(p, sc, p.tFlight, "rgba(126,231,135,0.28)");
     if (launching) drawTrajectory(p, sc, Math.min(flightT, p.tFlight), "var(--path)");
 
     drawComponentTriangle(p, sc);
@@ -300,16 +300,21 @@
 
   function launch() {
     cancelAnimationFrame(anim);
-    flightT = 0; lastTs = null; launching = true;
+    flightT = 0; lastTs = null; launching = true; showPath = true;
     anim = requestAnimationFrame(step);
   }
   function reset() {
     cancelAnimationFrame(anim);
-    anim = null; launching = false; flightT = 0; lastTs = null; draw();
+    anim = null; launching = false; showPath = false; flightT = 0; lastTs = null; draw();
   }
 
-  speedEl.addEventListener("input", () => { updateReadouts(); draw(); });
-  angleEl.addEventListener("input", () => { updateReadouts(); draw(); });
+  function onSlider() {
+    cancelAnimationFrame(anim);
+    anim = null; launching = false; showPath = false; flightT = 0; lastTs = null;
+    updateReadouts(); draw();
+  }
+  speedEl.addEventListener("input", onSlider);
+  angleEl.addEventListener("input", onSlider);
   document.getElementById("launch").addEventListener("click", launch);
   document.getElementById("reset").addEventListener("click", reset);
 
