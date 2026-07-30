@@ -125,7 +125,6 @@
   let anim = null;
   let flightT = 0;
   let launching = false;
-  let showPath = false;
 
   function params() {
     const v = parseFloat(speedEl.value);
@@ -189,7 +188,7 @@
     }
 
     ctx.lineWidth = 2;
-    if (showPath) drawTrajectory(p, sc, p.tFlight, "rgba(126,231,135,0.28)");
+    drawTrajectory(p, sc, p.tFlight, "rgba(126,231,135,0.28)");
     if (launching) drawTrajectory(p, sc, Math.min(flightT, p.tFlight), "var(--path)");
 
     drawComponentTriangle(p, sc);
@@ -300,21 +299,16 @@
 
   function launch() {
     cancelAnimationFrame(anim);
-    flightT = 0; lastTs = null; launching = true; showPath = true;
+    flightT = 0; lastTs = null; launching = true;
     anim = requestAnimationFrame(step);
   }
   function reset() {
     cancelAnimationFrame(anim);
-    anim = null; launching = false; showPath = false; flightT = 0; lastTs = null; draw();
+    anim = null; launching = false; flightT = 0; lastTs = null; draw();
   }
 
-  function onSlider() {
-    cancelAnimationFrame(anim);
-    anim = null; launching = false; showPath = false; flightT = 0; lastTs = null;
-    updateReadouts(); draw();
-  }
-  speedEl.addEventListener("input", onSlider);
-  angleEl.addEventListener("input", onSlider);
+  speedEl.addEventListener("input", () => { updateReadouts(); draw(); });
+  angleEl.addEventListener("input", () => { updateReadouts(); draw(); });
   document.getElementById("launch").addEventListener("click", launch);
   document.getElementById("reset").addEventListener("click", reset);
 
