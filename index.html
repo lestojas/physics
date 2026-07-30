@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Velocity Components — Interactive Simulator</title>
+<style>
+  :root {
+    --bg: #1e1e1e;
+    --panel: #262626;
+    --panel-2: #2f2f2f;
+    --line: #444;
+    --text: #ececec;
+    --muted: #a9a9a9;
+    --vx: #4aa3ff;   /* horizontal component */
+    --vy: #ff7a59;   /* vertical component */
+    --v:  #ffd24a;   /* resultant velocity */
+    --path: #7ee787; /* trajectory */
+    --accent: #b98cff;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Georgia, "Times New Roman", serif;
+    line-height: 1.5;
+  }
+  .wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+  }
+  h1 {
+    font-size: 28px;
+    margin: 0 0 4px;
+    font-weight: 600;
+  }
+  .subtitle { color: var(--muted); font-size: 16px; margin: 0 0 24px; }
+  .eqs {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 22px;
+    margin-bottom: 24px;
+    font-size: 20px;
+  }
+  .eqs .eq { white-space: nowrap; }
+  .eqs .eq b { color: var(--v); }
+  .vx-c { color: var(--vx); }
+  .vy-c { color: var(--vy); }
+  .v-c  { color: var(--v); }
+  .layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 22px;
+    align-items: start;
+  }
+  @media (max-width: 820px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .control { margin-bottom: 22px; }
+  .control:last-child { margin-bottom: 0; }
+  .control label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 15px;
+    margin-bottom: 8px;
+    color: var(--muted);
+  }
+  .control label .val {
+    font-size: 18px;
+    color: var(--text);
+    font-family: "Courier New", monospace;
+  }
+  input[type=range] {
+    width: 100%;
+    accent-color: var(--accent);
+    height: 22px;
+    cursor: pointer;
+  }
+  .readouts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .readout {
+    background: var(--panel-2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    border-left: 4px solid var(--line);
+  }
+  .readout.vx { border-left-color: var(--vx); }
+  .readout.vy { border-left-color: var(--vy); }
+  .readout.v  { border-left-color: var(--v); }
+  .readout.range { border-left-color: var(--path); grid-column: 1 / -1; }
+  .readout .k { font-size: 13px; color: var(--muted); }
+  .readout .n {
+    font-size: 20px;
+    font-family: "Courier New", monospace;
+    margin-top: 2px;
+  }
+  .buttons { display: flex; gap: 10px; margin-top: 20px; }
+  button {
+    flex: 1;
+    background: var(--accent);
+    color: #1b1b1b;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 14px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  button.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--line);
+  }
+  button:hover { filter: brightness(1.08); }
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: linear-gradient(#242c34, #1c2128);
+    border-radius: 10px;
+  }
+  .canvas-card { padding: 12px; }
+  .legend {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--muted);
+    padding: 10px 4px 2px;
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .swatch { width: 16px; height: 4px; border-radius: 2px; display: inline-block; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 28px;
+    font-size: 16px;
+  }
+  caption {
+    text-align: left;
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+  th, td {
+    text-align: left;
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  th { color: var(--muted); font-weight: 600; }
+  tr.active td { background: rgba(185,140,255,0.12); }
+  td .tag { font-weight: 700; }
+  .tag.large { color: var(--path); }
+  .tag.small { color: var(--vy); }
+  .tag.equal { color: var(--v); }
+  .hint { color: var(--muted); font-size: 14px; margin-top: 6px; }
+  .note {
+    margin-top: 26px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 15px;
+    color: var(--muted);
+  }
+  .note b { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Two Jobs at Once</h1>
+  <p class="subtitle">A launch velocity <i>v<sub>i</sub></i> at angle <i>θ<sub>i</sub></i> above the horizontal splits into an independent horizontal push and vertical push. Drag the sliders and launch.</p>
+
+  <div class="eqs">
+    <div class="eq"><span class="vx-c">v<sub>xi</sub></span> = v<sub>i</sub> cos θ<sub>i</sub> = <b class="vx-c" id="eq-vx">17.3</b> m/s</div>
+    <div class="eq"><span class="vy-c">v<sub>yi</sub></span> = v<sub>i</sub> sin θ<sub>i</sub> = <b class="vy-c" id="eq-vy">10.0</b> m/s</div>
+  </div>
+
+  <div class="layout">
+    <!-- Controls -->
+    <div class="panel">
+      <div class="control">
+        <label>Launch speed <span class="v-c">v<sub>i</sub></span> <span class="val"><span id="speed-val">20</span> m/s</span></label>
+        <input type="range" id="speed" min="5" max="40" step="0.5" value="20">
+      </div>
+      <div class="control">
+        <label>Launch angle <span class="v-c">θ<sub>i</sub></span> <span class="val"><span id="angle-val">30</span>°</span></label>
+        <input type="range" id="angle" min="0" max="90" step="1" value="30">
+      </div>
+
+      <div class="readouts">
+        <div class="readout vx">
+          <div class="k">Horizontal v<sub>xi</sub></div>
+          <div class="n" id="out-vx">17.3</div>
+        </div>
+        <div class="readout vy">
+          <div class="k">Vertical v<sub>yi</sub></div>
+          <div class="n" id="out-vy">10.0</div>
+        </div>
+        <div class="readout v">
+          <div class="k">Speed v<sub>i</sub></div>
+          <div class="n" id="out-v">20.0</div>
+        </div>
+        <div class="readout range">
+          <div class="k">Range · Max height · Flight time</div>
+          <div class="n" id="out-range">35.3 m · 5.1 m · 2.04 s</div>
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button id="launch">Launch ▶</button>
+        <button id="reset" class="secondary">Reset</button>
+      </div>
+      <p class="hint">Tip: try 15°, 45°, and 75° to see the table come to life. (g = 9.8 m/s²)</p>
+    </div>
+
+    <!-- Canvas -->
+    <div class="panel canvas-card">
+      <canvas id="c" width="760" height="460"></canvas>
+      <div class="legend">
+        <span><i class="swatch" style="background:var(--v)"></i> resultant v<sub>i</sub></span>
+        <span><i class="swatch" style="background:var(--vx)"></i> horizontal v<sub>xi</sub></span>
+        <span><i class="swatch" style="background:var(--vy)"></i> vertical v<sub>yi</sub></span>
+        <span><i class="swatch" style="background:var(--path)"></i> trajectory</span>
+      </div>
+    </div>
+  </div>
+
+  <table id="ref">
+    <caption>Quick reference table</caption>
+    <thead>
+      <tr><th>Launch angle</th><th>Horizontal component</th><th>Vertical component</th></tr>
+    </thead>
+    <tbody>
+      <tr data-band="low"><td>Small (flat, e.g. 15°)</td><td><span class="tag large">Large</span></td><td><span class="tag small">Small</span></td></tr>
+      <tr data-band="mid"><td>45°</td><td><span class="tag equal">Equal</span></td><td><span class="tag equal">Equal</span></td></tr>
+      <tr data-band="high"><td>Large (steep, e.g. 75°)</td><td><span class="tag small">Small</span></td><td><span class="tag large">Large</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <b>Why they're independent:</b> the horizontal component <span class="vx-c">v<sub>xi</sub></span> never changes during flight (no horizontal force), while gravity only acts on the vertical component <span class="vy-c">v<sub>yi</sub></span>. Watch the blue arrow stay the same length while the orange arrow shrinks, flips, and grows as the projectile rises and falls.
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  const g = 9.8;
+  const DEG = Math.PI / 180;
+
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+
+  const speedEl = document.getElementById("speed");
+  const angleEl = document.getElementById("angle");
+
+  const els = {
+    speedVal: document.getElementById("speed-val"),
+    angleVal: document.getElementById("angle-val"),
+    outVx: document.getElementById("out-vx"),
+    outVy: document.getElementById("out-vy"),
+    outV: document.getElementById("out-v"),
+    outRange: document.getElementById("out-range"),
+    eqVx: document.getElementById("eq-vx"),
+    eqVy: document.getElementById("eq-vy"),
+  };
+
+  let anim = null;      // requestAnimationFrame id
+  let flightT = 0;      // current time along trajectory
+  let launching = false;
+
+  function params() {
+    const v = parseFloat(speedEl.value);
+    const th = parseFloat(angleEl.value);
+    const vx = v * Math.cos(th * DEG);
+    const vy = v * Math.sin(th * DEG);
+    const tFlight = (2 * vy) / g;
+    const range = vx * tFlight;
+    const hMax = (vy * vy) / (2 * g);
+    return { v, th, vx, vy, tFlight, range, hMax };
+  }
+
+  // World -> screen scaling so the whole arc fits with margins.
+  const margin = { l: 46, r: 20, t: 20, b: 40 };
+  function makeScale(p) {
+    // Use a generous world extent so the scene doesn't jump around too much,
+    // but still guarantee the current arc fits.
+    const worldW = Math.max(p.range * 1.1, 30);
+    const worldH = Math.max(p.hMax * 1.25, 15);
+    const sx = (W - margin.l - margin.r) / worldW;
+    const sy = (H - margin.t - margin.b) / worldH;
+    const s = Math.min(sx, sy);
+    return {
+      s,
+      toX: (x) => margin.l + x * s,
+      toY: (y) => H - margin.b - y * s,
+    };
+  }
+
+  function drawArrow(x1, y1, x2, y2, color, width, label) {
+    const dx = x2 - x1, dy = y2 - y1;
+    const len = Math.hypot(dx, dy);
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    if (len > 6) {
+      const ah = 9, aw = 6;
+      const ux = dx / len, uy = dy / len;
+      const px = -uy, py = ux;
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - ux * ah + px * aw, y2 - uy * ah + py * aw);
+      ctx.lineTo(x2 - ux * ah - px * aw, y2 - uy * ah - py * aw);
+      ctx.closePath();
+      ctx.fill();
+    }
+    if (label) {
+      ctx.fillStyle = color;
+      ctx.font = "13px 'Courier New', monospace";
+      ctx.fillText(label, (x1 + x2) / 2 + 6, (y1 + y2) / 2 - 4);
+    }
+  }
+
+  function draw() {
+    const p = params();
+    const sc = makeScale(p);
+    ctx.clearRect(0, 0, W, H);
+
+    // Ground line
+    const gy = H - margin.b;
+    ctx.strokeStyle = "#556";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(margin.l, gy);
+    ctx.lineTo(W - margin.r, gy);
+    ctx.stroke();
+
+    // Distance ticks
+    ctx.fillStyle = "#7d8896";
+    ctx.font = "11px 'Courier New', monospace";
+    const worldW = (W - margin.l - margin.r) / sc.s;
+    const step = niceStep(worldW / 6);
+    for (let x = 0; x <= worldW; x += step) {
+      const sx = sc.toX(x);
+      ctx.strokeStyle = "#333c45";
+      ctx.beginPath();
+      ctx.moveTo(sx, margin.t);
+      ctx.lineTo(sx, gy);
+      ctx.stroke();
+      ctx.fillText(x.toFixed(0) + "m", sx + 2, gy + 14);
+    }
+
+    // Full trajectory (faint) + traversed portion (bright)
+    ctx.lineWidth = 2;
+    drawTrajectory(p, sc, p.tFlight, "rgba(126,231,135,0.28)");
+    if (launching) drawTrajectory(p, sc, Math.min(flightT, p.tFlight), "var(--path)");
+
+    // Launch-point vector triangle (always shown at origin)
+    drawComponentTriangle(p, sc);
+
+    // Moving projectile with live velocity vectors
+    if (launching) drawProjectile(p, sc);
+  }
+
+  function niceStep(raw) {
+    const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+    const n = raw / pow;
+    let m;
+    if (n < 1.5) m = 1; else if (n < 3.5) m = 2; else if (n < 7.5) m = 5; else m = 10;
+    return m * pow;
+  }
+
+  function drawTrajectory(p, sc, tEnd, color) {
+    ctx.strokeStyle = color === "var(--path)" ? "#7ee787" : color;
+    ctx.beginPath();
+    let first = true;
+    for (let t = 0; t <= tEnd + 0.001; t += tEnd / 120 || 1) {
+      const x = p.vx * t;
+      const y = p.vy * t - 0.5 * g * t * t;
+      if (y < 0) break;
+      const X = sc.toX(x), Y = sc.toY(y);
+      if (first) { ctx.moveTo(X, Y); first = false; } else ctx.lineTo(X, Y);
+    }
+    ctx.stroke();
+  }
+
+  // The stationary decomposition diagram at the launch origin.
+  function drawComponentTriangle(p, sc) {
+    const ox = sc.toX(0), oy = sc.toY(0);
+    // Scale velocity (m/s) to pixels for a readable arrow at the origin.
+    const vScale = Math.min(4.2, 150 / Math.max(p.v, 1));
+    const vxPix = p.vx * vScale;
+    const vyPix = p.vy * vScale;
+
+    // horizontal component
+    drawArrow(ox, oy, ox + vxPix, oy, getVar("--vx"), 3, "");
+    // vertical component (drawn from tip of horizontal to complete the triangle)
+    drawArrow(ox + vxPix, oy, ox + vxPix, oy - vyPix, getVar("--vy"), 3, "");
+    // resultant velocity
+    drawArrow(ox, oy, ox + vxPix, oy - vyPix, getVar("--v"), 3.5, "");
+
+    // angle label
+    ctx.fillStyle = getVar("--v");
+    ctx.font = "13px Georgia, serif";
+    ctx.fillText("θ = " + p.th.toFixed(0) + "°", ox + 14, oy - 10);
+
+    // component labels
+    ctx.fillStyle = getVar("--vx");
+    ctx.font = "12px 'Courier New', monospace";
+    ctx.fillText("vₓ=" + p.vx.toFixed(1), ox + vxPix / 2 - 20, oy + 16);
+    ctx.fillStyle = getVar("--vy");
+    ctx.fillText("v_y=" + p.vy.toFixed(1), ox + vxPix + 6, oy - vyPix / 2);
+  }
+
+  function drawProjectile(p, sc) {
+    const t = Math.min(flightT, p.tFlight);
+    const x = p.vx * t;
+    const y = Math.max(0, p.vy * t - 0.5 * g * t * t);
+    const X = sc.toX(x), Y = sc.toY(y);
+
+    // live velocity components at this instant
+    const vyNow = p.vy - g * t;
+    const vScale = Math.min(4.2, 150 / Math.max(p.v, 1));
+
+    drawArrow(X, Y, X + p.vx * vScale, Y, getVar("--vx"), 2.5, "");
+    drawArrow(X, Y, X, Y - vyNow * vScale, getVar("--vy"), 2.5, "");
+    drawArrow(X, Y, X + p.vx * vScale, Y - vyNow * vScale, getVar("--v"), 3, "");
+
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.arc(X, Y, 6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // resolve CSS variables to concrete colors for canvas
+  const varCache = {};
+  function getVar(name) {
+    if (!varCache[name]) {
+      varCache[name] = getComputedStyle(document.documentElement)
+        .getPropertyValue(name).trim() || "#fff";
+    }
+    return varCache[name];
+  }
+
+  function updateReadouts() {
+    const p = params();
+    els.speedVal.textContent = p.v.toFixed(1).replace(/\.0$/, "");
+    els.angleVal.textContent = p.th.toFixed(0);
+    els.outVx.textContent = p.vx.toFixed(1);
+    els.outVy.textContent = p.vy.toFixed(1);
+    els.outV.textContent = p.v.toFixed(1);
+    els.eqVx.textContent = p.vx.toFixed(1);
+    els.eqVy.textContent = p.vy.toFixed(1);
+    els.outRange.textContent =
+      p.range.toFixed(1) + " m · " + p.hMax.toFixed(1) + " m · " + p.tFlight.toFixed(2) + " s";
+    highlightRow(p.th);
+  }
+
+  function highlightRow(th) {
+    const rows = document.querySelectorAll("#ref tbody tr");
+    rows.forEach((r) => r.classList.remove("active"));
+    let band;
+    if (th < 40) band = "low";
+    else if (th <= 50) band = "mid";
+    else band = "high";
+    const row = document.querySelector('#ref tbody tr[data-band="' + band + '"]');
+    if (row) row.classList.add("active");
+  }
+
+  let lastTs = null;
+  function step(ts) {
+    if (lastTs == null) lastTs = ts;
+    const dt = (ts - lastTs) / 1000;
+    lastTs = ts;
+    const p = params();
+    flightT += dt * 0.9; // slightly slowed for visibility
+    if (flightT >= p.tFlight) {
+      flightT = p.tFlight;
+      draw();
+      launching = false;
+      anim = null;
+      lastTs = null;
+      return;
+    }
+    draw();
+    anim = requestAnimationFrame(step);
+  }
+
+  function launch() {
+    cancelAnimationFrame(anim);
+    flightT = 0;
+    lastTs = null;
+    launching = true;
+    anim = requestAnimationFrame(step);
+  }
+
+  function reset() {
+    cancelAnimationFrame(anim);
+    anim = null;
+    launching = false;
+    flightT = 0;
+    lastTs = null;
+    draw();
+  }
+
+  speedEl.addEventListener("input", () => { updateReadouts(); if (!launching) draw(); else draw(); });
+  angleEl.addEventListener("input", () => { updateReadouts(); draw(); });
+  document.getElementById("launch").addEventListener("click", launch);
+  document.getElementById("reset").addEventListener("click", reset);
+
+  // init
+  updateReadouts();
+  draw();
+})();
+</script>
+</body>
+</html>
