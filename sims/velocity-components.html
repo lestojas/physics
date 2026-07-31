@@ -231,9 +231,14 @@
     const vyNow = p.vy - g * t;
     const vScale = Math.min(4.2, 150 / Math.max(p.v, 1));
 
-    drawArrow(X, Y, X + p.vx * vScale, Y, getVar("--vx"), 2.5, "");
-    drawArrow(X, Y, X, Y - vyNow * vScale, getVar("--vy"), 2.5, "");
-    drawArrow(X, Y, X + p.vx * vScale, Y - vyNow * vScale, getVar("--v"), 3, "");
+    // Show the component vectors while rising (they stay above the ground and
+    // demonstrate v_x constant, v_y shrinking to zero at the peak). On the way
+    // down they'd point below the ground, so show just the projectile there.
+    if (vyNow >= 0) {
+      drawArrow(X, Y, X + p.vx * vScale, Y, getVar("--vx"), 2.5, "");
+      drawArrow(X, Y, X, Y - vyNow * vScale, getVar("--vy"), 2.5, "");
+      drawArrow(X, Y, X + p.vx * vScale, Y - vyNow * vScale, getVar("--v"), 3, "");
+    }
 
     ctx.fillStyle = "#fff";
     ctx.beginPath(); ctx.arc(X, Y, 6, 0, Math.PI * 2); ctx.fill();
