@@ -111,7 +111,10 @@
     return { v, th, vx, vy, tFlight, range, hMax };
   }
 
-  const margin = { l: 54, r: 28, t: 26, b: 46 };
+  // Bottom margin reserves room below the ground line so the downward (impact)
+  // velocity vectors at landing are shown fully rather than clipped.
+  const margin = { l: 54, r: 30, t: 26, b: 84 };
+  const VEC = 66; // on-screen length (px) of the resultant velocity vector
   function makeScale(p) {
     const worldW = Math.max(p.range * 1.1, 30);
     const worldH = Math.max(p.hMax * 1.25, 15);
@@ -148,9 +151,6 @@
     ctx.clearRect(0, 0, W, H);
 
     const gy = H - margin.b;
-    // clip to the play area (incl. the tick-label strip) so vectors never spill into the border
-    ctx.save();
-    ctx.beginPath(); ctx.rect(0, 0, W, gy + 22); ctx.clip();
     ctx.strokeStyle = "#556"; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(margin.l, gy); ctx.lineTo(W - margin.r, gy); ctx.stroke();
 
@@ -170,7 +170,6 @@
 
     drawComponentTriangle(p, sc);
     if (launching) drawProjectile(p, sc);
-    ctx.restore();
   }
 
   function niceStep(raw) {
@@ -210,7 +209,7 @@
 
   function drawComponentTriangle(p, sc) {
     const ox = sc.toX(0), oy = sc.toY(0);
-    const vScale = Math.min(4.2, 150 / Math.max(p.v, 1));
+    const vScale = VEC / Math.max(p.v, 1);
     const vxPix = p.vx * vScale;
     const vyPix = p.vy * vScale;
 
@@ -229,16 +228,13 @@
     const y = Math.max(0, p.vy * t - 0.5 * g * t * t);
     const X = sc.toX(x), Y = sc.toY(y);
     const vyNow = p.vy - g * t;
-    const vScale = Math.min(4.2, 150 / Math.max(p.v, 1));
+    const vScale = VEC / Math.max(p.v, 1);
 
-    // Show the component vectors while rising (they stay above the ground and
-    // demonstrate v_x constant, v_y shrinking to zero at the peak). On the way
-    // down they'd point below the ground, so show just the projectile there.
-    if (vyNow >= 0) {
-      drawArrow(X, Y, X + p.vx * vScale, Y, getVar("--vx"), 2.5, "");
-      drawArrow(X, Y, X, Y - vyNow * vScale, getVar("--vy"), 2.5, "");
-      drawArrow(X, Y, X + p.vx * vScale, Y - vyNow * vScale, getVar("--v"), 3, "");
-    }
+    // Components are shown for the whole flight: v_x stays constant while v_y
+    // shrinks to zero at the peak, then grows downward on the way down.
+    drawArrow(X, Y, X + p.vx * vScale, Y, getVar("--vx"), 2.5, "");
+    drawArrow(X, Y, X, Y - vyNow * vScale, getVar("--vy"), 2.5, "");
+    drawArrow(X, Y, X + p.vx * vScale, Y - vyNow * vScale, getVar("--v"), 3, "");
 
     ctx.fillStyle = "#fff";
     ctx.beginPath(); ctx.arc(X, Y, 6, 0, Math.PI * 2); ctx.fill();
