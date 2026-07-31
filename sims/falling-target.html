@@ -11,12 +11,26 @@
   <aside id="app-sidebar" class="sidebar"></aside>
 
   <main class="content">
-    <section class="stage">
-      <canvas id="c" class="sky" width="1000" height="620"></canvas>
+    <div class="sim-layout">
+      <div class="sim-main">
+        <div class="sim-canvas-wrap sky">
+          <canvas id="c" class="sky" width="1000" height="620"></canvas>
+        </div>
+        <div class="sim-legend">
+          <span><i class="swatch" style="background:#2e9e3a"></i> trajectory</span>
+          <span><i class="dot" style="background:#1b1b1b"></i> projectile</span>
+          <span><i class="dot" style="background:#e23b3b"></i> apple (target)</span>
+          <span><i class="swatch" style="background:#9aa3ad"></i> line of sight</span>
+          <span><i class="swatch" style="background:#d99400"></i> equal drop ½gt<sup>2</sup></span>
+        </div>
+      </div>
 
-      <div class="float-title">Falling Target<small>Aimed straight at the apple — fire and watch</small></div>
+      <aside class="sim-controls">
+        <a class="back-link" href="../index.html">&#8592; All simulators</a>
+        <h2 class="sim-title">Falling Target</h2>
+        <p class="sim-sub">A projectile aimed straight at the apple, fired the instant it's released. Does it hit?</p>
 
-      <div class="panel-float float-controls">
+        <div class="cb-divider"></div>
         <p class="cb-title">Inputs</p>
         <div class="control">
           <label>Launch speed <span class="v-c">v</span> <span class="val"><span id="speed-val">22</span> m/s</span></label>
@@ -46,22 +60,15 @@
           <div class="readout path"><div class="k">Time to target</div><div class="n" id="out-thit">0.75 s</div></div>
           <div class="readout target"><div class="k">Both fall ½gt<sup>2</sup></div><div class="n" id="out-drop">2.8 m</div></div>
         </div>
-      </div>
 
-      <div class="panel-float float-legend">
-        <span><i class="swatch" style="background:#2e9e3a"></i> trajectory</span>
-        <span><i class="dot" style="background:#1b1b1b"></i> projectile</span>
-        <span><i class="dot" style="background:#e23b3b"></i> apple (target)</span>
-        <span><i class="swatch" style="background:#9aa3ad"></i> line of sight</span>
-        <span><i class="swatch" style="background:#d99400"></i> equal drop ½gt<sup>2</sup></span>
-      </div>
-
-      <div class="panel-float float-actions">
+        <div class="cb-divider"></div>
         <div class="status ready" id="status">Ready — press Fire</div>
-        <button id="fire" class="btn-primary">Fire ▶</button>
-        <button id="reset" class="secondary">Reset</button>
-      </div>
-    </section>
+        <div class="sim-actions">
+          <button id="fire" class="btn-primary">Fire ▶</button>
+          <button id="reset" class="secondary">Reset</button>
+        </div>
+      </aside>
+    </div>
   </main>
 </div>
 
@@ -133,8 +140,7 @@
     return { v, Dx, Dy, L, theta, vx, vy, tHit, meetY, isHit, tEnd, tTargetGround };
   }
 
-  // Right/bottom margins reserve room for the floating panels.
-  const margin = { l: 46, r: 324, t: 30, b: 60 };
+  const margin = { l: 46, r: 28, t: 26, b: 46 };
   const BARREL_LEN = 44, PIVOT_UP = 20, WHEEL_R = 12;
   function makeScale(p) {
     const gy = H - margin.b;
@@ -241,7 +247,7 @@
     const ax = sc.toX(p.Dx), ayHome = sc.toY(p.Dy);
     let trunkX = Math.min(ax + 72, W - margin.r - 24);
     trunkX = Math.max(trunkX, ax + 26);
-    const canopyY = Math.max(Math.min(ayHome - 30, gy - 130), margin.t + 46);
+    const canopyY = Math.max(Math.min(ayHome - 30, gy - 130), margin.t + 78);
     const trunkTop = canopyY + 34;
     // trunk
     ctx.strokeStyle = "#7a5330"; ctx.lineCap = "round"; ctx.lineWidth = 20;

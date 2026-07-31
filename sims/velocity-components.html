@@ -11,12 +11,25 @@
   <aside id="app-sidebar" class="sidebar"></aside>
 
   <main class="content">
-    <section class="stage">
-      <canvas id="c" width="1000" height="620"></canvas>
+    <div class="sim-layout">
+      <div class="sim-main">
+        <div class="sim-canvas-wrap">
+          <canvas id="c" width="1000" height="620"></canvas>
+        </div>
+        <div class="sim-legend">
+          <span><i class="swatch" style="background:var(--v)"></i> resultant v<sub>i</sub></span>
+          <span><i class="swatch" style="background:var(--vx)"></i> horizontal v<sub>xi</sub></span>
+          <span><i class="swatch" style="background:var(--vy)"></i> vertical v<sub>yi</sub></span>
+          <span><i class="swatch" style="background:var(--path)"></i> trajectory</span>
+        </div>
+      </div>
 
-      <div class="float-title">Velocity Components<small>Drag the sliders, then Launch</small></div>
+      <aside class="sim-controls">
+        <a class="back-link" href="../index.html">&#8592; All simulators</a>
+        <h2 class="sim-title">Velocity Components</h2>
+        <p class="sim-sub">A launch velocity splits into an independent horizontal and vertical part. Drag the sliders, then Launch.</p>
 
-      <div class="panel-float float-controls">
+        <div class="cb-divider"></div>
         <p class="cb-title">Inputs</p>
         <div class="control">
           <label>Launch speed <span class="v-c">v<sub>i</sub></span> <span class="val"><span id="speed-val">20</span> m/s</span></label>
@@ -28,7 +41,6 @@
         </div>
 
         <div class="cb-divider"></div>
-
         <p class="cb-title">Components</p>
         <div class="formula">
           <div><span class="vx-c">v<sub>xi</sub></span> = v<sub>i</sub> cos θ<sub>i</sub> = <b class="vx-c" id="eq-vx">17.3</b> m/s</div>
@@ -40,20 +52,14 @@
           <div class="readout v"><div class="k">Speed v<sub>i</sub></div><div class="n" id="out-v">20.0</div></div>
           <div class="readout range"><div class="k">Range · Height · Time</div><div class="n" id="out-range">35.3 m · 5.1 m · 2.04 s</div></div>
         </div>
-      </div>
 
-      <div class="panel-float float-legend">
-        <span><i class="swatch" style="background:var(--v)"></i> resultant v<sub>i</sub></span>
-        <span><i class="swatch" style="background:var(--vx)"></i> horizontal v<sub>xi</sub></span>
-        <span><i class="swatch" style="background:var(--vy)"></i> vertical v<sub>yi</sub></span>
-        <span><i class="swatch" style="background:var(--path)"></i> trajectory</span>
-      </div>
-
-      <div class="panel-float float-actions">
-        <button id="launch" class="btn-primary">Launch ▶</button>
-        <button id="reset" class="secondary">Reset</button>
-      </div>
-    </section>
+        <div class="cb-divider"></div>
+        <div class="sim-actions">
+          <button id="launch" class="btn-primary">Launch ▶</button>
+          <button id="reset" class="secondary">Reset</button>
+        </div>
+      </aside>
+    </div>
   </main>
 </div>
 
@@ -108,8 +114,7 @@
     return { v, th, vx, vy, tFlight, range, hMax };
   }
 
-  // Right/bottom margins reserve room for the floating panels.
-  const margin = { l: 56, r: 324, t: 30, b: 58 };
+  const margin = { l: 54, r: 28, t: 26, b: 46 };
   function makeScale(p) {
     const worldW = Math.max(p.range * 1.1, 30);
     const worldH = Math.max(p.hMax * 1.25, 15);
