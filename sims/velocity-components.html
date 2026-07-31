@@ -47,10 +47,7 @@
           <div><span class="vy-c">v<sub>yi</sub></span> = v<sub>i</sub> sin θ<sub>i</sub> = <b class="vy-c" id="eq-vy">10.0</b> m/s</div>
         </div>
         <div class="readouts">
-          <div class="readout vx"><div class="k">Horizontal v<sub>xi</sub></div><div class="n" id="out-vx">17.3</div></div>
-          <div class="readout vy"><div class="k">Vertical v<sub>yi</sub></div><div class="n" id="out-vy">10.0</div></div>
-          <div class="readout v"><div class="k">Speed v<sub>i</sub></div><div class="n" id="out-v">20.0</div></div>
-          <div class="readout range"><div class="k">Range · Height · Time</div><div class="n" id="out-range">35.3 m · 5.1 m · 2.04 s</div></div>
+          <div class="readout range"><div class="k">Range · Max height · Flight time</div><div class="n" id="out-range">35.3 m · 5.1 m · 2.04 s</div></div>
         </div>
 
         <div class="cb-divider"></div>
@@ -151,6 +148,9 @@
     ctx.clearRect(0, 0, W, H);
 
     const gy = H - margin.b;
+    // clip to the play area (incl. the tick-label strip) so vectors never spill into the border
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, 0, W, gy + 22); ctx.clip();
     ctx.strokeStyle = "#556"; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(margin.l, gy); ctx.lineTo(W - margin.r, gy); ctx.stroke();
 
@@ -170,6 +170,7 @@
 
     drawComponentTriangle(p, sc);
     if (launching) drawProjectile(p, sc);
+    ctx.restore();
   }
 
   function niceStep(raw) {
@@ -219,9 +220,7 @@
 
     ctx.fillStyle = getVar("--v"); ctx.font = "13px Georgia, serif";
     ctx.fillText("θ = " + p.th.toFixed(0) + "°", ox + 14, oy - 10);
-
-    subLabel(ox + vxPix / 2 - 26, oy + 16, "v", "xi", "=" + p.vx.toFixed(1), getVar("--vx"));
-    subLabel(ox + vxPix + 6, oy - vyPix / 2, "v", "yi", "=" + p.vy.toFixed(1), getVar("--vy"));
+    // component values are shown in the side panel; the legend identifies each arrow
   }
 
   function drawProjectile(p, sc) {
@@ -252,9 +251,9 @@
     const p = params();
     els.speedVal.textContent = p.v.toFixed(1).replace(/\.0$/, "");
     els.angleVal.textContent = p.th.toFixed(0);
-    els.outVx.textContent = p.vx.toFixed(1);
-    els.outVy.textContent = p.vy.toFixed(1);
-    els.outV.textContent = p.v.toFixed(1);
+    if (els.outVx) els.outVx.textContent = p.vx.toFixed(1);
+    if (els.outVy) els.outVy.textContent = p.vy.toFixed(1);
+    if (els.outV) els.outV.textContent = p.v.toFixed(1);
     if (els.eqVx) els.eqVx.textContent = p.vx.toFixed(1);
     if (els.eqVy) els.eqVy.textContent = p.vy.toFixed(1);
     els.outRange.textContent =
