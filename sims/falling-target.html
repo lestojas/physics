@@ -15,9 +15,41 @@
       <h1>Falling Target</h1>
       <p class="subtitle">The classic demo: a projectile is aimed <i>directly</i> at a target and fired at the exact instant the target is released to fall. Does it hit, or miss below? Aim, fire, and watch.</p>
 
-      <div class="layout">
-        <!-- Controls -->
+      <!-- Wide simulation stage -->
+      <div class="sim-stage">
+        <canvas id="c" class="sky" width="1180" height="560"></canvas>
+        <div class="legend">
+          <span><i class="swatch" style="background:#2e9e3a"></i> trajectory</span>
+          <span><i class="dot" style="background:#1b1b1b"></i> projectile</span>
+          <span><i class="dot" style="background:#e23b3b"></i> apple (target)</span>
+          <span><i class="swatch" style="background:#9aa3ad"></i> line of sight</span>
+          <span><i class="swatch" style="background:#d99400"></i> equal drop ½gt<sup>2</sup></span>
+        </div>
+      </div>
+
+      <!-- Readings strip -->
+      <div class="panel" style="margin-top:16px;">
+        <p class="cb-title">Readings</p>
+        <div class="readouts">
+          <div class="readout">
+            <div class="k">Aim angle θ · line-of-sight distance</div>
+            <div class="n" id="out-aim">32.7° · 16.6 m</div>
+          </div>
+          <div class="readout path">
+            <div class="k">Time to reach target</div>
+            <div class="n" id="out-thit">0.75 s</div>
+          </div>
+          <div class="readout target">
+            <div class="k">Both fall ½gt<sup>2</sup></div>
+            <div class="n" id="out-drop">2.8 m</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Control dashboard -->
+      <div class="control-bar">
         <div class="panel">
+          <p class="cb-title">Inputs</p>
           <div class="control">
             <label>Launch speed <span class="v-c">v</span> <span class="val"><span id="speed-val">22</span> m/s</span></label>
             <input type="range" id="speed" min="6" max="45" step="0.5" value="22">
@@ -30,46 +62,25 @@
             <label>Target height <span class="val"><span id="height-val">9</span> m</span></label>
             <input type="range" id="height" min="2" max="16" step="0.5" value="9">
           </div>
+        </div>
 
+        <div class="panel">
+          <p class="cb-title">Options</p>
           <div class="toggle-row">
             <label><input type="checkbox" id="aimline" checked> Show line of sight (aim)</label>
             <label><input type="checkbox" id="dropmark" checked> Show equal-drop markers</label>
             <label><input type="checkbox" id="slowmo"> Slow motion</label>
           </div>
+        </div>
 
-          <div class="readouts" style="margin-top:18px;">
-            <div class="readout wide">
-              <div class="k">Aim angle θ · line-of-sight distance</div>
-              <div class="n" id="out-aim">32.7° · 16.6 m</div>
-            </div>
-            <div class="readout path">
-              <div class="k">Time to reach target</div>
-              <div class="n" id="out-thit">0.75 s</div>
-            </div>
-            <div class="readout target">
-              <div class="k">Both fall ½gt²</div>
-              <div class="n" id="out-drop">2.8 m</div>
-            </div>
-            <div class="status ready" id="status">Ready — press Fire</div>
-          </div>
-
+        <div class="panel">
+          <p class="cb-title">Run</p>
+          <div class="status ready" id="status">Ready — press Fire</div>
           <div class="buttons">
             <button id="fire">Fire ▶</button>
             <button id="reset" class="secondary">Reset</button>
           </div>
           <p class="hint">Turn the speed way down to see the projectile fall short — but notice it still lands exactly where the target is, just lower.</p>
-        </div>
-
-        <!-- Canvas -->
-        <div class="panel canvas-card">
-          <canvas id="c" class="sky" width="760" height="460"></canvas>
-          <div class="legend">
-            <span><i class="swatch" style="background:#2e9e3a"></i> trajectory</span>
-            <span><i class="dot" style="background:#1b1b1b"></i> projectile</span>
-            <span><i class="dot" style="background:#e23b3b"></i> apple (target)</span>
-            <span><i class="swatch" style="background:#9aa3ad"></i> line of sight</span>
-            <span><i class="swatch" style="background:#d99400"></i> equal drop ½gt<sup>2</sup></span>
-          </div>
         </div>
       </div>
 
@@ -83,7 +94,20 @@
   const g = 9.8;
   const canvas = document.getElementById("c");
   const ctx = canvas.getContext("2d");
-  const W = canvas.width, H = canvas.height;
+  let W = canvas.width, H = canvas.height;
+
+  // Make the canvas fill its (wide) container and stay crisp on any display.
+  function fitCanvas() {
+    const cssW = canvas.clientWidth || 760;
+    const cssH = Math.max(320, Math.min(Math.round(cssW * 0.46), 620));
+    const dpr = window.devicePixelRatio || 1;
+    canvas.style.height = cssH + "px";
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    W = cssW; H = cssH;
+    drawScene();
+  }
 
   const speedEl = document.getElementById("speed");
   const distEl  = document.getElementById("dist");
@@ -418,7 +442,9 @@
 
   updateReadouts();
   setStatus("ready");
+  fitCanvas();
   flashPreview();
+  window.addEventListener("resize", fitCanvas);
 })();
 </script>
 <script src="../sidebar.js"></script>

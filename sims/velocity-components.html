@@ -20,9 +20,44 @@
         <div class="eq"><span class="vy-c">v<sub>yi</sub></span> = v<sub>i</sub> sin θ<sub>i</sub> = <b class="vy-c" id="eq-vy">10.0</b> m/s</div>
       </div>
 
-      <div class="layout">
-        <!-- Controls -->
+      <!-- Wide simulation stage -->
+      <div class="sim-stage">
+        <canvas id="c" width="1180" height="560"></canvas>
+        <div class="legend">
+          <span><i class="swatch" style="background:var(--v)"></i> resultant v<sub>i</sub></span>
+          <span><i class="swatch" style="background:var(--vx)"></i> horizontal v<sub>xi</sub></span>
+          <span><i class="swatch" style="background:var(--vy)"></i> vertical v<sub>yi</sub></span>
+          <span><i class="swatch" style="background:var(--path)"></i> trajectory</span>
+        </div>
+      </div>
+
+      <!-- Readings strip -->
+      <div class="panel" style="margin-top:16px;">
+        <p class="cb-title">Components</p>
+        <div class="readouts">
+          <div class="readout vx">
+            <div class="k">Horizontal v<sub>xi</sub></div>
+            <div class="n" id="out-vx">17.3</div>
+          </div>
+          <div class="readout vy">
+            <div class="k">Vertical v<sub>yi</sub></div>
+            <div class="n" id="out-vy">10.0</div>
+          </div>
+          <div class="readout v">
+            <div class="k">Speed v<sub>i</sub></div>
+            <div class="n" id="out-v">20.0</div>
+          </div>
+          <div class="readout range">
+            <div class="k">Range · Max height · Flight time</div>
+            <div class="n" id="out-range">35.3 m · 5.1 m · 2.04 s</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Control dashboard -->
+      <div class="control-bar">
         <div class="panel">
+          <p class="cb-title">Inputs</p>
           <div class="control">
             <label>Launch speed <span class="v-c">v<sub>i</sub></span> <span class="val"><span id="speed-val">20</span> m/s</span></label>
             <input type="range" id="speed" min="5" max="40" step="0.5" value="20">
@@ -31,42 +66,15 @@
             <label>Launch angle <span class="v-c">θ<sub>i</sub></span> <span class="val"><span id="angle-val">30</span>°</span></label>
             <input type="range" id="angle" min="0" max="90" step="1" value="30">
           </div>
+        </div>
 
-          <div class="readouts">
-            <div class="readout vx">
-              <div class="k">Horizontal v<sub>xi</sub></div>
-              <div class="n" id="out-vx">17.3</div>
-            </div>
-            <div class="readout vy">
-              <div class="k">Vertical v<sub>yi</sub></div>
-              <div class="n" id="out-vy">10.0</div>
-            </div>
-            <div class="readout v">
-              <div class="k">Speed v<sub>i</sub></div>
-              <div class="n" id="out-v">20.0</div>
-            </div>
-            <div class="readout range">
-              <div class="k">Range · Max height · Flight time</div>
-              <div class="n" id="out-range">35.3 m · 5.1 m · 2.04 s</div>
-            </div>
-          </div>
-
+        <div class="panel">
+          <p class="cb-title">Run</p>
           <div class="buttons">
             <button id="launch">Launch ▶</button>
             <button id="reset" class="secondary">Reset</button>
           </div>
           <p class="hint">Tip: try 15°, 45°, and 75° to compare the components. (g = 9.8 m/s²)</p>
-        </div>
-
-        <!-- Canvas -->
-        <div class="panel canvas-card">
-          <canvas id="c" width="760" height="460"></canvas>
-          <div class="legend">
-            <span><i class="swatch" style="background:var(--v)"></i> resultant v<sub>i</sub></span>
-            <span><i class="swatch" style="background:var(--vx)"></i> horizontal v<sub>xi</sub></span>
-            <span><i class="swatch" style="background:var(--vy)"></i> vertical v<sub>yi</sub></span>
-            <span><i class="swatch" style="background:var(--path)"></i> trajectory</span>
-          </div>
         </div>
       </div>
 
@@ -82,7 +90,20 @@
 
   const canvas = document.getElementById("c");
   const ctx = canvas.getContext("2d");
-  const W = canvas.width, H = canvas.height;
+  let W = canvas.width, H = canvas.height;
+
+  // Make the canvas fill its (wide) container and stay crisp on any display.
+  function fitCanvas() {
+    const cssW = canvas.clientWidth || 760;
+    const cssH = Math.max(320, Math.min(Math.round(cssW * 0.46), 620));
+    const dpr = window.devicePixelRatio || 1;
+    canvas.style.height = cssH + "px";
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    W = cssW; H = cssH;
+    draw();
+  }
 
   const speedEl = document.getElementById("speed");
   const angleEl = document.getElementById("angle");
@@ -290,7 +311,8 @@
   document.getElementById("reset").addEventListener("click", reset);
 
   updateReadouts();
-  draw();
+  fitCanvas();
+  window.addEventListener("resize", fitCanvas);
 })();
 </script>
 <script src="../sidebar.js"></script>
