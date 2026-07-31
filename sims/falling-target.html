@@ -6,73 +6,62 @@
 <title>Falling Target — PHYlip Simulators</title>
 <link rel="stylesheet" href="../styles.css">
 </head>
-<body>
+<body class="sim-page">
 <div class="app">
   <aside id="app-sidebar" class="sidebar"></aside>
 
   <main class="content">
-    <div class="wrap">
-      <h1>Falling Target</h1>
-      <p class="subtitle">The classic demo: a projectile is aimed <i>directly</i> at a target and fired at the exact instant the target is released to fall. Does it hit, or miss below? Aim, fire, and watch.</p>
+    <section class="stage">
+      <canvas id="c" class="sky" width="1000" height="620"></canvas>
 
-      <!-- Wide simulation stage -->
-      <div class="sim-stage">
-        <canvas id="c" class="sky" width="1180" height="560"></canvas>
-        <div class="legend">
-          <span><i class="swatch" style="background:#2e9e3a"></i> trajectory</span>
-          <span><i class="dot" style="background:#1b1b1b"></i> projectile</span>
-          <span><i class="dot" style="background:#e23b3b"></i> apple (target)</span>
-          <span><i class="swatch" style="background:#9aa3ad"></i> line of sight</span>
-          <span><i class="swatch" style="background:#d99400"></i> equal drop ½gt<sup>2</sup></span>
+      <div class="float-title">Falling Target<small>Aimed straight at the apple — fire and watch</small></div>
+
+      <div class="panel-float float-controls">
+        <p class="cb-title">Inputs</p>
+        <div class="control">
+          <label>Launch speed <span class="v-c">v</span> <span class="val"><span id="speed-val">22</span> m/s</span></label>
+          <input type="range" id="speed" min="6" max="45" step="0.5" value="22">
+        </div>
+        <div class="control">
+          <label>Target distance <span class="val"><span id="dist-val">14</span> m</span></label>
+          <input type="range" id="dist" min="6" max="26" step="0.5" value="14">
+        </div>
+        <div class="control">
+          <label>Target height <span class="val"><span id="height-val">9</span> m</span></label>
+          <input type="range" id="height" min="2" max="16" step="0.5" value="9">
+        </div>
+
+        <div class="cb-divider"></div>
+        <p class="cb-title">Options</p>
+        <div class="toggle-row">
+          <label><input type="checkbox" id="aimline" checked> Show line of sight (aim)</label>
+          <label><input type="checkbox" id="dropmark" checked> Show equal-drop markers</label>
+          <label><input type="checkbox" id="slowmo"> Slow motion</label>
+        </div>
+
+        <div class="cb-divider"></div>
+        <p class="cb-title">Readings</p>
+        <div class="readouts">
+          <div class="readout wide"><div class="k">Aim angle θ · line-of-sight distance</div><div class="n" id="out-aim">32.7° · 16.6 m</div></div>
+          <div class="readout path"><div class="k">Time to target</div><div class="n" id="out-thit">0.75 s</div></div>
+          <div class="readout target"><div class="k">Both fall ½gt<sup>2</sup></div><div class="n" id="out-drop">2.8 m</div></div>
         </div>
       </div>
 
-      <!-- Primary controls, right under the stage -->
-      <div class="action-bar">
+      <div class="panel-float float-legend">
+        <span><i class="swatch" style="background:#2e9e3a"></i> trajectory</span>
+        <span><i class="dot" style="background:#1b1b1b"></i> projectile</span>
+        <span><i class="dot" style="background:#e23b3b"></i> apple (target)</span>
+        <span><i class="swatch" style="background:#9aa3ad"></i> line of sight</span>
+        <span><i class="swatch" style="background:#d99400"></i> equal drop ½gt<sup>2</sup></span>
+      </div>
+
+      <div class="panel-float float-actions">
+        <div class="status ready" id="status">Ready — press Fire</div>
         <button id="fire" class="btn-primary">Fire ▶</button>
         <button id="reset" class="secondary">Reset</button>
-        <div class="status ready" id="status">Ready — press Fire</div>
       </div>
-
-      <!-- Inputs + options + readings dashboard -->
-      <div class="control-bar">
-        <div class="panel">
-          <p class="cb-title">Inputs</p>
-          <div class="control">
-            <label>Launch speed <span class="v-c">v</span> <span class="val"><span id="speed-val">22</span> m/s</span></label>
-            <input type="range" id="speed" min="6" max="45" step="0.5" value="22">
-          </div>
-          <div class="control">
-            <label>Target distance <span class="val"><span id="dist-val">14</span> m</span></label>
-            <input type="range" id="dist" min="6" max="26" step="0.5" value="14">
-          </div>
-          <div class="control">
-            <label>Target height <span class="val"><span id="height-val">9</span> m</span></label>
-            <input type="range" id="height" min="2" max="16" step="0.5" value="9">
-          </div>
-        </div>
-
-        <div class="panel">
-          <p class="cb-title">Options</p>
-          <div class="toggle-row">
-            <label><input type="checkbox" id="aimline" checked> Show line of sight (aim)</label>
-            <label><input type="checkbox" id="dropmark" checked> Show equal-drop markers</label>
-            <label><input type="checkbox" id="slowmo"> Slow motion</label>
-          </div>
-          <p class="hint" style="margin-top:14px;">Turn the speed way down to see the projectile fall short — but notice it still lands exactly where the target is, just lower.</p>
-        </div>
-
-        <div class="panel">
-          <p class="cb-title">Readings</p>
-          <div class="readouts">
-            <div class="readout"><div class="k">Aim angle θ · line-of-sight distance</div><div class="n" id="out-aim">32.7° · 16.6 m</div></div>
-            <div class="readout path"><div class="k">Time to reach target</div><div class="n" id="out-thit">0.75 s</div></div>
-            <div class="readout target"><div class="k">Both fall ½gt<sup>2</sup></div><div class="n" id="out-drop">2.8 m</div></div>
-          </div>
-        </div>
-      </div>
-
-    </div>
+    </section>
   </main>
 </div>
 
@@ -84,27 +73,16 @@
   const ctx = canvas.getContext("2d");
   let W = canvas.width, H = canvas.height;
 
-  // Make the canvas fill its (wide) container and stay crisp on any display.
+  // Canvas fills the whole stage and stays crisp on any display.
   function fitCanvas() {
-    const cssW = canvas.clientWidth || 760;
-    const vh = window.innerHeight || 800;
-    // keep the stage within one screen so controls beneath stay reachable
-    const cssH = Math.max(240, Math.min(Math.round(cssW * 0.42), vh - 300));
+    const cssW = canvas.clientWidth || 900;
+    const cssH = canvas.clientHeight || 560;
     const dpr = window.devicePixelRatio || 1;
-    canvas.style.height = cssH + "px";
     canvas.width = Math.round(cssW * dpr);
     canvas.height = Math.round(cssH * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     W = cssW; H = cssH;
     drawScene();
-  }
-
-  // Scroll the stage into view if it isn't fully visible (so a launch is never off-screen).
-  function ensureVisible() {
-    const r = canvas.getBoundingClientRect();
-    if (r.top < 0 || r.bottom > (window.innerHeight || 800)) {
-      canvas.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
   }
 
   const speedEl = document.getElementById("speed");
@@ -155,7 +133,8 @@
     return { v, Dx, Dy, L, theta, vx, vy, tHit, meetY, isHit, tEnd, tTargetGround };
   }
 
-  const margin = { l: 40, r: 24, t: 24, b: 38 };
+  // Right/bottom margins reserve room for the floating panels.
+  const margin = { l: 46, r: 324, t: 30, b: 60 };
   const BARREL_LEN = 44, PIVOT_UP = 20, WHEEL_R = 12;
   function makeScale(p) {
     const gy = H - margin.b;
@@ -400,7 +379,7 @@
     out.status.className = "status " + state;
     if (state === "ready") out.status.textContent = "Ready — press Fire";
     else if (state === "hit") out.status.textContent = "HIT! Met at " + p.meetY.toFixed(1) + " m up";
-    else out.status.textContent = "Target crashed first — but the projectile still hit its spot on the ground";
+    else out.status.textContent = "Target crashed first — but the shot still hit its spot";
   }
 
   function step(ts) {
@@ -419,7 +398,6 @@
   }
 
   function fire() {
-    ensureVisible();
     cancelAnimationFrame(anim);
     clearTimeout(previewTimer); showPreview = false;
     t = 0; lastTs = null; firing = true; finished = false;

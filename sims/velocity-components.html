@@ -6,64 +6,54 @@
 <title>Velocity Components — PHYlip Simulators</title>
 <link rel="stylesheet" href="../styles.css">
 </head>
-<body>
+<body class="sim-page">
 <div class="app">
   <aside id="app-sidebar" class="sidebar"></aside>
 
   <main class="content">
-    <div class="wrap">
-      <h1>Velocity Components</h1>
-      <p class="subtitle">A launch velocity <i>v<sub>i</sub></i> at angle <i>θ<sub>i</sub></i> above the horizontal splits into an independent horizontal push and vertical push. Drag the sliders and launch.</p>
+    <section class="stage">
+      <canvas id="c" width="1000" height="620"></canvas>
 
-      <div class="eqs">
-        <div class="eq"><span class="vx-c">v<sub>xi</sub></span> = v<sub>i</sub> cos θ<sub>i</sub> = <b class="vx-c" id="eq-vx">17.3</b> m/s</div>
-        <div class="eq"><span class="vy-c">v<sub>yi</sub></span> = v<sub>i</sub> sin θ<sub>i</sub> = <b class="vy-c" id="eq-vy">10.0</b> m/s</div>
-      </div>
+      <div class="float-title">Velocity Components<small>Drag the sliders, then Launch</small></div>
 
-      <!-- Wide simulation stage -->
-      <div class="sim-stage">
-        <canvas id="c" width="1180" height="560"></canvas>
-        <div class="legend">
-          <span><i class="swatch" style="background:var(--v)"></i> resultant v<sub>i</sub></span>
-          <span><i class="swatch" style="background:var(--vx)"></i> horizontal v<sub>xi</sub></span>
-          <span><i class="swatch" style="background:var(--vy)"></i> vertical v<sub>yi</sub></span>
-          <span><i class="swatch" style="background:var(--path)"></i> trajectory</span>
+      <div class="panel-float float-controls">
+        <p class="cb-title">Inputs</p>
+        <div class="control">
+          <label>Launch speed <span class="v-c">v<sub>i</sub></span> <span class="val"><span id="speed-val">20</span> m/s</span></label>
+          <input type="range" id="speed" min="5" max="40" step="0.5" value="20">
+        </div>
+        <div class="control">
+          <label>Launch angle <span class="v-c">θ<sub>i</sub></span> <span class="val"><span id="angle-val">30</span>°</span></label>
+          <input type="range" id="angle" min="0" max="90" step="1" value="30">
+        </div>
+
+        <div class="cb-divider"></div>
+
+        <p class="cb-title">Components</p>
+        <div class="formula">
+          <div><span class="vx-c">v<sub>xi</sub></span> = v<sub>i</sub> cos θ<sub>i</sub> = <b class="vx-c" id="eq-vx">17.3</b> m/s</div>
+          <div><span class="vy-c">v<sub>yi</sub></span> = v<sub>i</sub> sin θ<sub>i</sub> = <b class="vy-c" id="eq-vy">10.0</b> m/s</div>
+        </div>
+        <div class="readouts">
+          <div class="readout vx"><div class="k">Horizontal v<sub>xi</sub></div><div class="n" id="out-vx">17.3</div></div>
+          <div class="readout vy"><div class="k">Vertical v<sub>yi</sub></div><div class="n" id="out-vy">10.0</div></div>
+          <div class="readout v"><div class="k">Speed v<sub>i</sub></div><div class="n" id="out-v">20.0</div></div>
+          <div class="readout range"><div class="k">Range · Height · Time</div><div class="n" id="out-range">35.3 m · 5.1 m · 2.04 s</div></div>
         </div>
       </div>
 
-      <!-- Primary controls, right under the stage -->
-      <div class="action-bar">
+      <div class="panel-float float-legend">
+        <span><i class="swatch" style="background:var(--v)"></i> resultant v<sub>i</sub></span>
+        <span><i class="swatch" style="background:var(--vx)"></i> horizontal v<sub>xi</sub></span>
+        <span><i class="swatch" style="background:var(--vy)"></i> vertical v<sub>yi</sub></span>
+        <span><i class="swatch" style="background:var(--path)"></i> trajectory</span>
+      </div>
+
+      <div class="panel-float float-actions">
         <button id="launch" class="btn-primary">Launch ▶</button>
         <button id="reset" class="secondary">Reset</button>
-        <div class="hint-inline">Tip: try 15°, 45°, and 75° to compare the components. (g = 9.8 m/s²)</div>
       </div>
-
-      <!-- Inputs + readings dashboard -->
-      <div class="control-bar">
-        <div class="panel">
-          <p class="cb-title">Inputs</p>
-          <div class="control">
-            <label>Launch speed <span class="v-c">v<sub>i</sub></span> <span class="val"><span id="speed-val">20</span> m/s</span></label>
-            <input type="range" id="speed" min="5" max="40" step="0.5" value="20">
-          </div>
-          <div class="control">
-            <label>Launch angle <span class="v-c">θ<sub>i</sub></span> <span class="val"><span id="angle-val">30</span>°</span></label>
-            <input type="range" id="angle" min="0" max="90" step="1" value="30">
-          </div>
-        </div>
-
-        <div class="panel">
-          <p class="cb-title">Components</p>
-          <div class="readouts">
-            <div class="readout vx"><div class="k">Horizontal v<sub>xi</sub></div><div class="n" id="out-vx">17.3</div></div>
-            <div class="readout vy"><div class="k">Vertical v<sub>yi</sub></div><div class="n" id="out-vy">10.0</div></div>
-            <div class="readout v"><div class="k">Speed v<sub>i</sub></div><div class="n" id="out-v">20.0</div></div>
-            <div class="readout range"><div class="k">Range · Max height · Flight time</div><div class="n" id="out-range">35.3 m · 5.1 m · 2.04 s</div></div>
-          </div>
-        </div>
-      </div>
-
-    </div>
+    </section>
   </main>
 </div>
 
@@ -77,27 +67,16 @@
   const ctx = canvas.getContext("2d");
   let W = canvas.width, H = canvas.height;
 
-  // Make the canvas fill its (wide) container and stay crisp on any display.
+  // Canvas fills the whole stage and stays crisp on any display.
   function fitCanvas() {
-    const cssW = canvas.clientWidth || 760;
-    const vh = window.innerHeight || 800;
-    // keep the stage within one screen so controls beneath stay reachable
-    const cssH = Math.max(240, Math.min(Math.round(cssW * 0.42), vh - 300));
+    const cssW = canvas.clientWidth || 900;
+    const cssH = canvas.clientHeight || 560;
     const dpr = window.devicePixelRatio || 1;
-    canvas.style.height = cssH + "px";
     canvas.width = Math.round(cssW * dpr);
     canvas.height = Math.round(cssH * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     W = cssW; H = cssH;
     draw();
-  }
-
-  // Scroll the stage into view if it isn't fully visible (so a launch is never off-screen).
-  function ensureVisible() {
-    const r = canvas.getBoundingClientRect();
-    if (r.top < 0 || r.bottom > (window.innerHeight || 800)) {
-      canvas.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
   }
 
   const speedEl = document.getElementById("speed");
@@ -129,13 +108,14 @@
     return { v, th, vx, vy, tFlight, range, hMax };
   }
 
-  const margin = { l: 46, r: 20, t: 20, b: 40 };
+  // Right/bottom margins reserve room for the floating panels.
+  const margin = { l: 56, r: 324, t: 30, b: 58 };
   function makeScale(p) {
     const worldW = Math.max(p.range * 1.1, 30);
     const worldH = Math.max(p.hMax * 1.25, 15);
     const sx = (W - margin.l - margin.r) / worldW;
     const sy = (H - margin.t - margin.b) / worldH;
-    const s = Math.min(sx, sy);
+    const s = Math.max(1, Math.min(sx, sy));
     return { s, toX: (x) => margin.l + x * s, toY: (y) => H - margin.b - y * s };
   }
 
@@ -270,8 +250,8 @@
     els.outVx.textContent = p.vx.toFixed(1);
     els.outVy.textContent = p.vy.toFixed(1);
     els.outV.textContent = p.v.toFixed(1);
-    els.eqVx.textContent = p.vx.toFixed(1);
-    els.eqVy.textContent = p.vy.toFixed(1);
+    if (els.eqVx) els.eqVx.textContent = p.vx.toFixed(1);
+    if (els.eqVy) els.eqVy.textContent = p.vy.toFixed(1);
     els.outRange.textContent =
       p.range.toFixed(1) + " m · " + p.hMax.toFixed(1) + " m · " + p.tFlight.toFixed(2) + " s";
   }
@@ -291,7 +271,6 @@
   }
 
   function launch() {
-    ensureVisible();
     cancelAnimationFrame(anim);
     flightT = 0; lastTs = null; launching = true;
     anim = requestAnimationFrame(step);
