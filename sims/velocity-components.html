@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Velocity Components — PHYlip's Simulators</title>
+<title>Velocity Components — PHYlip Simulators</title>
 <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
@@ -31,30 +31,14 @@
         </div>
       </div>
 
-      <!-- Readings strip -->
-      <div class="panel" style="margin-top:16px;">
-        <p class="cb-title">Components</p>
-        <div class="readouts">
-          <div class="readout vx">
-            <div class="k">Horizontal v<sub>xi</sub></div>
-            <div class="n" id="out-vx">17.3</div>
-          </div>
-          <div class="readout vy">
-            <div class="k">Vertical v<sub>yi</sub></div>
-            <div class="n" id="out-vy">10.0</div>
-          </div>
-          <div class="readout v">
-            <div class="k">Speed v<sub>i</sub></div>
-            <div class="n" id="out-v">20.0</div>
-          </div>
-          <div class="readout range">
-            <div class="k">Range · Max height · Flight time</div>
-            <div class="n" id="out-range">35.3 m · 5.1 m · 2.04 s</div>
-          </div>
-        </div>
+      <!-- Primary controls, right under the stage -->
+      <div class="action-bar">
+        <button id="launch" class="btn-primary">Launch ▶</button>
+        <button id="reset" class="secondary">Reset</button>
+        <div class="hint-inline">Tip: try 15°, 45°, and 75° to compare the components. (g = 9.8 m/s²)</div>
       </div>
 
-      <!-- Control dashboard -->
+      <!-- Inputs + readings dashboard -->
       <div class="control-bar">
         <div class="panel">
           <p class="cb-title">Inputs</p>
@@ -69,12 +53,13 @@
         </div>
 
         <div class="panel">
-          <p class="cb-title">Run</p>
-          <div class="buttons">
-            <button id="launch">Launch ▶</button>
-            <button id="reset" class="secondary">Reset</button>
+          <p class="cb-title">Components</p>
+          <div class="readouts">
+            <div class="readout vx"><div class="k">Horizontal v<sub>xi</sub></div><div class="n" id="out-vx">17.3</div></div>
+            <div class="readout vy"><div class="k">Vertical v<sub>yi</sub></div><div class="n" id="out-vy">10.0</div></div>
+            <div class="readout v"><div class="k">Speed v<sub>i</sub></div><div class="n" id="out-v">20.0</div></div>
+            <div class="readout range"><div class="k">Range · Max height · Flight time</div><div class="n" id="out-range">35.3 m · 5.1 m · 2.04 s</div></div>
           </div>
-          <p class="hint">Tip: try 15°, 45°, and 75° to compare the components. (g = 9.8 m/s²)</p>
         </div>
       </div>
 
@@ -95,7 +80,9 @@
   // Make the canvas fill its (wide) container and stay crisp on any display.
   function fitCanvas() {
     const cssW = canvas.clientWidth || 760;
-    const cssH = Math.max(320, Math.min(Math.round(cssW * 0.46), 620));
+    const vh = window.innerHeight || 800;
+    // keep the stage within one screen so controls beneath stay reachable
+    const cssH = Math.max(240, Math.min(Math.round(cssW * 0.42), vh - 300));
     const dpr = window.devicePixelRatio || 1;
     canvas.style.height = cssH + "px";
     canvas.width = Math.round(cssW * dpr);
@@ -103,6 +90,14 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     W = cssW; H = cssH;
     draw();
+  }
+
+  // Scroll the stage into view if it isn't fully visible (so a launch is never off-screen).
+  function ensureVisible() {
+    const r = canvas.getBoundingClientRect();
+    if (r.top < 0 || r.bottom > (window.innerHeight || 800)) {
+      canvas.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }
 
   const speedEl = document.getElementById("speed");
@@ -296,6 +291,7 @@
   }
 
   function launch() {
+    ensureVisible();
     cancelAnimationFrame(anim);
     flightT = 0; lastTs = null; launching = true;
     anim = requestAnimationFrame(step);

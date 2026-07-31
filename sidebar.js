@@ -1,5 +1,5 @@
 /* =============================================================
-   PHYlip's Simulators — shared, auto-updating sidebar
+   PHYlip Simulators — shared, auto-updating, collapsible sidebar
    -------------------------------------------------------------
    FOLDER LAYOUT
      index.html          <- home page (root)
@@ -105,7 +105,10 @@
              '</a></li>';
     }).join("");
 
-    return '<p class="brand">PHYlip\'s <span class="accent">Simulators</span></p>' +
+    return '<div class="sidebar-head">' +
+             '<p class="brand">PHYlip <span class="accent">Simulators</span></p>' +
+             '<button class="nav-collapse" id="nav-collapse" title="Hide menu" aria-label="Hide menu">\u00ab</button>' +
+           '</div>' +
            '<p class="brand-sub">Interactive physics simulators</p>' +
            '<p class="nav-label">Simulators</p>' +
            '<ul class="nav">' + homeItem + items + '</ul>';
@@ -115,7 +118,35 @@
     var host = document.getElementById("app-sidebar");
     if (!host) return;
     host.className = "sidebar";
-    discover().then(function (sims) { host.innerHTML = render(sims); });
+    var app = document.querySelector(".app") || document.body;
+
+    // Floating "open" button, visible only when the sidebar is collapsed.
+    var openBtn = document.createElement("button");
+    openBtn.className = "nav-open";
+    openBtn.id = "nav-open";
+    openBtn.setAttribute("aria-label", "Show menu");
+    openBtn.innerHTML = "\u2630";
+    document.body.appendChild(openBtn);
+
+    function setCollapsed(collapsed) {
+      app.classList.toggle("nav-collapsed", collapsed);
+      try { localStorage.setItem("phylipNav", collapsed ? "1" : "0"); } catch (e) {}
+      // let the simulators refit their canvas to the new width (after transition)
+      setTimeout(function () { window.dispatchEvent(new Event("resize")); }, 40);
+      setTimeout(function () { window.dispatchEvent(new Event("resize")); }, 300);
+    }
+    openBtn.addEventListener("click", function () { setCollapsed(false); });
+
+    // Restore saved state.
+    var saved = "0";
+    try { saved = localStorage.getItem("phylipNav") || "0"; } catch (e) {}
+    if (saved === "1") app.classList.add("nav-collapsed");
+
+    discover().then(function (sims) {
+      host.innerHTML = render(sims);
+      var cb = document.getElementById("nav-collapse");
+      if (cb) cb.addEventListener("click", function () { setCollapsed(true); });
+    });
   }
 
   if (document.readyState === "loading") {

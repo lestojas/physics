@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Falling Target — PHYlip's Simulators</title>
+<title>Falling Target — PHYlip Simulators</title>
 <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
@@ -27,26 +27,14 @@
         </div>
       </div>
 
-      <!-- Readings strip -->
-      <div class="panel" style="margin-top:16px;">
-        <p class="cb-title">Readings</p>
-        <div class="readouts">
-          <div class="readout">
-            <div class="k">Aim angle θ · line-of-sight distance</div>
-            <div class="n" id="out-aim">32.7° · 16.6 m</div>
-          </div>
-          <div class="readout path">
-            <div class="k">Time to reach target</div>
-            <div class="n" id="out-thit">0.75 s</div>
-          </div>
-          <div class="readout target">
-            <div class="k">Both fall ½gt<sup>2</sup></div>
-            <div class="n" id="out-drop">2.8 m</div>
-          </div>
-        </div>
+      <!-- Primary controls, right under the stage -->
+      <div class="action-bar">
+        <button id="fire" class="btn-primary">Fire ▶</button>
+        <button id="reset" class="secondary">Reset</button>
+        <div class="status ready" id="status">Ready — press Fire</div>
       </div>
 
-      <!-- Control dashboard -->
+      <!-- Inputs + options + readings dashboard -->
       <div class="control-bar">
         <div class="panel">
           <p class="cb-title">Inputs</p>
@@ -71,16 +59,16 @@
             <label><input type="checkbox" id="dropmark" checked> Show equal-drop markers</label>
             <label><input type="checkbox" id="slowmo"> Slow motion</label>
           </div>
+          <p class="hint" style="margin-top:14px;">Turn the speed way down to see the projectile fall short — but notice it still lands exactly where the target is, just lower.</p>
         </div>
 
         <div class="panel">
-          <p class="cb-title">Run</p>
-          <div class="status ready" id="status">Ready — press Fire</div>
-          <div class="buttons">
-            <button id="fire">Fire ▶</button>
-            <button id="reset" class="secondary">Reset</button>
+          <p class="cb-title">Readings</p>
+          <div class="readouts">
+            <div class="readout"><div class="k">Aim angle θ · line-of-sight distance</div><div class="n" id="out-aim">32.7° · 16.6 m</div></div>
+            <div class="readout path"><div class="k">Time to reach target</div><div class="n" id="out-thit">0.75 s</div></div>
+            <div class="readout target"><div class="k">Both fall ½gt<sup>2</sup></div><div class="n" id="out-drop">2.8 m</div></div>
           </div>
-          <p class="hint">Turn the speed way down to see the projectile fall short — but notice it still lands exactly where the target is, just lower.</p>
         </div>
       </div>
 
@@ -99,7 +87,9 @@
   // Make the canvas fill its (wide) container and stay crisp on any display.
   function fitCanvas() {
     const cssW = canvas.clientWidth || 760;
-    const cssH = Math.max(320, Math.min(Math.round(cssW * 0.46), 620));
+    const vh = window.innerHeight || 800;
+    // keep the stage within one screen so controls beneath stay reachable
+    const cssH = Math.max(240, Math.min(Math.round(cssW * 0.42), vh - 300));
     const dpr = window.devicePixelRatio || 1;
     canvas.style.height = cssH + "px";
     canvas.width = Math.round(cssW * dpr);
@@ -107,6 +97,14 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     W = cssW; H = cssH;
     drawScene();
+  }
+
+  // Scroll the stage into view if it isn't fully visible (so a launch is never off-screen).
+  function ensureVisible() {
+    const r = canvas.getBoundingClientRect();
+    if (r.top < 0 || r.bottom > (window.innerHeight || 800)) {
+      canvas.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }
 
   const speedEl = document.getElementById("speed");
@@ -421,6 +419,7 @@
   }
 
   function fire() {
+    ensureVisible();
     cancelAnimationFrame(anim);
     clearTimeout(previewTimer); showPreview = false;
     t = 0; lastTs = null; firing = true; finished = false;
