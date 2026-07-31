@@ -64,10 +64,11 @@
         <div class="panel canvas-card">
           <canvas id="c" class="sky" width="760" height="460"></canvas>
           <div class="legend">
+            <span><i class="swatch" style="background:#2e9e3a"></i> trajectory</span>
             <span><i class="dot" style="background:#1b1b1b"></i> projectile</span>
             <span><i class="dot" style="background:#e23b3b"></i> apple (target)</span>
             <span><i class="swatch" style="background:#9aa3ad"></i> line of sight</span>
-            <span><i class="swatch" style="background:#d99400"></i> equal drop ½gt²</span>
+            <span><i class="swatch" style="background:#d99400"></i> equal drop ½gt<sup>2</sup></span>
           </div>
         </div>
       </div>
@@ -112,7 +113,7 @@
     previewTimer = setTimeout(function () {
       showPreview = false;
       if (!firing && !finished) drawScene();
-    }, 1000);
+    }, 500);
   }
 
   function params() {
@@ -279,7 +280,8 @@
       const laX = ax - 14 * Math.cos(p.theta);
       const laY = ayHome + 14 * Math.sin(p.theta);
       ctx.strokeStyle = "#9aa3ad"; ctx.setLineDash([7, 6]); ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(ox, oy - 13); ctx.lineTo(laX, laY); ctx.stroke();
+      // start at the launch origin so the aim line is tangent to the green parabola
+      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(laX, laY); ctx.stroke();
       ctx.setLineDash([]);
       arrowHead(laX, laY, -p.theta, "#9aa3ad", 9);
     }
