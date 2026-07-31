@@ -134,14 +134,25 @@
   }
 
   const margin = { l: 40, r: 24, t: 24, b: 38 };
+  const BARREL_LEN = 44, PIVOT_UP = 20, WHEEL_R = 12;
   function makeScale(p) {
+    const gy = H - margin.b;
+    const pivotX = margin.l + 8;
+    const pivotY = gy - PIVOT_UP;
+    // launch point = the barrel muzzle (world origin maps here)
+    const Lx = pivotX + BARREL_LEN * Math.cos(p.theta);
+    const Ly = pivotY - BARREL_LEN * Math.sin(p.theta);
     const projPeak = (p.vy * p.vy) / (2 * g);
     const worldW = Math.max(p.Dx * 1.18, 12);
     const worldH = Math.max(p.Dy, projPeak) * 1.18;
-    const sx = (W - margin.l - margin.r) / worldW;
-    const sy = (H - margin.t - margin.b) / worldH;
-    const s = Math.min(sx, sy);
-    return { s, toX: (x) => margin.l + x * s, toY: (y) => H - margin.b - y * s };
+    const availW = (W - margin.r) - Lx;
+    const availH = Ly - margin.t;
+    const s = Math.max(2, Math.min(availW / worldW, availH / worldH));
+    return {
+      s, gy, pivotX, pivotY, Lx, Ly,
+      toX: (x) => Lx + x * s,
+      toY: (y) => Ly - y * s,
+    };
   }
 
   const varCache = {};
@@ -181,28 +192,31 @@
     ctx.restore();
   }
 
-  function drawCannon(ox, oy, theta) {
+  // Draws the cannon on the ground with its barrel muzzle at (sc.Lx, sc.Ly),
+  // i.e. exactly at the launch origin so the parabola & aim line emerge from the mouth.
+  function drawCannon(sc, theta) {
+    const px = sc.pivotX, py = sc.pivotY, gy = sc.gy;
     // carriage
     ctx.fillStyle = "#1b1b1b";
     ctx.beginPath();
-    ctx.moveTo(ox - 16, oy); ctx.lineTo(ox + 20, oy);
-    ctx.lineTo(ox + 8, oy - 15); ctx.lineTo(ox - 12, oy - 15);
+    ctx.moveTo(px - 16, gy); ctx.lineTo(px + 20, gy);
+    ctx.lineTo(px + 8, py + 2); ctx.lineTo(px - 12, py + 2);
     ctx.closePath(); ctx.fill();
-    // barrel
+    // barrel: base at pivot, muzzle at length BARREL_LEN (lands on the launch origin)
     ctx.save();
-    ctx.translate(ox, oy - 13); ctx.rotate(-theta);
+    ctx.translate(px, py); ctx.rotate(-theta);
     ctx.fillStyle = "#26313f";
     ctx.beginPath();
-    ctx.moveTo(0, -8); ctx.lineTo(40, -6); ctx.lineTo(40, 6); ctx.lineTo(0, 8);
+    ctx.moveTo(0, -8); ctx.lineTo(BARREL_LEN, -6); ctx.lineTo(BARREL_LEN, 6); ctx.lineTo(0, 8);
     ctx.closePath(); ctx.fill();
     ctx.fillStyle = "#161d26";
-    ctx.fillRect(37, -8, 6, 16);
+    ctx.fillRect(BARREL_LEN - 3, -8, 5, 16);   // muzzle ring
     ctx.restore();
     // wheel
-    ctx.fillStyle = "#111"; circle(ox, oy - 7, 12);
+    ctx.fillStyle = "#111"; circle(px, gy - WHEEL_R, WHEEL_R);
     ctx.strokeStyle = "#5b6570"; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(ox, oy - 7, 12, 0, Math.PI * 2); ctx.stroke();
-    ctx.fillStyle = "#4a545e"; circle(ox, oy - 7, 3.5);
+    ctx.beginPath(); ctx.arc(px, gy - WHEEL_R, WHEEL_R, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = "#4a545e"; circle(px, gy - WHEEL_R, 3.5);
   }
 
   function drawApple(x, y, r, alpha) {
@@ -261,19 +275,19 @@
     // ground line + subtle distance ticks
     ctx.strokeStyle = "#2b2b2b"; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(margin.l - 8, gy); ctx.lineTo(W - margin.r, gy); ctx.stroke();
-    const worldW = (W - margin.l - margin.r) / sc.s;
-    const step = niceStep(worldW / 6);
+    const ticksMax = (W - margin.r - sc.Lx) / sc.s;
+    const step = niceStep(ticksMax / 6);
     ctx.fillStyle = "#5a6470"; ctx.font = "11px 'Courier New', monospace";
     ctx.strokeStyle = "#b9c2cc"; ctx.lineWidth = 1;
-    for (let x = 0; x <= worldW; x += step) {
+    for (let x = 0; x <= ticksMax; x += step) {
       const X = sc.toX(x);
       ctx.beginPath(); ctx.moveTo(X, gy - 4); ctx.lineTo(X, gy + 4); ctx.stroke();
       ctx.fillText(x.toFixed(0) + "m", X + 2, gy + 15);
     }
 
-    // cannon
+    // cannon (muzzle sits at the launch origin)
     const ox = sc.toX(0), oy = sc.toY(0);
-    drawCannon(ox, oy, p.theta);
+    drawCannon(sc, p.theta);
 
     // line of sight to the apple's original position (with arrowhead)
     if (aimEl.checked) {
