@@ -269,3 +269,12 @@ td .tag { font-weight: 700; }
 }
 .card h3 { margin: 12px 0 6px; font-size: 20px; }
 .card p { margin: 0; color: var(--muted); font-size: 15px; }
+
+
+/* Proper subscript / superscript formatting (consistent everywhere) */
+sub, sup { font-size: 0.72em; line-height: 0; font-family: inherit; font-style: normal; }
+sub { vertical-align: -0.25em; }
+sup { vertical-align: 0.45em; }
+
+/* Light "outdoor" canvas for the falling-target (apple tree) scene */
+canvas.sky { background: linear-gradient(#eaf6ff, #ffffff); }

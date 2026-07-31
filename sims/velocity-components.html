@@ -12,7 +12,7 @@
 
   <main class="content">
     <div class="wrap">
-      <h1>Two Jobs at Once</h1>
+      <h1>Velocity Components</h1>
       <p class="subtitle">A launch velocity <i>v<sub>i</sub></i> at angle <i>θ<sub>i</sub></i> above the horizontal splits into an independent horizontal push and vertical push. Drag the sliders and launch.</p>
 
       <div class="eqs">
@@ -55,7 +55,7 @@
             <button id="launch">Launch ▶</button>
             <button id="reset" class="secondary">Reset</button>
           </div>
-          <p class="hint">Tip: try 15°, 45°, and 75° to see the table come to life. (g = 9.8 m/s²)</p>
+          <p class="hint">Tip: try 15°, 45°, and 75° to compare the components. (g = 9.8 m/s²)</p>
         </div>
 
         <!-- Canvas -->
@@ -70,21 +70,6 @@
         </div>
       </div>
 
-      <table id="ref">
-        <caption>Quick reference table</caption>
-        <thead>
-          <tr><th>Launch angle</th><th>Horizontal component</th><th>Vertical component</th></tr>
-        </thead>
-        <tbody>
-          <tr data-band="low"><td>Small (flat, e.g. 15°)</td><td><span class="tag large">Large</span></td><td><span class="tag small">Small</span></td></tr>
-          <tr data-band="mid"><td>45°</td><td><span class="tag equal">Equal</span></td><td><span class="tag equal">Equal</span></td></tr>
-          <tr data-band="high"><td>Large (steep, e.g. 75°)</td><td><span class="tag small">Small</span></td><td><span class="tag large">Large</span></td></tr>
-        </tbody>
-      </table>
-
-      <div class="note">
-        <b>Why they're independent:</b> the horizontal component <span class="vx-c">v<sub>xi</sub></span> never changes during flight (no horizontal force), while gravity only acts on the vertical component <span class="vy-c">v<sub>yi</sub></span>. Watch the blue arrow stay the same length while the orange arrow shrinks, flips, and grows as the projectile rises and falls.
-      </div>
     </div>
   </main>
 </div>
@@ -208,6 +193,19 @@
     ctx.stroke();
   }
 
+  // Draws "v" + a proper (smaller, lowered) subscript + trailing text on the canvas.
+  function subLabel(x, y, base, sub, rest, color) {
+    ctx.fillStyle = color;
+    ctx.font = "12px 'Courier New', monospace";
+    ctx.fillText(base, x, y);
+    const w1 = ctx.measureText(base).width;
+    ctx.font = "9px 'Courier New', monospace";
+    ctx.fillText(sub, x + w1, y + 3);
+    const w2 = ctx.measureText(sub).width;
+    ctx.font = "12px 'Courier New', monospace";
+    ctx.fillText(rest, x + w1 + w2 + 1, y);
+  }
+
   function drawComponentTriangle(p, sc) {
     const ox = sc.toX(0), oy = sc.toY(0);
     const vScale = Math.min(4.2, 150 / Math.max(p.v, 1));
@@ -221,10 +219,8 @@
     ctx.fillStyle = getVar("--v"); ctx.font = "13px Georgia, serif";
     ctx.fillText("θ = " + p.th.toFixed(0) + "°", ox + 14, oy - 10);
 
-    ctx.fillStyle = getVar("--vx"); ctx.font = "12px 'Courier New', monospace";
-    ctx.fillText("vₓ=" + p.vx.toFixed(1), ox + vxPix / 2 - 20, oy + 16);
-    ctx.fillStyle = getVar("--vy");
-    ctx.fillText("v_y=" + p.vy.toFixed(1), ox + vxPix + 6, oy - vyPix / 2);
+    subLabel(ox + vxPix / 2 - 26, oy + 16, "v", "xi", "=" + p.vx.toFixed(1), getVar("--vx"));
+    subLabel(ox + vxPix + 6, oy - vyPix / 2, "v", "yi", "=" + p.vy.toFixed(1), getVar("--vy"));
   }
 
   function drawProjectile(p, sc) {
@@ -262,16 +258,6 @@
     els.eqVy.textContent = p.vy.toFixed(1);
     els.outRange.textContent =
       p.range.toFixed(1) + " m · " + p.hMax.toFixed(1) + " m · " + p.tFlight.toFixed(2) + " s";
-    highlightRow(p.th);
-  }
-
-  function highlightRow(th) {
-    const rows = document.querySelectorAll("#ref tbody tr");
-    rows.forEach((r) => r.classList.remove("active"));
-    let band;
-    if (th < 40) band = "low"; else if (th <= 50) band = "mid"; else band = "high";
-    const row = document.querySelector('#ref tbody tr[data-band="' + band + '"]');
-    if (row) row.classList.add("active");
   }
 
   let lastTs = null;

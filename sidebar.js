@@ -32,8 +32,8 @@
 
   // Optional prettier labels. Unlisted files are auto-titled.
   var META = {
-    "falling-target.html":      { title: "Falling Target",     sub: "Monkey & hunter" },
-    "velocity-components.html": { title: "Velocity Components", sub: "Two jobs at once" }
+    "falling-target.html":      { title: "Falling Target" },
+    "velocity-components.html": { title: "Velocity Components" }
   };
 
   // Are we currently on a page inside sims/ ?
@@ -91,7 +91,7 @@
     var homeItem =
       '<li><a' + (atHome ? ' class="active"' : '') + ' href="' + base + 'index.html">' +
         '<span class="num">\u2630</span>' +
-        '<span class="t"><b>Home</b><small>Overview</small></span>' +
+        '<span class="t"><b>Home</b></span>' +
       '</a></li>';
 
     var n = 0;

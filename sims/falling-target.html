@@ -62,19 +62,16 @@
 
         <!-- Canvas -->
         <div class="panel canvas-card">
-          <canvas id="c" width="760" height="460"></canvas>
+          <canvas id="c" class="sky" width="760" height="460"></canvas>
           <div class="legend">
-            <span><i class="dot" style="background:var(--path)"></i> projectile</span>
-            <span><i class="dot" style="background:var(--target)"></i> target</span>
-            <span><i class="swatch" style="background:var(--muted)"></i> line of sight</span>
-            <span><i class="swatch" style="background:var(--v)"></i> equal drop ½gt²</span>
+            <span><i class="dot" style="background:#1b1b1b"></i> projectile</span>
+            <span><i class="dot" style="background:#e23b3b"></i> apple (target)</span>
+            <span><i class="swatch" style="background:#9aa3ad"></i> line of sight</span>
+            <span><i class="swatch" style="background:#d99400"></i> equal drop ½gt²</span>
           </div>
         </div>
       </div>
 
-      <div class="note">
-        <b>Answer: the projectile always hits the falling target.</b> The moment gravity switches on, both objects begin dropping the <i>same</i> vertical distance (½gt²) in the <i>same</i> time — regardless of the projectile's horizontal motion. So the projectile falls below the straight aim line by exactly the amount the target falls below its start. The horizontal and vertical motions simply don't affect each other.
-      </div>
     </div>
   </main>
 </div>
@@ -161,43 +158,135 @@
     return { x: p.Dx, y: p.Dy - 0.5 * g * tt * tt };
   }
 
+  // ---------- drawing helpers ----------
+  function circle(x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
+
+  function niceStep(raw) {
+    const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+    const n = raw / pow;
+    let m; if (n < 1.5) m = 1; else if (n < 3.5) m = 2; else if (n < 7.5) m = 5; else m = 10;
+    return m * pow;
+  }
+
+  function arrowHead(x, y, angle, color, size) {
+    ctx.save();
+    ctx.translate(x, y); ctx.rotate(angle);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-size, -size * 0.55);
+    ctx.lineTo(-size, size * 0.55);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawCannon(ox, oy, theta) {
+    // carriage
+    ctx.fillStyle = "#1b1b1b";
+    ctx.beginPath();
+    ctx.moveTo(ox - 16, oy); ctx.lineTo(ox + 20, oy);
+    ctx.lineTo(ox + 8, oy - 15); ctx.lineTo(ox - 12, oy - 15);
+    ctx.closePath(); ctx.fill();
+    // barrel
+    ctx.save();
+    ctx.translate(ox, oy - 13); ctx.rotate(-theta);
+    ctx.fillStyle = "#26313f";
+    ctx.beginPath();
+    ctx.moveTo(0, -8); ctx.lineTo(40, -6); ctx.lineTo(40, 6); ctx.lineTo(0, 8);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#161d26";
+    ctx.fillRect(37, -8, 6, 16);
+    ctx.restore();
+    // wheel
+    ctx.fillStyle = "#111"; circle(ox, oy - 7, 12);
+    ctx.strokeStyle = "#5b6570"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(ox, oy - 7, 12, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = "#4a545e"; circle(ox, oy - 7, 3.5);
+  }
+
+  function drawApple(x, y, r, alpha) {
+    ctx.save();
+    if (alpha != null) ctx.globalAlpha = alpha;
+    ctx.fillStyle = "#e23b3b";
+    circle(x - r * 0.32, y, r);
+    circle(x + r * 0.32, y, r);
+    circle(x, y + r * 0.15, r * 0.95);
+    ctx.fillStyle = "rgba(255,255,255,0.35)";
+    circle(x - r * 0.45, y - r * 0.4, r * 0.26);
+    ctx.strokeStyle = "#5a3a22"; ctx.lineWidth = 2.2; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(x, y - r * 0.85); ctx.lineTo(x + 2, y - r * 1.7); ctx.stroke();
+    ctx.lineCap = "butt";
+    ctx.fillStyle = "#4fa346";
+    ctx.beginPath(); ctx.ellipse(x + 7, y - r * 1.5, 5, 2.6, -0.6, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawTree(sc, p, gy) {
+    const ax = sc.toX(p.Dx), ayHome = sc.toY(p.Dy);
+    let trunkX = Math.min(ax + 72, W - margin.r - 24);
+    trunkX = Math.max(trunkX, ax + 26);
+    const canopyY = Math.max(Math.min(ayHome - 30, gy - 130), margin.t + 46);
+    const trunkTop = canopyY + 34;
+    // trunk
+    ctx.strokeStyle = "#7a5330"; ctx.lineCap = "round"; ctx.lineWidth = 20;
+    ctx.beginPath(); ctx.moveTo(trunkX, gy); ctx.lineTo(trunkX, trunkTop); ctx.stroke();
+    // branch reaching toward the apple
+    ctx.lineWidth = 8;
+    ctx.beginPath(); ctx.moveTo(trunkX, trunkTop + 18); ctx.lineTo(ax, ayHome - 3); ctx.stroke();
+    ctx.lineCap = "butt";
+    // canopy (darker base blobs)
+    ctx.fillStyle = "#3f8a3a";
+    [[0,-6,54],[-48,4,40],[48,2,42],[-24,-42,38],[28,-40,40],[6,28,40],[-32,26,30]]
+      .forEach(function (b) { circle(trunkX + b[0], canopyY + b[1], b[2]); });
+    // lighter highlights
+    ctx.fillStyle = "#54ad49";
+    [[-26,-20,22],[22,-16,20],[2,6,26],[-42,10,16]]
+      .forEach(function (b) { circle(trunkX + b[0], canopyY + b[1], b[2]); });
+    // grass mound at base
+    ctx.fillStyle = "#54ad49";
+    ctx.beginPath(); ctx.ellipse(trunkX, gy, 36, 9, 0, 0, Math.PI * 2); ctx.fill();
+  }
+
   function drawScene() {
     const p = params();
     const sc = makeScale(p);
     ctx.clearRect(0, 0, W, H);
-
-    // ground
     const gy = H - margin.b;
-    ctx.strokeStyle = "#556"; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(margin.l, gy); ctx.lineTo(W - margin.r, gy); ctx.stroke();
+    const ax = sc.toX(p.Dx), ayHome = sc.toY(p.Dy);
+
+    // apple tree (background)
+    drawTree(sc, p, gy);
+
+    // ground line + subtle distance ticks
+    ctx.strokeStyle = "#2b2b2b"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(margin.l - 8, gy); ctx.lineTo(W - margin.r, gy); ctx.stroke();
+    const worldW = (W - margin.l - margin.r) / sc.s;
+    const step = niceStep(worldW / 6);
+    ctx.fillStyle = "#5a6470"; ctx.font = "11px 'Courier New', monospace";
+    ctx.strokeStyle = "#b9c2cc"; ctx.lineWidth = 1;
+    for (let x = 0; x <= worldW; x += step) {
+      const X = sc.toX(x);
+      ctx.beginPath(); ctx.moveTo(X, gy - 4); ctx.lineTo(X, gy + 4); ctx.stroke();
+      ctx.fillText(x.toFixed(0) + "m", X + 2, gy + 15);
+    }
 
     // cannon
     const ox = sc.toX(0), oy = sc.toY(0);
-    ctx.save();
-    ctx.translate(ox, oy);
-    ctx.rotate(-p.theta);
-    ctx.fillStyle = "#8a94a6";
-    ctx.fillRect(-4, -6, 26, 12);
-    ctx.restore();
-    ctx.fillStyle = "#8a94a6";
-    ctx.beginPath(); ctx.arc(ox, oy, 8, 0, Math.PI * 2); ctx.fill();
+    drawCannon(ox, oy, p.theta);
 
-    // line of sight to ORIGINAL target position
-    const tgtStart = { x: sc.toX(p.Dx), y: sc.toY(p.Dy) };
+    // line of sight to the apple's original position (with arrowhead)
     if (aimEl.checked) {
-      ctx.strokeStyle = getVar("--muted");
-      ctx.setLineDash([6, 6]); ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(tgtStart.x, tgtStart.y); ctx.stroke();
+      const laX = ax - 14 * Math.cos(p.theta);
+      const laY = ayHome + 14 * Math.sin(p.theta);
+      ctx.strokeStyle = "#9aa3ad"; ctx.setLineDash([7, 6]); ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(ox, oy - 13); ctx.lineTo(laX, laY); ctx.stroke();
       ctx.setLineDash([]);
-      // ghost of original target position
-      ctx.strokeStyle = getVar("--target"); ctx.globalAlpha = 0.4;
-      ctx.beginPath(); ctx.arc(tgtStart.x, tgtStart.y, 9, 0, Math.PI * 2); ctx.stroke();
-      ctx.globalAlpha = 1;
+      arrowHead(laX, laY, -p.theta, "#9aa3ad", 9);
     }
 
     // faint full trajectory: always after firing; a brief preview while idle
     if (firing || finished || showPreview) {
-      ctx.strokeStyle = "rgba(126,231,135,0.25)"; ctx.lineWidth = 2;
+      ctx.strokeStyle = "rgba(43,140,52,0.55)"; ctx.lineWidth = 2;
       ctx.beginPath();
       let first = true;
       for (let tt = 0; tt <= p.tEnd + 0.001; tt += p.tEnd / 120 || 1) {
@@ -216,7 +305,7 @@
 
     // traversed trajectory (bright)
     if (tt > 0) {
-      ctx.strokeStyle = getVar("--path"); ctx.lineWidth = 2.5;
+      ctx.strokeStyle = "#2e9e3a"; ctx.lineWidth = 2.5;
       ctx.beginPath(); let f2 = true;
       for (let s = 0; s <= tt + 0.0001; s += tt / 80 || 1) {
         const pp = projPos(p, s); if (pp.y < 0) break;
@@ -229,44 +318,33 @@
     // equal-drop markers
     if (dropEl.checked && tt > 0) {
       const drop = 0.5 * g * tt * tt;
-      // projectile: from aim-line point down to actual
       const aimPtY = p.vy * tt;                 // no-gravity y along aim line at this x
       const projX = sc.toX(pr.x);
+      ctx.strokeStyle = "#d99400"; ctx.lineWidth = 2; ctx.setLineDash([3, 3]);
       if (pr.y >= 0) {
-        ctx.strokeStyle = getVar("--v"); ctx.lineWidth = 2; ctx.setLineDash([3, 3]);
-        ctx.beginPath();
-        ctx.moveTo(projX, sc.toY(aimPtY));
-        ctx.lineTo(projX, sc.toY(pr.y));
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(projX, sc.toY(aimPtY)); ctx.lineTo(projX, sc.toY(pr.y)); ctx.stroke();
       }
-      // target: from start height down to actual
       if (tg.y >= 0) {
-        ctx.beginPath();
-        ctx.moveTo(tgtStart.x, sc.toY(p.Dy));
-        ctx.lineTo(tgtStart.x, sc.toY(tg.y));
-        ctx.stroke();
-        ctx.setLineDash([]);
+        ctx.beginPath(); ctx.moveTo(ax, sc.toY(p.Dy)); ctx.lineTo(ax, sc.toY(tg.y)); ctx.stroke();
       }
       ctx.setLineDash([]);
-      ctx.fillStyle = getVar("--v");
-      ctx.font = "12px 'Courier New', monospace";
-      ctx.fillText("½gt²=" + drop.toFixed(1) + "m", tgtStart.x + 12, sc.toY((p.Dy + Math.max(tgY,0)) / 2));
+      ctx.fillStyle = "#b5790a"; ctx.font = "12px 'Courier New', monospace";
+      ctx.fillText("½gt²=" + drop.toFixed(1) + "m", ax + 12, sc.toY((p.Dy + Math.max(tgY, 0)) / 2));
     }
 
-    // target (red)
-    ctx.fillStyle = getVar("--target");
-    ctx.beginPath(); ctx.arc(sc.toX(tg.x), sc.toY(tgY), 9, 0, Math.PI * 2); ctx.fill();
+    // ghost of the apple's start position after it drops
+    if (aimEl.checked && tt > 0) drawApple(ax, ayHome, 9, 0.3);
 
-    // projectile (green) + collision flash
+    // apple (target) at current position
+    drawApple(sc.toX(tg.x), sc.toY(tgY), 9);
+
+    // projectile (cannonball) + collision flash
     const collide = p.isHit && tt >= p.tHit - 1e-6;
     if (collide) {
-      ctx.fillStyle = getVar("--v");
-      ctx.beginPath(); ctx.arc(sc.toX(pr.x), sc.toY(prY), 16, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = "#fff"; ctx.font = "bold 16px Arial";
-      ctx.fillText("💥", sc.toX(pr.x) - 10, sc.toY(prY) + 6);
+      ctx.fillStyle = "#ffb020"; circle(sc.toX(pr.x), sc.toY(prY), 15);
+      ctx.font = "bold 16px Arial"; ctx.fillText("💥", sc.toX(pr.x) - 10, sc.toY(prY) + 6);
     } else {
-      ctx.fillStyle = "#fff";
-      ctx.beginPath(); ctx.arc(sc.toX(pr.x), sc.toY(prY), 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#1b1b1b"; circle(sc.toX(pr.x), sc.toY(prY), 6);
     }
   }
 
