@@ -143,7 +143,7 @@ text_tracked(d, (x, s(70)), "NIEVES VILLARICA NATIONAL HIGH SCHOOL",
              f_kicker, INK, tracking=s(1.5))
 d.text((x, s(102)), "Brgy. Villarica, Babak District, Island Garden City of Samal",
        font=f_addr, fill=GRAY)
-d.text((x, s(132)), "Science, Technology, Engineering and Mathematics (STEM)",
+d.text((x, s(132)), "Science, Technology, Engineering, and Mathematics (STEM)",
        font=f_strand, fill=GRAY)
 
 # big title
