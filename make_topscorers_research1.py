@@ -81,7 +81,7 @@ f_score   = F("NotoSans-Black.ttf",     s(34))
 f_scoremx = F("NotoSans-Bold.ttf",      s(19))
 
 # ---------------------------------------------------------------- geometry
-W       = 1300
+W       = 1210     # trimmed from 1300 to remove dead space right of the score column
 LM      = 96      # page/header left margin (school name, title, subtitle)
 RM      = 96
 CW      = W - LM - RM
@@ -92,8 +92,7 @@ foot_h     = 36
 
 GRAY_COL_W    = 70      # width of the "Grade 12 - Tesla" section column (table only)
 GRAY_COL_GAP  = 26      # gap between the gray column and the rank badge column
-SCORE_INSET   = 90      # pulls the score column in from the right margin a bit,
-                         # tightening the Name<->Score gap
+SCORE_INSET   = 0       # score column now sits flush with the trimmed right margin
 SLUG_GRAY     = (231, 231, 233)   # gray box fill for the section column
 
 n_rows = sum(len(g[1]) for g in GROUPS)
