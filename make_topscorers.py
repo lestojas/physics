@@ -14,7 +14,12 @@ TRACK      = (240, 240, 240)   # bar track
 PANEL      = (247, 247, 247)   # faint panel
 YELLOW     = (255, 196, 0)
 ORANGE     = (255, 106, 0)
-AMBER      = (255, 150, 0)     # orange->yellow blend (still within family)
+AMBER      = (255, 150, 0)
+
+# medal metals (ranks 1-3)
+GOLD       = (214, 168, 54)
+SILVER     = (168, 172, 178)
+BRONZE     = (178, 118, 66)
 
 FONT_DIR = "/usr/share/fonts/google-noto/"
 def F(name, size):
@@ -22,6 +27,11 @@ def F(name, size):
 
 SS = 2  # supersampling
 def s(v): return int(round(v * SS))
+
+def lerp(c1, c2, t):
+    return tuple(int(round(c1[i] + (c2[i] - c1[i]) * t)) for i in range(3))
+def lighten(c, t): return lerp(c, (255, 255, 255), t)
+def darken(c, t):  return lerp(c, (0, 0, 0), t)
 
 # ---------------------------------------------------------------- data
 # (rank, [ (name, section, score) ... ])
@@ -42,18 +52,21 @@ GROUPS = [
 ]
 MAX_SCORE = 30
 
+MEDAL = {1: GOLD, 2: SILVER, 3: BRONZE}
 def tier(rank):
-    return {1: ORANGE, 2: AMBER, 3: YELLOW, 4: GRAY_SOFT, 5: GRAY_SOFT}[rank]
-def tier_text(rank):
-    return WHITE if rank in (1, 2) else INK
+    # color used for the score accent bar
+    return {1: GOLD, 2: SILVER, 3: BRONZE, 4: GRAY_SOFT, 5: GRAY_SOFT}[rank]
+def medal_text(rank):
+    return WHITE if rank == 3 else INK   # bronze needs light text; gold/silver dark
 
 # ---------------------------------------------------------------- fonts
 f_kicker  = F("NotoSans-ExtraBold.ttf", s(19))
 f_addr    = F("NotoSans-Regular.ttf",   s(20))
 f_strand  = F("NotoSans-Italic.ttf",    s(20))
 f_title   = F("NotoSans-Black.ttf",     s(78))
-f_sub_b   = F("NotoSans-ExtraBold.ttf", s(26))
-f_sub     = F("NotoSans-Medium.ttf",    s(26))
+f_sub_b   = F("NotoSans-ExtraBold.ttf", s(23))
+f_sub     = F("NotoSans-Medium.ttf",    s(23))
+f_test    = F("NotoSans-ExtraBold.ttf", s(27))
 f_colhdr  = F("NotoSans-ExtraBold.ttf", s(15))
 f_name    = F("NotoSans-Bold.ttf",      s(28))
 f_meta    = F("NotoSans-Medium.ttf",    s(20))
@@ -99,6 +112,26 @@ def text_vc(draw, x, cy, txt, font, fill):
     draw.text((x, cy - (b[1] + b[3]) / 2), txt, font=font, fill=fill)
     return draw.textlength(txt, font=font)
 
+def medal_badge(bx0, by0, size, base):
+    """Paste a metallic gradient rounded-square badge (base px coords)."""
+    ds = s(size)
+    col = Image.new("RGB", (1, ds))
+    top, mid, bot = lighten(base, 0.42), base, darken(base, 0.24)
+    for yy in range(ds):
+        t = yy / (ds - 1)
+        col.putpixel((0, yy), lerp(top, mid, t * 2) if t < 0.5
+                     else lerp(mid, bot, (t - 0.5) * 2))
+    grad = col.resize((ds, ds))
+    mask = Image.new("L", (ds, ds), 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, ds - 1, ds - 1], radius=s(16), fill=255)
+    img.paste(grad, (s(bx0), s(by0)), mask)
+    rrect(d, [s(bx0), s(by0), s(bx0 + size) - 1, s(by0 + size) - 1],
+          r=s(16), outline=darken(base, 0.32), width=max(1, SS))
+
+def outline_badge(bx0, by0, size):
+    rrect(d, [s(bx0), s(by0), s(bx0 + size), s(by0 + size)],
+          r=s(16), fill=WHITE, outline=GRAY_SOFT, width=max(2, SS))
+
 # ---------------------------------------------------------------- header
 x = s(LM)
 
@@ -122,20 +155,45 @@ tl_bottom = ty + s(78) + s(14)
 d.rectangle([x, tl_bottom, x + s(140), tl_bottom + s(9)], fill=ORANGE)
 d.rectangle([x + s(148), tl_bottom, x + s(178), tl_bottom + s(9)], fill=YELLOW)
 
-# subtitle
-sy = tl_bottom + s(26)
-sx = d.text((x, sy), "PHYSICS 1", font=f_sub_b, fill=INK)
+# subtitle: PHYSICS 1  ·  [ Summative Test 1 ]  (test emphasized w/ highlight)
+sy = tl_bottom + s(30)
+d.text((x, sy + s(2)), "PHYSICS 1", font=f_sub_b, fill=GRAY)
 p1w = d.textlength("PHYSICS 1", font=f_sub_b)
-d.text((x + p1w + s(14), sy), "\u2014", font=f_sub, fill=GRAY_SOFT)
-dash_w = d.textlength("\u2014", font=f_sub)
-d.text((x + p1w + s(14) + dash_w + s(14), sy), "Summative Test 1", font=f_sub, fill=GRAY)
+cur = x + p1w + s(16)
+# separator dot
+d.text((cur, sy + s(2)), "\u2022", font=f_sub_b, fill=GRAY_SOFT)
+cur += d.textlength("\u2022", font=f_sub_b) + s(16)
+# highlighted "Summative Test 1"
+tb = d.textbbox((0, 0), "Summative Test 1", font=f_test)
+tw, th = tb[2] - tb[0], tb[3] - tb[1]
+pad_x, pad_y = s(14), s(9)
+hl0 = (cur - s(2), sy - pad_y)
+hl1 = (cur + tw + pad_x, sy + th + pad_y)
+rrect(d, [hl0[0], hl0[1], hl1[0], hl1[1]], r=s(8), fill=YELLOW)
+d.text((cur + pad_x / 2 - tb[0], sy - tb[1] + pad_y / 2 - s(0)),
+       "Summative Test 1", font=f_test, fill=INK)
 
-# ---------------------------------------------------------------- column anchors
-rank_cx   = LM + 44          # center of rank badge
-name_x    = LM + 108         # start of student name column
-sect_x    = 628              # start of grade & section column
-score_rx  = W - RM           # right edge for score
-bar_w     = 150              # score accent bar width
+# ---------------------------------------------------------------- column anchors (dynamic)
+def wbase(txt, font):
+    return d.textlength(txt, font=font) / SS
+
+rank_cx   = LM + 44                      # center of rank badge
+name_x    = LM + 112                     # start of student name column
+score_rx  = W - RM                       # right edge for score
+bar_w     = 150                          # score accent bar width
+
+# widest content per column (base px)
+all_students = [st for _, sts in GROUPS for st in sts]
+max_name = max(wbase(n, f_name) for n, _, _ in all_students)
+max_sect = max(wbase("Grade 12 - " + sec, f_meta) for _, sec, _ in all_students)
+
+# left edge of the score block (bar defines it)
+score_block_left = score_rx - bar_w
+# center the grade&section column in the space between name-end and score-block
+name_end = name_x + max_name
+free = score_block_left - name_end - max_sect
+gap  = max(int(free / 2), 72)            # equal, comfortable gaps (>=72)
+sect_x = int(name_end + gap)
 
 # column headers
 chy = head_h - 28
@@ -160,14 +218,19 @@ for gi, (rank, students) in enumerate(GROUPS):
     # rank badge, vertically centered in group
     bx0 = LM + 44 - BADGE // 2
     by0 = grp_top + (grp_h - BADGE) // 2
-    rrect(d, [s(bx0), s(by0), s(bx0 + BADGE), s(by0 + BADGE)], r=s(18), fill=col)
+    if rank in MEDAL:
+        medal_badge(bx0, by0, BADGE, MEDAL[rank])
+        num_fill = medal_text(rank)
+    else:
+        outline_badge(bx0, by0, BADGE)
+        num_fill = INK
     # rank number centered
     num = str(rank)
     nb = d.textbbox((0, 0), num, font=f_badge)
     nw, nh = nb[2] - nb[0], nb[3] - nb[1]
     d.text((s(bx0 + BADGE // 2) - nw / 2 - nb[0],
             s(by0 + BADGE // 2) - nh / 2 - nb[1]),
-           num, font=f_badge, fill=tier_text(rank))
+           num, font=f_badge, fill=num_fill)
 
     for si, (name, section, score) in enumerate(students):
         ry = y + si * row_h
