@@ -58,12 +58,8 @@
           <input type="range" id="angle" min="0" max="90" step="1" value="40">
         </div>
         <div class="control" id="h0-ctl">
-          <label>Launch height <span id="h0-sym">h</span> <span class="val"><span id="h0-val">40</span> m</span></label>
+          <label>Launch height <span id="h0-sym" class="v-c">h</span> <span class="val"><span id="h0-val">40</span> m</span></label>
           <input type="range" id="h0" min="0" max="120" step="1" value="40">
-        </div>
-        <div class="control" id="hf-ctl">
-          <label>Landing height <span>h<sub>f</sub></span> <span class="val"><span id="hf-val">0</span> m</span></label>
-          <input type="range" id="hf" min="0" max="110" step="1" value="0">
         </div>
 
         <div class="status ready" id="cond">Launch: purely horizontal &middot; Landing: below launch</div>
@@ -120,14 +116,12 @@
   const speedEl = document.getElementById("speed");
   const angleEl = document.getElementById("angle");
   const h0El    = document.getElementById("h0");
-  const hfEl    = document.getElementById("hf");
   const modesEl = document.getElementById("modes");
 
   const els = {
     speedVal: document.getElementById("speed-val"),
     angleVal: document.getElementById("angle-val"),
     h0Val:    document.getElementById("h0-val"),
-    hfVal:    document.getElementById("hf-val"),
     outV0x:   document.getElementById("out-v0x"),
     outV0y:   document.getElementById("out-v0y"),
     outVfx:   document.getElementById("out-vfx"),
@@ -141,7 +135,6 @@
     cond:     document.getElementById("cond"),
     angleCtl: document.getElementById("angle-ctl"),
     h0Ctl:    document.getElementById("h0-ctl"),
-    hfCtl:    document.getElementById("hf-ctl"),
     h0Sym:    document.getElementById("h0-sym"),
   };
 
@@ -165,8 +158,7 @@
     let y0, yLand;
     if (mode === 1)      { y0 = parseFloat(h0El.value); yLand = 0; }
     else if (mode === 2) { y0 = 0;                       yLand = 0; }
-    else                 { y0 = parseFloat(h0El.value);
-                           yLand = Math.min(parseFloat(hfEl.value), y0 - 1); }
+    else                 { y0 = parseFloat(h0El.value); yLand = 0; } // launch high, land at ground
 
     // land when y0 + v0y t - 1/2 g t^2 = yLand  ->  positive root
     const disc = v0y * v0y + 2 * g * (y0 - yLand);
@@ -363,8 +355,7 @@
       const ax = sc.toX(p.range / 2);
       dim(ax, sc.toY(p.apexAbs), ax, sc.gy0, "h\u2098\u2090\u2093", "#9be0a6");
     } else {
-      dim(launchX - 16, sc.toY(p.y0), launchX - 16, sc.toY(p.yLand), "h\u2080", "#c9a26b");
-      if (p.yLand > 0.5) dim(landX + 14, sc.toY(p.yLand), landX + 14, sc.gy0, "h_f", "#8fb7ff");
+      dim(launchX - 16, sc.toY(p.y0), launchX - 16, sc.gy0, "h\u2080", "#e0c04a");
       dim(launchX, sc.gy0 + 4, landX, sc.gy0 + 4, "\u0394x", "#8fb7ff");
     }
 
@@ -394,7 +385,6 @@
     els.speedVal.textContent = num(p.v0, 1).replace(/\.0$/, "");
     els.angleVal.textContent = p.th.toFixed(0);
     els.h0Val.textContent = parseFloat(h0El.value).toFixed(0);
-    els.hfVal.textContent = parseFloat(hfEl.value).toFixed(0);
 
     // result variables (whole-flight / landing values), consistent symbols
     const dyNet = p.yLand - p.y0;             // net vertical displacement
@@ -426,14 +416,9 @@
     });
     els.angleCtl.style.display = (mode === 1) ? "none" : "";
     els.h0Ctl.style.display    = (mode === 2) ? "none" : "";
-    els.hfCtl.style.display    = (mode === 3) ? "" : "none";
     els.h0Sym.innerHTML        = (mode === 3) ? "h<sub>0</sub>" : "h";
     els.cond.innerHTML = COND[mode];
     els.cond.style.borderLeft = "4px solid " + CASE_COLOR[mode];
-    // keep landing height below launch height in case 3
-    if (mode === 3 && parseFloat(hfEl.value) >= parseFloat(h0El.value)) {
-      hfEl.value = Math.max(0, parseFloat(h0El.value) - 5);
-    }
     reset();
   }
 
@@ -469,12 +454,8 @@
   // ---------------------------------------------------------------
   //  Wiring
   // ---------------------------------------------------------------
-  [speedEl, angleEl, h0El, hfEl].forEach(function (el) {
+  [speedEl, angleEl, h0El].forEach(function (el) {
     el.addEventListener("input", function () {
-      if (mode === 3 && parseFloat(hfEl.value) >= parseFloat(h0El.value)) {
-        if (el === hfEl) hfEl.value = Math.max(0, parseFloat(h0El.value) - 1);
-        else h0El.value = Math.min(120, parseFloat(hfEl.value) + 1);
-      }
       finished = false; updateReadouts(); draw();
     });
   });
