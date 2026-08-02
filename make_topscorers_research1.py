@@ -57,7 +57,7 @@ GROUPS = [
          ("Ni\u00f1a Meriel Sosme\u00f1a", 23)]),
 ]
 MAX_SCORE = 30
-SECTION_LINE = "Grade 12 - Tesla"
+SECTION_LINE = "GRADE 12  -  TESLA"
 
 MEDAL = {1: GOLD, 2: SILVER, 3: BRONZE}
 def tier(rank):
@@ -73,7 +73,7 @@ f_title   = F("NotoSans-Black.ttf",     s(78))
 f_sub_b   = F("NotoSans-ExtraBold.ttf", s(23))
 f_sub     = F("NotoSans-Medium.ttf",    s(23))
 f_test    = F("NotoSans-ExtraBold.ttf", s(27))
-f_section = F("NotoSans-Bold.ttf",      s(21))
+f_slug    = F("NotoSans-ExtraBold.ttf", s(22))
 f_colhdr  = F("NotoSans-ExtraBold.ttf", s(15))
 f_name    = F("NotoSans-Bold.ttf",      s(28))
 f_badge   = F("NotoSans-Black.ttf",     s(30))
@@ -81,14 +81,17 @@ f_score   = F("NotoSans-Black.ttf",     s(34))
 f_scoremx = F("NotoSans-Bold.ttf",      s(19))
 
 # ---------------------------------------------------------------- geometry
-W   = 1300
-LM  = 96          # left margin
-RM  = 96
-CW  = W - LM - RM
+W       = 1300
+SLUG_W  = 76      # gray vertical slug sidebar (holds "GRADE 12 - TESLA")
+LM      = SLUG_W + 56   # left margin of content, shifted inward past the slug
+RM      = 96
+CW      = W - LM - RM
 
 row_h      = 66
-head_h     = 424     # a bit taller: extra "Grade 12 - Tesla" line under subtitle
+head_h     = 396
 foot_h     = 36
+
+SLUG_GRAY = (231, 231, 233)   # gray box fill for the section slug
 
 n_rows = sum(len(g[1]) for g in GROUPS)
 list_h = n_rows * row_h
@@ -96,6 +99,30 @@ H = head_h + 26 + list_h + foot_h
 
 img  = Image.new("RGB", (s(W), s(H)), WHITE)
 d    = ImageDraw.Draw(img)
+
+def draw_vertical_slug(section_text):
+    """Full-height gray sidebar on the left with centered, rotated section text."""
+    d.rectangle([0, 0, s(SLUG_W), s(H)], fill=SLUG_GRAY)
+    d.rectangle([s(SLUG_W) - max(1, SS), 0, s(SLUG_W), s(H)], fill=(214, 214, 217))
+
+    tracking = s(3)
+    tb_all = d.textbbox((0, 0), section_text, font=f_slug)
+    text_len = sum(d.textlength(ch, font=f_slug) + tracking for ch in section_text) - tracking
+    text_h = tb_all[3] - tb_all[1]
+    pad = s(12)
+
+    temp = Image.new("RGBA", (int(text_len) + 2 * pad, int(text_h) + 2 * pad), (0, 0, 0, 0))
+    td = ImageDraw.Draw(temp)
+    tx = pad
+    for ch in section_text:
+        td.text((tx, pad - tb_all[1]), ch, font=f_slug, fill=INK)
+        tx += td.textlength(ch, font=f_slug) + tracking
+
+    rotated = temp.rotate(90, expand=True)
+    rw, rh = rotated.size
+    px = s(SLUG_W) // 2 - rw // 2
+    py = s(H) // 2 - rh // 2
+    img.paste(rotated, (px, py), rotated)
 
 def text_tracked(draw, xy, txt, font, fill, tracking=0):
     x, y = xy
@@ -135,6 +162,9 @@ def outline_badge(bx0, by0, size):
           r=s(16), fill=WHITE, outline=GRAY_SOFT, width=max(2, SS))
 
 # ---------------------------------------------------------------- header
+# draw the full-height gray slug sidebar first (behind everything else)
+draw_vertical_slug(SECTION_LINE)
+
 x = s(LM)
 
 # thin top accent tab (orange) — asymmetric, editorial
@@ -176,10 +206,6 @@ box_b = line_mid + th / 2.0 + pad_y
 rrect(d, [box_l, box_t, box_r, box_b], r=s(9), fill=RED)
 d.text((box_l + pad_x - tb[0], line_mid - (tb[1] + tb[3]) / 2.0),
        "Summative Test 1", font=f_test, fill=WHITE)
-
-# section line, directly below the subtitle (single section for the whole sheet)
-scy = line_mid + s(40)
-d.text((x, scy - s(0)), SECTION_LINE, font=f_section, fill=INK)
 
 # ---------------------------------------------------------------- column anchors (dynamic)
 def wbase(txt, font):
