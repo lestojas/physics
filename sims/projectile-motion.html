@@ -17,11 +17,11 @@
           <canvas id="c" width="1000" height="620"></canvas>
         </div>
         <div class="sim-legend">
-          <span><i class="swatch" style="background:var(--v)"></i> initial velocity v<sub>0</sub></span>
-          <span><i class="swatch" style="background:var(--vx)"></i> horizontal v<sub>0x</sub></span>
-          <span><i class="swatch" style="background:var(--vy)"></i> vertical v<sub>0y</sub></span>
-          <span><i class="swatch" style="background:var(--path)"></i> trajectory</span>
-          <span><i class="swatch" style="background:#8a94a0"></i> acceleration a<sub>y</sub> = &minus;g</span>
+          <span><i class="swatch" style="background:var(--v)"></i><span class="lg">initial velocity v<sub>0</sub></span></span>
+          <span><i class="swatch" style="background:var(--vx)"></i><span class="lg">horizontal v<sub>0x</sub></span></span>
+          <span><i class="swatch" style="background:var(--vy)"></i><span class="lg">vertical v<sub>0y</sub></span></span>
+          <span><i class="swatch" style="background:var(--path)"></i><span class="lg">trajectory</span></span>
+          <span><i class="swatch" style="background:#8a94a0"></i><span class="lg">acceleration a<sub>y</sub> = &minus;g</span></span>
         </div>
       </div>
 
@@ -103,6 +103,7 @@
   "use strict";
   const g = 9.8;
   const DEG = Math.PI / 180;
+  const SIM_SECONDS = 5;   // every launch animates over exactly 5 real seconds
 
   const canvas = document.getElementById("c");
   const ctx = canvas.getContext("2d");
@@ -194,8 +195,10 @@
   // ---------------------------------------------------------------
   //  Scaling / drawing
   // ---------------------------------------------------------------
-  const margin = { l: 56, r: 34, t: 30, b: 66 };
-  const VEC = 74; // px length representing the resultant v0
+  // Bottom/top margins reserve room so velocity vectors are never clipped:
+  // the longest vector is VEC px and points down at the landing point.
+  const VEC = 74; // px length representing the fastest speed in the flight
+  const margin = { l: 56, r: 44, t: 46, b: VEC + 30 };
 
   function makeScale(p) {
     const worldW = Math.max(p.range * 1.14, 12);
@@ -311,7 +314,10 @@
   function drawVectors(p, sc, t, atLaunch) {
     const s = stateAt(p, t);
     const X = sc.toX(s.x), Y = sc.toY(s.y);
-    const vScale = VEC / Math.max(p.v0, 1);
+    // Scale by the fastest speed of the whole flight (the landing speed can
+    // exceed v0), so the impact vectors are never longer than VEC and never
+    // spill past the reserved bottom margin.
+    const vScale = VEC / Math.max(p.v0, p.vLand, 1);
     drawArrow(X, Y, X + s.vx * vScale, Y, getVar("--vx"), atLaunch ? 3 : 2.5);          // v0x / vx
     drawArrow(X, Y, X, Y - s.vy * vScale, getVar("--vy"), atLaunch ? 3 : 2.5);          // v0y / vy
     drawArrow(X, Y, X + s.vx * vScale, Y - s.vy * vScale, getVar("--v"), atLaunch ? 3.6 : 3); // resultant
@@ -462,7 +468,10 @@
     if (lastTs == null) lastTs = ts;
     const dt = (ts - lastTs) / 1000; lastTs = ts;
     const p = params();
-    flightT += dt * 0.85;
+    // Advance so the whole flight (0 -> tF) always plays over SIM_SECONDS,
+    // no matter how long or short the real time of flight is.
+    const rate = p.tF > 1e-4 ? p.tF / SIM_SECONDS : 1;
+    flightT += dt * rate;
     if (flightT >= p.tF) {
       flightT = p.tF; launching = false; finished = true; anim = null; lastTs = null;
       draw(); updateReadouts(); return;

@@ -418,6 +418,10 @@ body.sim-page { overflow: hidden; }
   font-size: 12.5px; color: var(--muted);
 }
 .sim-legend span { display: inline-flex; align-items: center; gap: 6px; }
+/* Keep the whole label as one flex item so subscripts stay tight to their
+   base symbol (otherwise the flex `gap` pushes <sub> away from the letter). */
+.sim-legend .lg { white-space: nowrap; }
+.sim-legend .lg sub { margin-left: 0; }
 .sim-legend .dot, .sim-legend .swatch { box-shadow: 0 0 0 1px rgba(255,255,255,0.28); }
 
 .sim-controls {
