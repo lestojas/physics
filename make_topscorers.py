@@ -70,14 +70,14 @@ RM  = 96
 CW  = W - LM - RM
 
 # vertical rhythm (compact)
-row_h      = 74
+row_h      = 66
 grp_gap    = 10
 head_h     = 396
-foot_h     = 34
+foot_h     = 36
 
 n_rows = sum(len(g[1]) for g in GROUPS)
 list_h = n_rows * row_h + (len(GROUPS) - 1) * grp_gap
-H = head_h + 60 + list_h + foot_h
+H = head_h + 26 + list_h + foot_h
 
 img  = Image.new("RGB", (s(W), s(H)), WHITE)
 d    = ImageDraw.Draw(img)
@@ -93,6 +93,12 @@ def text_tracked(draw, xy, txt, font, fill, tracking=0):
 def rrect(draw, box, r, fill=None, outline=None, width=1):
     draw.rounded_rectangle(box, radius=r, fill=fill, outline=outline, width=width)
 
+def text_vc(draw, x, cy, txt, font, fill):
+    """Draw text left-anchored at x, vertically centered on cy (device px)."""
+    b = draw.textbbox((0, 0), txt, font=font)
+    draw.text((x, cy - (b[1] + b[3]) / 2), txt, font=font, fill=fill)
+    return draw.textlength(txt, font=font)
+
 # ---------------------------------------------------------------- header
 x = s(LM)
 
@@ -101,7 +107,7 @@ d.rectangle([s(LM), s(44), s(LM) + s(56), s(44) + s(7)], fill=ORANGE)
 
 text_tracked(d, (x, s(70)), "NIEVES VILLARICA NATIONAL HIGH SCHOOL",
              f_kicker, INK, tracking=s(1.5))
-d.text((x, s(102)), "Brgy. Villarica, Babak District  \u2022  Island Garden City of Samal",
+d.text((x, s(102)), "Brgy. Villarica, Babak District, Island Garden City of Samal",
        font=f_addr, fill=GRAY)
 d.text((x, s(132)), "Science, Technology, Engineering and Mathematics (STEM)",
        font=f_strand, fill=GRAY)
@@ -124,17 +130,18 @@ d.text((x + p1w + s(14), sy), "\u2014", font=f_sub, fill=GRAY_SOFT)
 dash_w = d.textlength("\u2014", font=f_sub)
 d.text((x + p1w + s(14) + dash_w + s(14), sy), "Summative Test 1", font=f_sub, fill=GRAY)
 
-# ---------------------------------------------------------------- column headers
-# column x anchors
+# ---------------------------------------------------------------- column anchors
 rank_cx   = LM + 44          # center of rank badge
-name_x    = LM + 118         # start of name
+name_x    = LM + 108         # start of student name column
+sect_x    = 628              # start of grade & section column
 score_rx  = W - RM           # right edge for score
-bar_right = W - RM
-bar_left  = W - RM - 210
+bar_w     = 150              # score accent bar width
 
-chy = head_h - 30
+# column headers
+chy = head_h - 28
 d.text((s(LM), s(chy)), "RANK", font=f_colhdr, fill=GRAY_SOFT)
-d.text((s(name_x), s(chy)), "STUDENT", font=f_colhdr, fill=GRAY_SOFT)
+d.text((s(name_x), s(chy)), "NAME OF STUDENT", font=f_colhdr, fill=GRAY_SOFT)
+d.text((s(sect_x), s(chy)), "GRADE & SECTION", font=f_colhdr, fill=GRAY_SOFT)
 sc_hdr = "SCORE"
 w_sc = d.textlength(sc_hdr, font=f_colhdr)
 d.text((s(score_rx) - w_sc, s(chy)), sc_hdr, font=f_colhdr, fill=GRAY_SOFT)
@@ -165,41 +172,39 @@ for gi, (rank, students) in enumerate(GROUPS):
     for si, (name, section, score) in enumerate(students):
         ry = y + si * row_h
         cy = ry + row_h // 2
+        dcy = s(cy)
 
         # subtle row separator within group (not before first)
         if si > 0:
             d.rectangle([s(name_x), s(ry), s(W - RM), s(ry) + max(1, SS - 1)], fill=LINE)
 
-        # name
-        d.text((s(name_x), s(cy - 26)), name, font=f_name, fill=INK)
-        # meta: grade + section, section emphasized
-        gtxt = "Grade 12"
-        d.text((s(name_x), s(cy + 6)), gtxt, font=f_meta, fill=GRAY)
-        gw = d.textlength(gtxt, font=f_meta)
-        d.text((s(name_x) + gw + s(8), s(cy + 6)), "\u00b7", font=f_meta, fill=GRAY_SOFT)
-        dw = d.textlength("\u00b7", font=f_meta)
-        d.text((s(name_x) + gw + s(8) + dw + s(8), s(cy + 6)),
-               section, font=f_meta, fill=INK)
+        # col 2: name of student (single line, vertically centered)
+        text_vc(d, s(name_x), dcy - s(6), name, f_name, INK)
 
-        # score number (right aligned), with /30 in gray
+        # col 3: grade & section  ->  "Grade 12 - Maxwell" (hyphen)
+        gx = text_vc(d, s(sect_x), dcy - s(6), "Grade 12 - ", f_meta, GRAY)
+        text_vc(d, s(sect_x) + gx, dcy - s(6), section, f_meta, INK)
+
+        # col 4: score, right aligned "27 / 30"
         big = str(score)
-        mx  = "/%d" % MAX_SCORE
-        w_mx = d.textlength(mx, font=f_scoremx)
+        mx  = " / %d" % MAX_SCORE
         w_big = d.textlength(big, font=f_score)
-        # baseline align: place big then mx
-        total_w = w_big + s(3) + w_mx
-        start_x = s(score_rx) - total_w
-        d.text((start_x, s(cy - 30)), big, font=f_score, fill=INK)
-        d.text((start_x + w_big + s(3), s(cy - 10)), mx, font=f_scoremx, fill=GRAY_SOFT)
+        w_mx  = d.textlength(mx, font=f_scoremx)
+        bb = d.textbbox((0, 0), big, font=f_score)
+        start_x = s(score_rx) - (w_big + w_mx)
+        d.text((start_x, dcy - s(6) - (bb[1] + bb[3]) / 2), big, font=f_score, fill=INK)
+        mb = d.textbbox((0, 0), mx, font=f_scoremx)
+        d.text((start_x + w_big, dcy - s(6) - (mb[1] + mb[3]) / 2), mx,
+               font=f_scoremx, fill=GRAY_SOFT)
 
-        # score bar under the score, right aligned
+        # thin score accent bar beneath the score number, right aligned
         frac = score / MAX_SCORE
-        by = cy + 16
+        by = cy + 15
         bx1 = score_rx
-        bx0b = score_rx - 190
-        rrect(d, [s(bx0b), s(by), s(bx1), s(by + 8)], r=s(4), fill=TRACK)
+        bx0b = score_rx - bar_w
+        rrect(d, [s(bx0b), s(by), s(bx1), s(by + 6)], r=s(3), fill=TRACK)
         fillw = int((bx1 - bx0b) * frac)
-        rrect(d, [s(bx0b), s(by), s(bx0b + fillw), s(by + 8)], r=s(4), fill=col)
+        rrect(d, [s(bx0b), s(by), s(bx0b + fillw), s(by + 6)], r=s(3), fill=col)
 
     y += grp_h + grp_gap
 
