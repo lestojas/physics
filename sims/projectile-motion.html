@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projectile Motion — PHYlip Simulators</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body class="sim-page">
+<div class="app">
+  <aside id="app-sidebar" class="sidebar"></aside>
+
+  <main class="content">
+    <div class="sim-layout">
+      <div class="sim-main">
+        <div class="sim-canvas-wrap">
+          <canvas id="c" width="1000" height="620"></canvas>
+        </div>
+        <div class="sim-legend">
+          <span><i class="swatch" style="background:var(--v)"></i> initial velocity v<sub>0</sub></span>
+          <span><i class="swatch" style="background:var(--vx)"></i> horizontal v<sub>0x</sub></span>
+          <span><i class="swatch" style="background:var(--vy)"></i> vertical v<sub>0y</sub></span>
+          <span><i class="swatch" style="background:var(--path)"></i> trajectory</span>
+          <span><i class="swatch" style="background:#8a94a0"></i> acceleration a<sub>y</sub> = &minus;g</span>
+        </div>
+      </div>
+
+      <aside class="sim-controls">
+        <a class="back-link" href="../index.html">&#8592; All simulators</a>
+        <h2 class="sim-title">Projectile Motion</h2>
+        <p class="sim-sub">The three common cases of projectile motion. Horizontal and vertical motion are independent: constant velocity across, constant acceleration a<sub>y</sub> = &minus;g down.</p>
+
+        <div class="cb-divider"></div>
+        <p class="cb-title">Case</p>
+        <div class="mode-tabs" id="modes">
+          <button type="button" class="mode-tab m1 active" data-mode="1">
+            <span class="mnum">1</span>
+            <span class="mt"><b>Purely horizontal</b><small>v<sub>0y</sub> = 0 &middot; lands below the launch point</small></span>
+          </button>
+          <button type="button" class="mode-tab m2" data-mode="2">
+            <span class="mnum">2</span>
+            <span class="mt"><b>At an angle, &theta;<sub>i</sub></b><small>lands at the same height as launch</small></span>
+          </button>
+          <button type="button" class="mode-tab m3" data-mode="3">
+            <span class="mnum">3</span>
+            <span class="mt"><b>At an angle, &theta;<sub>i</sub></b><small>lands at a different height than launch</small></span>
+          </button>
+        </div>
+
+        <div class="cb-divider"></div>
+        <p class="cb-title">Inputs</p>
+        <div class="control">
+          <label>Initial speed <span class="v-c">v<sub>0</sub></span> <span class="val"><span id="speed-val">20</span> m/s</span></label>
+          <input type="range" id="speed" min="5" max="45" step="0.5" value="20">
+        </div>
+        <div class="control" id="angle-ctl">
+          <label>Launch angle <span class="v-c">&theta;<sub>i</sub></span> <span class="val"><span id="angle-val">40</span>&deg;</span></label>
+          <input type="range" id="angle" min="0" max="90" step="1" value="40">
+        </div>
+        <div class="control" id="h0-ctl">
+          <label>Launch height <span id="h0-sym">h</span> <span class="val"><span id="h0-val">40</span> m</span></label>
+          <input type="range" id="h0" min="0" max="120" step="1" value="40">
+        </div>
+        <div class="control" id="hf-ctl">
+          <label>Landing height <span>h<sub>f</sub></span> <span class="val"><span id="hf-val">0</span> m</span></label>
+          <input type="range" id="hf" min="0" max="110" step="1" value="0">
+        </div>
+
+        <div class="status ready" id="cond">Launch: purely horizontal &middot; Landing: below launch</div>
+
+        <div class="cb-divider"></div>
+        <p class="cb-title">Components of v<sub>0</sub></p>
+        <div class="formula">
+          <div><span class="vx-c">v<sub>0x</sub></span> = v<sub>0</sub> cos&theta;<sub>i</sub> = <b class="vx-c" id="eq-vx">15.3</b> m/s</div>
+          <div><span class="vy-c">v<sub>0y</sub></span> = v<sub>0</sub> sin&theta;<sub>i</sub> = <b class="vy-c" id="eq-vy">12.9</b> m/s</div>
+        </div>
+
+        <div class="cb-divider"></div>
+        <p class="cb-title">Kinematic equations <span id="eq-t-note" class="eq-tnote"></span></p>
+        <div class="eqs-live" id="eqs-live"></div>
+
+        <div class="cb-divider"></div>
+        <p class="cb-title">Results</p>
+        <div class="readouts">
+          <div class="readout vx"><div class="k">Horizontal range &Delta;x</div><div class="n" id="out-range">0 m</div></div>
+          <div class="readout vy"><div class="k">Max height</div><div class="n" id="out-hmax">0 m</div></div>
+          <div class="readout wide"><div class="k">Time of flight t</div><div class="n" id="out-time">0 s</div></div>
+          <div class="readout v wide"><div class="k">Landing speed v (impact angle)</div><div class="n" id="out-vland">0 m/s</div></div>
+        </div>
+
+        <div class="cb-divider"></div>
+        <div class="sim-actions">
+          <button id="launch" class="btn-primary">Launch &#9654;</button>
+          <button id="reset" class="secondary">Reset</button>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  const g = 9.8;
+  const DEG = Math.PI / 180;
+
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+  let W = canvas.width, H = canvas.height;
+
+  function fitCanvas() {
+    const cssW = canvas.clientWidth || 900;
+    const cssH = canvas.clientHeight || 560;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    W = cssW; H = cssH;
+    draw();
+  }
+
+  // ---- elements ----
+  const speedEl = document.getElementById("speed");
+  const angleEl = document.getElementById("angle");
+  const h0El    = document.getElementById("h0");
+  const hfEl    = document.getElementById("hf");
+  const modesEl = document.getElementById("modes");
+
+  const els = {
+    speedVal: document.getElementById("speed-val"),
+    angleVal: document.getElementById("angle-val"),
+    h0Val:    document.getElementById("h0-val"),
+    hfVal:    document.getElementById("hf-val"),
+    eqVx:     document.getElementById("eq-vx"),
+    eqVy:     document.getElementById("eq-vy"),
+    eqsLive:  document.getElementById("eqs-live"),
+    eqTNote:  document.getElementById("eq-t-note"),
+    outRange: document.getElementById("out-range"),
+    outHmax:  document.getElementById("out-hmax"),
+    outTime:  document.getElementById("out-time"),
+    outVland: document.getElementById("out-vland"),
+    cond:     document.getElementById("cond"),
+    angleCtl: document.getElementById("angle-ctl"),
+    h0Ctl:    document.getElementById("h0-ctl"),
+    hfCtl:    document.getElementById("hf-ctl"),
+    h0Sym:    document.getElementById("h0-sym"),
+  };
+
+  const CASE_COLOR = { 1: "#ff8a3d", 2: "#5cc46a", 3: "#4aa3ff" };
+
+  let mode = 1;
+  let anim = null, flightT = 0, launching = false, finished = false, lastTs = null;
+
+  // ---------------------------------------------------------------
+  //  Physics.  Up is positive; a_y = -g.  Origin at the launch x,
+  //  y measured upward from the datum (y = 0 = lowest ground level).
+  // ---------------------------------------------------------------
+  function params() {
+    const v0 = parseFloat(speedEl.value);
+    const th = (mode === 1) ? 0 : parseFloat(angleEl.value);
+    const rad = th * DEG;
+    const v0x = v0 * Math.cos(rad);
+    const v0y = v0 * Math.sin(rad);
+    const ay = -g;
+
+    let y0, yLand;
+    if (mode === 1)      { y0 = parseFloat(h0El.value); yLand = 0; }
+    else if (mode === 2) { y0 = 0;                       yLand = 0; }
+    else                 { y0 = parseFloat(h0El.value);
+                           yLand = Math.min(parseFloat(hfEl.value), y0 - 1); }
+
+    // land when y0 + v0y t - 1/2 g t^2 = yLand  ->  positive root
+    const disc = v0y * v0y + 2 * g * (y0 - yLand);
+    const tF = (v0y + Math.sqrt(Math.max(disc, 0))) / g;
+
+    const range = v0x * tF;
+    const apexRise = v0y > 0 ? (v0y * v0y) / (2 * g) : 0; // above launch point
+    const apexAbs = y0 + apexRise;                        // above datum
+    const vyLand = v0y - g * tF;
+    const vLand = Math.hypot(v0x, vyLand);
+    const impact = Math.atan2(-vyLand, v0x) / DEG;        // below horizontal
+
+    return { v0, th, rad, v0x, v0y, ay, y0, yLand, tF, range,
+             apexRise, apexAbs, vyLand, vLand, impact };
+  }
+
+  function stateAt(p, t) {
+    const x = p.v0x * t;
+    const y = p.y0 + p.v0y * t - 0.5 * g * t * t;
+    const vy = p.v0y - g * t;
+    return { x, y, vx: p.v0x, vy, v: Math.hypot(p.v0x, vy), dx: x, dy: y - p.y0 };
+  }
+
+  // ---------------------------------------------------------------
+  //  Scaling / drawing
+  // ---------------------------------------------------------------
+  const margin = { l: 56, r: 34, t: 30, b: 66 };
+  const VEC = 74; // px length representing the resultant v0
+
+  function makeScale(p) {
+    const worldW = Math.max(p.range * 1.14, 12);
+    const worldTop = Math.max(p.apexAbs, p.y0, p.yLand);
+    const worldH = Math.max(worldTop * 1.16, 8);
+    const sx = (W - margin.l - margin.r) / worldW;
+    const sy = (H - margin.t - margin.b) / worldH;
+    const s = Math.max(1, Math.min(sx, sy));
+    const gy0 = H - margin.b;            // pixel y of datum (y = 0)
+    return { s, gy0, toX: (x) => margin.l + x * s, toY: (y) => gy0 - y * s };
+  }
+
+  const varCache = {};
+  function getVar(name) {
+    if (!varCache[name]) {
+      varCache[name] = getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#fff";
+    }
+    return varCache[name];
+  }
+
+  function niceStep(raw) {
+    const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+    const n = raw / pow;
+    let m; if (n < 1.5) m = 1; else if (n < 3.5) m = 2; else if (n < 7.5) m = 5; else m = 10;
+    return m * pow;
+  }
+
+  function drawArrow(x1, y1, x2, y2, color, width) {
+    const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy);
+    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = width;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    if (len > 6) {
+      const ah = 9, aw = 6, ux = dx / len, uy = dy / len, px = -uy, py = ux;
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - ux * ah + px * aw, y2 - uy * ah + py * aw);
+      ctx.lineTo(x2 - ux * ah - px * aw, y2 - uy * ah - py * aw);
+      ctx.closePath(); ctx.fill();
+    }
+  }
+
+  // "v" + smaller lowered subscript + trailing text, drawn on the canvas
+  function subLabel(x, y, base, sub, rest, color) {
+    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = color;
+    ctx.font = "13px 'Courier New', monospace";
+    ctx.fillText(base, x, y);
+    const w1 = ctx.measureText(base).width;
+    ctx.font = "9px 'Courier New', monospace";
+    ctx.fillText(sub, x + w1, y + 3);
+    const w2 = ctx.measureText(sub).width;
+    ctx.font = "13px 'Courier New', monospace";
+    if (rest) ctx.fillText(rest, x + w1 + w2 + 1, y);
+  }
+
+  function dim(x1, y1, x2, y2, label, color) {
+    ctx.save();
+    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 1.2;
+    ctx.setLineDash([5, 4]);
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font = "13px Georgia, serif";
+    ctx.fillText(label, (x1 + x2) / 2 + 6, (y1 + y2) / 2 - 3);
+    ctx.restore();
+  }
+
+  const EARTH = "#33414d", GRASS = "#4b7a58";
+
+  function drawTerrain(p, sc) {
+    const gy0 = sc.gy0, launchX = sc.toX(0), landX = sc.toX(p.range);
+    ctx.lineWidth = 3;
+    if (mode === 2) {
+      ctx.fillStyle = EARTH; ctx.fillRect(0, gy0, W, H - gy0);
+      ctx.strokeStyle = GRASS; ctx.beginPath(); ctx.moveTo(0, gy0); ctx.lineTo(W, gy0); ctx.stroke();
+    } else if (mode === 1) {
+      const topY = sc.toY(p.y0);
+      ctx.fillStyle = EARTH;
+      ctx.fillRect(0, topY, launchX, H - topY);          // cliff under launch
+      ctx.fillRect(launchX, gy0, W - launchX, H - gy0);  // low ground
+      ctx.strokeStyle = GRASS;
+      ctx.beginPath(); ctx.moveTo(0, topY); ctx.lineTo(launchX, topY); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(launchX, gy0); ctx.lineTo(W, gy0); ctx.stroke();
+    } else {
+      const topY = sc.toY(p.y0), ledgeY = sc.toY(p.yLand);
+      ctx.fillStyle = EARTH;
+      ctx.fillRect(0, topY, launchX, H - topY);              // high plateau (launch)
+      ctx.fillRect(launchX, ledgeY, W - launchX, H - ledgeY); // lower ground (landing)
+      ctx.strokeStyle = GRASS;
+      ctx.beginPath(); ctx.moveTo(0, topY); ctx.lineTo(launchX, topY); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(launchX, ledgeY); ctx.lineTo(W, ledgeY); ctx.stroke();
+    }
+  }
+
+  function drawGravity() {
+    const x = W - 34, y = margin.t + 6;
+    drawArrow(x, y, x, y + 34, "#8a94a0", 3);
+    ctx.fillStyle = "#9aa3ad"; ctx.font = "italic 15px Georgia, serif";
+    ctx.textAlign = "left"; ctx.fillText("g", x + 6, y + 24);
+  }
+
+  function drawTrajectory(p, sc, tEnd, color, wide) {
+    ctx.strokeStyle = color; ctx.lineWidth = wide ? 2.6 : 2;
+    ctx.beginPath();
+    const N = 140; let first = true;
+    for (let i = 0; i <= N; i++) {
+      const t = tEnd * i / N, s = stateAt(p, t);
+      const X = sc.toX(s.x), Y = sc.toY(s.y);
+      if (first) { ctx.moveTo(X, Y); first = false; } else ctx.lineTo(X, Y);
+    }
+    ctx.stroke();
+  }
+
+  function drawVectors(p, sc, t, atLaunch) {
+    const s = stateAt(p, t);
+    const X = sc.toX(s.x), Y = sc.toY(s.y);
+    const vScale = VEC / Math.max(p.v0, 1);
+    drawArrow(X, Y, X + s.vx * vScale, Y, getVar("--vx"), atLaunch ? 3 : 2.5);          // v0x / vx
+    drawArrow(X, Y, X, Y - s.vy * vScale, getVar("--vy"), atLaunch ? 3 : 2.5);          // v0y / vy
+    drawArrow(X, Y, X + s.vx * vScale, Y - s.vy * vScale, getVar("--v"), atLaunch ? 3.6 : 3); // resultant
+
+    if (atLaunch) {
+      subLabel(X + s.vx * vScale * 0.55 + 6, Y - s.vy * vScale * 0.55 - 6, "v", "0", "", getVar("--v"));
+      if (mode !== 1) {
+        ctx.fillStyle = CASE_COLOR[mode]; ctx.font = "13px Georgia, serif"; ctx.textAlign = "left";
+        ctx.fillText("\u03b8\u1d62 = " + p.th.toFixed(0) + "\u00b0", X + 30, Y - 7);
+      }
+    }
+  }
+
+  function draw() {
+    const p = params();
+    const sc = makeScale(p);
+    ctx.clearRect(0, 0, W, H);
+
+    drawTerrain(p, sc);
+    drawGravity();
+
+    // distance ticks along the datum
+    const worldW = (W - margin.l - margin.r) / sc.s;
+    const step = niceStep(worldW / 6);
+    ctx.fillStyle = "#5a6470"; ctx.font = "11px 'Courier New', monospace"; ctx.textAlign = "left";
+    for (let x = 0; x <= worldW; x += step) {
+      const X = sc.toX(x);
+      ctx.strokeStyle = "rgba(255,255,255,0.05)"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(X, margin.t); ctx.lineTo(X, sc.gy0); ctx.stroke();
+      ctx.fillText(x.toFixed(0) + "m", X + 2, sc.gy0 + 14);
+    }
+
+    // full (faint) + traversed (bright) trajectory
+    drawTrajectory(p, sc, p.tF, "rgba(126,231,135,0.30)");
+    const tNow = (launching || finished) ? Math.min(flightT, p.tF) : 0;
+    if (tNow > 0) drawTrajectory(p, sc, tNow, getVar("--path"), true);
+
+    // dimension labels per case
+    const launchX = sc.toX(0), landX = sc.toX(p.range);
+    if (mode === 1) {
+      dim(launchX - 16, sc.toY(p.y0), launchX - 16, sc.gy0, "h", "#c9a26b");
+      dim(launchX, sc.gy0 + 4, landX, sc.gy0 + 4, "\u0394x", "#8fb7ff");
+    } else if (mode === 2) {
+      dim(launchX, sc.gy0 + 4, landX, sc.gy0 + 4, "R", "#9be0a6");
+      const ax = sc.toX(p.range / 2);
+      dim(ax, sc.toY(p.apexAbs), ax, sc.gy0, "h\u2098\u2090\u2093", "#9be0a6");
+    } else {
+      dim(launchX - 16, sc.toY(p.y0), launchX - 16, sc.toY(p.yLand), "h\u2080", "#c9a26b");
+      if (p.yLand > 0.5) dim(landX + 14, sc.toY(p.yLand), landX + 14, sc.gy0, "h_f", "#8fb7ff");
+      dim(launchX, sc.gy0 + 4, landX, sc.gy0 + 4, "\u0394x", "#8fb7ff");
+    }
+
+    // velocity vectors: at launch when idle, at the projectile while flying
+    if (tNow > 0) {
+      const s = stateAt(p, tNow);
+      drawVectors(p, sc, tNow, false);
+      ctx.fillStyle = "#fff";
+      ctx.beginPath(); ctx.arc(sc.toX(s.x), sc.toY(s.y), 6, 0, Math.PI * 2); ctx.fill();
+    } else {
+      drawVectors(p, sc, 0, true);
+      ctx.fillStyle = CASE_COLOR[mode];
+      ctx.beginPath(); ctx.arc(launchX, sc.toY(p.y0), 6.5, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = "#fff"; ctx.stroke();
+    }
+  }
+
+  // ---------------------------------------------------------------
+  //  Equation panel + readouts
+  // ---------------------------------------------------------------
+  function sgn(n, d) { const s = (n < 0 ? "\u2212" : ""); return s + Math.abs(n).toFixed(d === undefined ? 1 : d); }
+  function num(n, d) { return (Math.abs(n) < 1e-9 ? 0 : n).toFixed(d === undefined ? 1 : d); }
+
+  function updateEquations(p) {
+    // Show the equations solved at the FULL flight time when idle/finished,
+    // and at the current instant while the projectile is in the air.
+    const t = (launching) ? Math.min(flightT, p.tF) : p.tF;
+    const s = stateAt(p, t);
+    els.eqTNote.textContent = "(at t = " + num(t, 2) + " s)";
+
+    const rows = [
+      { cls: "vx-c", lhs: "\u0394x", form: "v<sub>0x</sub> t",
+        sub: "(" + num(p.v0x) + ")(" + num(t, 2) + ")", res: num(s.dx) + " m" },
+      { cls: "vy-c", lhs: "v<sub>fy</sub>", form: "v<sub>0y</sub> + a<sub>y</sub> t",
+        sub: num(p.v0y) + " + (" + sgn(p.ay) + ")(" + num(t, 2) + ")", res: sgn(s.vy) + " m/s" },
+      { cls: "vy-c", lhs: "\u0394y", form: "v<sub>0y</sub> t + \u00bd a<sub>y</sub> t\u00b2",
+        sub: "(" + num(p.v0y) + ")(" + num(t, 2) + ") + \u00bd(" + sgn(p.ay) + ")(" + num(t, 2) + ")\u00b2",
+        res: sgn(s.dy) + " m" },
+      { cls: "vy-c", lhs: "v<sub>fy</sub>\u00b2", form: "v<sub>0y</sub>\u00b2 + 2 a<sub>y</sub> \u0394y",
+        sub: num(p.v0y * p.v0y) + " + 2(" + sgn(p.ay) + ")(" + num(s.dy) + ")",
+        res: num(p.v0y * p.v0y + 2 * p.ay * s.dy) + " m\u00b2/s\u00b2" }
+    ];
+    els.eqsLive.innerHTML = rows.map(function (r) {
+      return '<div class="eq-row">' +
+               '<div class="eq-main"><span class="' + r.cls + '">' + r.lhs + '</span> = ' + r.form +
+                 ' = <b class="' + r.cls + '">' + r.res + '</b></div>' +
+               '<div class="eq-sub">= ' + r.sub + '</div>' +
+             '</div>';
+    }).join("");
+  }
+
+  function updateReadouts() {
+    const p = params();
+    els.speedVal.textContent = num(p.v0, 1).replace(/\.0$/, "");
+    els.angleVal.textContent = p.th.toFixed(0);
+    els.h0Val.textContent = parseFloat(h0El.value).toFixed(0);
+    els.hfVal.textContent = parseFloat(hfEl.value).toFixed(0);
+    els.eqVx.textContent = num(p.v0x);
+    els.eqVy.textContent = num(p.v0y);
+    els.outRange.textContent = num(p.range) + " m";
+    els.outHmax.textContent = (mode === 2 ? num(p.apexAbs) : num(p.apexRise)) + " m" +
+      (mode === 2 ? "" : " (above launch)");
+    els.outTime.textContent = num(p.tF, 2) + " s";
+    els.outVland.textContent = num(p.vLand) + " m/s  (" + num(p.impact) + "\u00b0)";
+    updateEquations(p);
+  }
+
+  // ---------------------------------------------------------------
+  //  Mode switching
+  // ---------------------------------------------------------------
+  const COND = {
+    1: "Launch: purely horizontal (v\u2080\u1d67 = 0) &middot; Landing: below the launch point",
+    2: "Launch: at an angle \u03b8\u1d62 &middot; Landing: same height as launch",
+    3: "Launch: at an angle \u03b8\u1d62 &middot; Landing: different height than launch"
+  };
+
+  function applyMode(newMode) {
+    mode = newMode;
+    Array.prototype.forEach.call(modesEl.children, function (b) {
+      b.classList.toggle("active", parseInt(b.dataset.mode, 10) === mode);
+    });
+    els.angleCtl.style.display = (mode === 1) ? "none" : "";
+    els.h0Ctl.style.display    = (mode === 2) ? "none" : "";
+    els.hfCtl.style.display    = (mode === 3) ? "" : "none";
+    els.h0Sym.innerHTML        = (mode === 3) ? "h<sub>0</sub>" : "h";
+    els.cond.innerHTML = COND[mode];
+    els.cond.style.borderLeft = "4px solid " + CASE_COLOR[mode];
+    // keep landing height below launch height in case 3
+    if (mode === 3 && parseFloat(hfEl.value) >= parseFloat(h0El.value)) {
+      hfEl.value = Math.max(0, parseFloat(h0El.value) - 5);
+    }
+    reset();
+  }
+
+  // ---------------------------------------------------------------
+  //  Animation
+  // ---------------------------------------------------------------
+  function step(ts) {
+    if (lastTs == null) lastTs = ts;
+    const dt = (ts - lastTs) / 1000; lastTs = ts;
+    const p = params();
+    flightT += dt * 0.85;
+    if (flightT >= p.tF) {
+      flightT = p.tF; launching = false; finished = true; anim = null; lastTs = null;
+      draw(); updateReadouts(); return;
+    }
+    draw(); updateReadouts();
+    anim = requestAnimationFrame(step);
+  }
+  function launch() {
+    cancelAnimationFrame(anim);
+    flightT = 0; lastTs = null; launching = true; finished = false;
+    anim = requestAnimationFrame(step);
+  }
+  function reset() {
+    cancelAnimationFrame(anim);
+    anim = null; launching = false; finished = false; flightT = 0; lastTs = null;
+    updateReadouts(); draw();
+  }
+
+  // ---------------------------------------------------------------
+  //  Wiring
+  // ---------------------------------------------------------------
+  [speedEl, angleEl, h0El, hfEl].forEach(function (el) {
+    el.addEventListener("input", function () {
+      if (mode === 3 && parseFloat(hfEl.value) >= parseFloat(h0El.value)) {
+        if (el === hfEl) hfEl.value = Math.max(0, parseFloat(h0El.value) - 1);
+        else h0El.value = Math.min(120, parseFloat(hfEl.value) + 1);
+      }
+      finished = false; updateReadouts(); draw();
+    });
+  });
+  Array.prototype.forEach.call(modesEl.children, function (b) {
+    b.addEventListener("click", function () { applyMode(parseInt(b.dataset.mode, 10)); });
+  });
+  document.getElementById("launch").addEventListener("click", launch);
+  document.getElementById("reset").addEventListener("click", reset);
+
+  applyMode(1);
+  fitCanvas();
+  window.addEventListener("resize", fitCanvas);
+})();
+</script>
+<script src="../sidebar.js"></script>
+</body>
+</html>
