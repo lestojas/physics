@@ -57,7 +57,7 @@ GROUPS = [
          ("Ni\u00f1a Meriel Sosme\u00f1a", 23)]),
 ]
 MAX_SCORE = 30
-SECTION_LINE = "GRADE 12  -  TESLA"
+SECTION_LINE = "GRADE 12 - TESLA"
 
 MEDAL = {1: GOLD, 2: SILVER, 3: BRONZE}
 def tier(rank):
@@ -82,8 +82,7 @@ f_scoremx = F("NotoSans-Bold.ttf",      s(19))
 
 # ---------------------------------------------------------------- geometry
 W       = 1300
-SLUG_W  = 76      # gray vertical slug sidebar (holds "GRADE 12 - TESLA")
-LM      = SLUG_W + 56   # left margin of content, shifted inward past the slug
+LM      = 96      # page/header left margin (school name, title, subtitle)
 RM      = 96
 CW      = W - LM - RM
 
@@ -91,7 +90,11 @@ row_h      = 66
 head_h     = 396
 foot_h     = 36
 
-SLUG_GRAY = (231, 231, 233)   # gray box fill for the section slug
+GRAY_COL_W    = 70      # width of the "Grade 12 - Tesla" section column (table only)
+GRAY_COL_GAP  = 26      # gap between the gray column and the rank badge column
+SCORE_INSET   = 90      # pulls the score column in from the right margin a bit,
+                         # tightening the Name<->Score gap
+SLUG_GRAY     = (231, 231, 233)   # gray box fill for the section column
 
 n_rows = sum(len(g[1]) for g in GROUPS)
 list_h = n_rows * row_h
@@ -100,10 +103,11 @@ H = head_h + 26 + list_h + foot_h
 img  = Image.new("RGB", (s(W), s(H)), WHITE)
 d    = ImageDraw.Draw(img)
 
-def draw_vertical_slug(section_text):
-    """Full-height gray sidebar on the left with centered, rotated section text."""
-    d.rectangle([0, 0, s(SLUG_W), s(H)], fill=SLUG_GRAY)
-    d.rectangle([s(SLUG_W) - max(1, SS), 0, s(SLUG_W), s(H)], fill=(214, 214, 217))
+def draw_section_column(x0, y0, x1, y1, section_text):
+    """Gray table column (bounded to the table area) with centered, rotated
+    vertical section text, e.g. 'GRADE 12 - TESLA'."""
+    d.rectangle([s(x0), s(y0), s(x1), s(y1)], fill=SLUG_GRAY)
+    d.rectangle([s(x1) - max(1, SS), s(y0), s(x1), s(y1)], fill=(214, 214, 217))
 
     tracking = s(3)
     tb_all = d.textbbox((0, 0), section_text, font=f_slug)
@@ -120,9 +124,9 @@ def draw_vertical_slug(section_text):
 
     rotated = temp.rotate(90, expand=True)
     rw, rh = rotated.size
-    px = s(SLUG_W) // 2 - rw // 2
-    py = s(H) // 2 - rh // 2
-    img.paste(rotated, (px, py), rotated)
+    cx = s((x0 + x1) / 2.0)
+    cy = s((y0 + y1) / 2.0)
+    img.paste(rotated, (int(cx - rw / 2), int(cy - rh / 2)), rotated)
 
 def text_tracked(draw, xy, txt, font, fill, tracking=0):
     x, y = xy
@@ -162,9 +166,6 @@ def outline_badge(bx0, by0, size):
           r=s(16), fill=WHITE, outline=GRAY_SOFT, width=max(2, SS))
 
 # ---------------------------------------------------------------- header
-# draw the full-height gray slug sidebar first (behind everything else)
-draw_vertical_slug(SECTION_LINE)
-
 x = s(LM)
 
 # thin top accent tab (orange) — asymmetric, editorial
@@ -211,20 +212,30 @@ d.text((box_l + pad_x - tb[0], line_mid - (tb[1] + tb[3]) / 2.0),
 def wbase(txt, font):
     return d.textlength(txt, font=font) / SS
 
-rank_cx   = LM + 44                      # center of rank badge
-name_x    = LM + 112                     # start of student name column
-score_rx  = W - RM                       # right edge for score
-bar_w     = 150                          # score accent bar width
+n_rows = sum(len(g[1]) for g in GROUPS)
+table_top    = head_h
+table_bottom = head_h + 26 + n_rows * row_h
+
+gray_x0 = LM
+gray_x1 = LM + GRAY_COL_W
+rank_col_x = gray_x1 + GRAY_COL_GAP        # rank badges shift right, past the gray column
+rank_cx   = rank_col_x + 44                # center of rank badge
+name_x    = rank_col_x + 112               # start of student name column
+bar_w     = 150                            # score accent bar width
+score_rx  = (W - RM) - SCORE_INSET         # right edge for score, pulled in a bit
+
+# gray "Grade 12 - Tesla" column, spanning the header row through the last table row
+draw_section_column(gray_x0, table_top, gray_x1, table_bottom, SECTION_LINE)
 
 # column headers (3 columns now: RANK, NAME OF STUDENT, SCORE)
 chy = head_h - 28
-d.text((s(LM), s(chy)), "RANK", font=f_colhdr, fill=GRAY_SOFT)
+d.text((s(rank_col_x), s(chy)), "RANK", font=f_colhdr, fill=GRAY_SOFT)
 d.text((s(name_x), s(chy)), "NAME OF STUDENT", font=f_colhdr, fill=GRAY_SOFT)
 sc_hdr = "SCORE"
 w_sc = d.textlength(sc_hdr, font=f_colhdr)
 d.text((s(score_rx) - w_sc, s(chy)), sc_hdr, font=f_colhdr, fill=GRAY_SOFT)
-# header rule
-d.rectangle([s(LM), s(head_h), s(W - RM), s(head_h) + max(1, SS)], fill=INK)
+# header rule (spans from the gray column's right edge to the page's right margin)
+d.rectangle([s(gray_x1), s(head_h), s(W - RM), s(head_h) + max(1, SS)], fill=INK)
 
 # ---------------------------------------------------------------- rows
 y = head_h + 26
@@ -237,7 +248,7 @@ for gi, (rank, students) in enumerate(GROUPS):
 
     # rank badge, aligned to the FIRST student's row of this rank
     first_cy = grp_top + row_h / 2.0
-    bx0 = LM + 44 - BADGE / 2.0
+    bx0 = rank_cx - BADGE / 2.0
     by0 = first_cy - BADGE / 2.0
     if rank in MEDAL:
         medal_badge(int(round(bx0)), int(round(by0)), BADGE, MEDAL[rank])
@@ -248,7 +259,7 @@ for gi, (rank, students) in enumerate(GROUPS):
     # rank number centered on the first student's row
     num = str(rank)
     nb = d.textbbox((0, 0), num, font=f_badge)
-    d.text((s(LM + 44) - (nb[0] + nb[2]) / 2.0,
+    d.text((s(rank_cx) - (nb[0] + nb[2]) / 2.0,
             s(first_cy) - (nb[1] + nb[3]) / 2.0),
            num, font=f_badge, fill=num_fill)
 
@@ -261,7 +272,7 @@ for gi, (rank, students) in enumerate(GROUPS):
         # thin partial line (from name column) between students tied at one rank
         if si == 0:
             if gi > 0:
-                d.rectangle([s(LM), s(ry), s(W - RM), s(ry) + max(1, SS)], fill=GRP_LINE)
+                d.rectangle([s(gray_x1), s(ry), s(W - RM), s(ry) + max(1, SS)], fill=GRP_LINE)
         else:
             d.rectangle([s(name_x), s(ry), s(W - RM), s(ry) + max(1, SS - 1)], fill=LINE)
 
