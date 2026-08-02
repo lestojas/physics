@@ -174,9 +174,10 @@ box_l = cur
 box_t = line_mid - th / 2.0 - pad_y
 box_r = cur + tw + 2 * pad_x
 box_b = line_mid + th / 2.0 + pad_y
-rrect(d, [box_l, box_t, box_r, box_b], r=s(9), fill=YELLOW)
+BLUE = (37, 99, 235)
+rrect(d, [box_l, box_t, box_r, box_b], r=s(9), fill=BLUE)
 d.text((box_l + pad_x - tb[0], line_mid - (tb[1] + tb[3]) / 2.0),
-       "Summative Test 2", font=f_test, fill=INK)
+       "Summative Test 2", font=f_test, fill=WHITE)
 
 # ---------------------------------------------------------------- column anchors (dynamic)
 def wbase(txt, font):
