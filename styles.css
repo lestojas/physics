@@ -417,11 +417,12 @@ body.sim-page { overflow: hidden; }
   padding: 2px 6px;
   font-size: 12.5px; color: var(--muted);
 }
-.sim-legend span { display: inline-flex; align-items: center; gap: 6px; }
-/* Keep the whole label as one flex item so subscripts stay tight to their
-   base symbol (otherwise the flex `gap` pushes <sub> away from the letter). */
-.sim-legend .lg { white-space: nowrap; }
-.sim-legend .lg sub { margin-left: 0; }
+/* Only the DIRECT child spans are flex rows (swatch + label). Scoping to
+   `> span` is essential: a plain `.sim-legend span` would also match the
+   inner label span and turn it into a flex container, whose `gap` would then
+   push each <sub> away from its base symbol. */
+.sim-legend > span { display: inline-flex; align-items: center; gap: 6px; }
+.sim-legend .lg { display: inline; white-space: nowrap; }
 .sim-legend .dot, .sim-legend .swatch { box-shadow: 0 0 0 1px rgba(255,255,255,0.28); }
 
 .sim-controls {
@@ -499,11 +500,3 @@ body.sim-page { overflow: hidden; }
 .mode-tab.m1.active { border-color: #ff8a3d; background: rgba(255,138,61,0.14); }
 .mode-tab.m2.active { border-color: #5cc46a; background: rgba(92,196,106,0.14); }
 .mode-tab.m3.active { border-color: #4aa3ff; background: rgba(74,163,255,0.14); }
-
-/* ---------- Live kinematic equation panel ---------- */
-.eq-tnote { text-transform: none; letter-spacing: 0; color: var(--muted); font-weight: 400; font-family: Georgia, serif; }
-.eqs-live { display: flex; flex-direction: column; gap: 9px; }
-.eq-row { border-left: 3px solid var(--line); padding-left: 9px; }
-.eq-main { font-size: 14px; line-height: 1.4; }
-.eq-main b { font-weight: 700; }
-.eq-sub { font-size: 11.5px; color: var(--muted); font-family: "Courier New", monospace; margin-top: 2px; word-break: break-word; }

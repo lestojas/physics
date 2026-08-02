@@ -69,23 +69,18 @@
         <div class="status ready" id="cond">Launch: purely horizontal &middot; Landing: below launch</div>
 
         <div class="cb-divider"></div>
-        <p class="cb-title">Components of v<sub>0</sub></p>
-        <div class="formula">
-          <div><span class="vx-c">v<sub>0x</sub></span> = v<sub>0</sub> cos&theta;<sub>i</sub> = <b class="vx-c" id="eq-vx">15.3</b> m/s</div>
-          <div><span class="vy-c">v<sub>0y</sub></span> = v<sub>0</sub> sin&theta;<sub>i</sub> = <b class="vy-c" id="eq-vy">12.9</b> m/s</div>
-        </div>
-
-        <div class="cb-divider"></div>
-        <p class="cb-title">Kinematic equations <span id="eq-t-note" class="eq-tnote"></span></p>
-        <div class="eqs-live" id="eqs-live"></div>
-
-        <div class="cb-divider"></div>
         <p class="cb-title">Results</p>
         <div class="readouts">
-          <div class="readout vx"><div class="k">Horizontal range &Delta;x</div><div class="n" id="out-range">0 m</div></div>
-          <div class="readout vy"><div class="k">Max height</div><div class="n" id="out-hmax">0 m</div></div>
-          <div class="readout wide"><div class="k">Time of flight t</div><div class="n" id="out-time">0 s</div></div>
-          <div class="readout v wide"><div class="k">Landing speed v (impact angle)</div><div class="n" id="out-vland">0 m/s</div></div>
+          <div class="readout vx"><div class="k">Initial horizontal vel. v<sub>0x</sub></div><div class="n" id="out-v0x">0 m/s</div></div>
+          <div class="readout vy"><div class="k">Initial vertical vel. v<sub>0y</sub></div><div class="n" id="out-v0y">0 m/s</div></div>
+          <div class="readout vx"><div class="k">Final horizontal vel. v<sub>fx</sub></div><div class="n" id="out-vfx">0 m/s</div></div>
+          <div class="readout vy"><div class="k">Final vertical vel. v<sub>fy</sub></div><div class="n" id="out-vfy">0 m/s</div></div>
+          <div class="readout vx"><div class="k">Horizontal displacement &Delta;x</div><div class="n" id="out-dx">0 m</div></div>
+          <div class="readout vy"><div class="k">Vertical displacement &Delta;y</div><div class="n" id="out-dy">0 m</div></div>
+          <div class="readout vy"><div class="k">Max height above launch h<sub>max</sub></div><div class="n" id="out-hmax">0 m</div></div>
+          <div class="readout"><div class="k">Time of flight t</div><div class="n" id="out-time">0 s</div></div>
+          <div class="readout v"><div class="k">Final speed v<sub>f</sub></div><div class="n" id="out-vf">0 m/s</div></div>
+          <div class="readout v"><div class="k">Impact angle &theta;<sub>f</sub></div><div class="n" id="out-thf">0&deg;</div></div>
         </div>
 
         <div class="cb-divider"></div>
@@ -132,14 +127,16 @@
     angleVal: document.getElementById("angle-val"),
     h0Val:    document.getElementById("h0-val"),
     hfVal:    document.getElementById("hf-val"),
-    eqVx:     document.getElementById("eq-vx"),
-    eqVy:     document.getElementById("eq-vy"),
-    eqsLive:  document.getElementById("eqs-live"),
-    eqTNote:  document.getElementById("eq-t-note"),
-    outRange: document.getElementById("out-range"),
+    outV0x:   document.getElementById("out-v0x"),
+    outV0y:   document.getElementById("out-v0y"),
+    outVfx:   document.getElementById("out-vfx"),
+    outVfy:   document.getElementById("out-vfy"),
+    outDx:    document.getElementById("out-dx"),
+    outDy:    document.getElementById("out-dy"),
     outHmax:  document.getElementById("out-hmax"),
     outTime:  document.getElementById("out-time"),
-    outVland: document.getElementById("out-vland"),
+    outVf:    document.getElementById("out-vf"),
+    outThf:   document.getElementById("out-thf"),
     cond:     document.getElementById("cond"),
     angleCtl: document.getElementById("angle-ctl"),
     h0Ctl:    document.getElementById("h0-ctl"),
@@ -197,8 +194,8 @@
   // ---------------------------------------------------------------
   // Bottom/top margins reserve room so velocity vectors are never clipped:
   // the longest vector is VEC px and points down at the landing point.
-  const VEC = 74; // px length representing the fastest speed in the flight
-  const margin = { l: 56, r: 44, t: 46, b: VEC + 30 };
+  const VEC = 66; // px length representing the fastest speed in the flight
+  const margin = { l: 56, r: 44, t: 42, b: VEC + 46 }; // bottom reserve = vector + headroom
 
   function makeScale(p) {
     const worldW = Math.max(p.range * 1.14, 12);
@@ -361,7 +358,7 @@
       dim(launchX - 16, sc.toY(p.y0), launchX - 16, sc.gy0, "h", "#c9a26b");
       dim(launchX, sc.gy0 + 4, landX, sc.gy0 + 4, "\u0394x", "#8fb7ff");
     } else if (mode === 2) {
-      dim(launchX, sc.gy0 + 4, landX, sc.gy0 + 4, "R", "#9be0a6");
+      dim(launchX, sc.gy0 + 4, landX, sc.gy0 + 4, "\u0394x", "#9be0a6");
       const ax = sc.toX(p.range / 2);
       dim(ax, sc.toY(p.apexAbs), ax, sc.gy0, "h\u2098\u2090\u2093", "#9be0a6");
     } else {
@@ -385,53 +382,31 @@
   }
 
   // ---------------------------------------------------------------
-  //  Equation panel + readouts
+  //  Readouts (result variables for the whole flight)
   // ---------------------------------------------------------------
   function sgn(n, d) { const s = (n < 0 ? "\u2212" : ""); return s + Math.abs(n).toFixed(d === undefined ? 1 : d); }
   function num(n, d) { return (Math.abs(n) < 1e-9 ? 0 : n).toFixed(d === undefined ? 1 : d); }
 
-  function updateEquations(p) {
-    // Show the equations solved at the FULL flight time when idle/finished,
-    // and at the current instant while the projectile is in the air.
-    const t = (launching) ? Math.min(flightT, p.tF) : p.tF;
-    const s = stateAt(p, t);
-    els.eqTNote.textContent = "(at t = " + num(t, 2) + " s)";
-
-    const rows = [
-      { cls: "vx-c", lhs: "\u0394x", form: "v<sub>0x</sub> t",
-        sub: "(" + num(p.v0x) + ")(" + num(t, 2) + ")", res: num(s.dx) + " m" },
-      { cls: "vy-c", lhs: "v<sub>fy</sub>", form: "v<sub>0y</sub> + a<sub>y</sub> t",
-        sub: num(p.v0y) + " + (" + sgn(p.ay) + ")(" + num(t, 2) + ")", res: sgn(s.vy) + " m/s" },
-      { cls: "vy-c", lhs: "\u0394y", form: "v<sub>0y</sub> t + \u00bd a<sub>y</sub> t\u00b2",
-        sub: "(" + num(p.v0y) + ")(" + num(t, 2) + ") + \u00bd(" + sgn(p.ay) + ")(" + num(t, 2) + ")\u00b2",
-        res: sgn(s.dy) + " m" },
-      { cls: "vy-c", lhs: "v<sub>fy</sub>\u00b2", form: "v<sub>0y</sub>\u00b2 + 2 a<sub>y</sub> \u0394y",
-        sub: num(p.v0y * p.v0y) + " + 2(" + sgn(p.ay) + ")(" + num(s.dy) + ")",
-        res: num(p.v0y * p.v0y + 2 * p.ay * s.dy) + " m\u00b2/s\u00b2" }
-    ];
-    els.eqsLive.innerHTML = rows.map(function (r) {
-      return '<div class="eq-row">' +
-               '<div class="eq-main"><span class="' + r.cls + '">' + r.lhs + '</span> = ' + r.form +
-                 ' = <b class="' + r.cls + '">' + r.res + '</b></div>' +
-               '<div class="eq-sub">= ' + r.sub + '</div>' +
-             '</div>';
-    }).join("");
-  }
-
   function updateReadouts() {
     const p = params();
+    // input labels
     els.speedVal.textContent = num(p.v0, 1).replace(/\.0$/, "");
     els.angleVal.textContent = p.th.toFixed(0);
     els.h0Val.textContent = parseFloat(h0El.value).toFixed(0);
     els.hfVal.textContent = parseFloat(hfEl.value).toFixed(0);
-    els.eqVx.textContent = num(p.v0x);
-    els.eqVy.textContent = num(p.v0y);
-    els.outRange.textContent = num(p.range) + " m";
-    els.outHmax.textContent = (mode === 2 ? num(p.apexAbs) : num(p.apexRise)) + " m" +
-      (mode === 2 ? "" : " (above launch)");
+
+    // result variables (whole-flight / landing values), consistent symbols
+    const dyNet = p.yLand - p.y0;             // net vertical displacement
+    els.outV0x.textContent  = num(p.v0x) + " m/s";
+    els.outV0y.textContent  = num(p.v0y) + " m/s";
+    els.outVfx.textContent  = num(p.v0x) + " m/s";     // v_fx = v_0x (constant)
+    els.outVfy.textContent  = sgn(p.vyLand) + " m/s";  // downward is negative
+    els.outDx.textContent   = num(p.range) + " m";
+    els.outDy.textContent   = sgn(dyNet) + " m";
+    els.outHmax.textContent = num(p.apexRise) + " m";
     els.outTime.textContent = num(p.tF, 2) + " s";
-    els.outVland.textContent = num(p.vLand) + " m/s  (" + num(p.impact) + "\u00b0)";
-    updateEquations(p);
+    els.outVf.textContent   = num(p.vLand) + " m/s";
+    els.outThf.textContent  = num(p.impact) + "\u00b0";
   }
 
   // ---------------------------------------------------------------
