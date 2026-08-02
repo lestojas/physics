@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Falling Target — PHYlip Simulators</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body class="sim-page">
+<div class="app">
+  <aside id="app-sidebar" class="sidebar"></aside>
+
+  <main class="content">
+    <div class="sim-layout">
+      <div class="sim-main">
+        <div class="sim-canvas-wrap sky">
+          <canvas id="c" class="sky" width="1000" height="620"></canvas>
+        </div>
+        <div class="sim-legend">
+          <span><i class="swatch" style="background:#2e9e3a"></i> trajectory</span>
+          <span><i class="dot" style="background:#1b1b1b"></i> projectile</span>
+          <span><i class="dot" style="background:#e23b3b"></i> apple (target)</span>
+          <span><i class="swatch" style="background:#9aa3ad"></i> line of sight</span>
+          <span><i class="swatch" style="background:#d99400"></i> equal drop ½gt<sup>2</sup></span>
+        </div>
+      </div>
+
+      <aside class="sim-controls">
+        <a class="back-link" href="../index.html">&#8592; All simulators</a>
+        <h2 class="sim-title">Falling Target</h2>
+        <p class="sim-sub">A projectile aimed straight at the apple, fired the instant it's released. Does it hit?</p>
+
+        <div class="cb-divider"></div>
+        <p class="cb-title">Inputs</p>
+        <div class="control">
+          <label>Launch speed <span class="v-c">v</span> <span class="val"><span id="speed-val">22</span> m/s</span></label>
+          <input type="range" id="speed" min="6" max="45" step="0.5" value="22">
+        </div>
+        <div class="control">
+          <label>Target distance <span class="val"><span id="dist-val">14</span> m</span></label>
+          <input type="range" id="dist" min="6" max="26" step="0.5" value="14">
+        </div>
+        <div class="control">
+          <label>Target height <span class="val"><span id="height-val">9</span> m</span></label>
+          <input type="range" id="height" min="2" max="16" step="0.5" value="9">
+        </div>
+
+        <div class="cb-divider"></div>
+        <p class="cb-title">Options</p>
+        <div class="toggle-row">
+          <label><input type="checkbox" id="aimline" checked> Show line of sight (aim)</label>
+          <label><input type="checkbox" id="dropmark" checked> Show equal-drop markers</label>
+          <label><input type="checkbox" id="slowmo"> Slow motion</label>
+        </div>
+
+        <div class="cb-divider"></div>
+        <p class="cb-title">Readings</p>
+        <div class="readouts">
+          <div class="readout wide"><div class="k">Aim angle θ · line-of-sight distance</div><div class="n" id="out-aim">32.7° · 16.6 m</div></div>
+          <div class="readout path"><div class="k">Time to target</div><div class="n" id="out-thit">0.75 s</div></div>
+          <div class="readout target"><div class="k">Both fall ½gt<sup>2</sup></div><div class="n" id="out-drop">2.8 m</div></div>
+        </div>
+
+        <div class="cb-divider"></div>
+        <div class="status ready" id="status">Ready — press Fire</div>
+        <div class="sim-actions">
+          <button id="fire" class="btn-primary">Fire ▶</button>
+          <button id="reset" class="secondary">Reset</button>
+        </div>
+
+      </aside>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  const g = 9.8;
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+  let W = canvas.width, H = canvas.height;
+
+  // Canvas fills the whole stage and stays crisp on any display.
+  function fitCanvas() {
+    const cssW = canvas.clientWidth || 900;
+    const cssH = canvas.clientHeight || 560;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    W = cssW; H = cssH;
+    drawScene();
+  }
+
+  const speedEl = document.getElementById("speed");
+  const distEl  = document.getElementById("dist");
+  const heightEl= document.getElementById("height");
+  const aimEl   = document.getElementById("aimline");
+  const dropEl  = document.getElementById("dropmark");
+  const slowEl  = document.getElementById("slowmo");
+
+  const out = {
+    speed: document.getElementById("speed-val"),
+    dist: document.getElementById("dist-val"),
+    height: document.getElementById("height-val"),
+    aim: document.getElementById("out-aim"),
+    thit: document.getElementById("out-thit"),
+    drop: document.getElementById("out-drop"),
+    status: document.getElementById("status"),
+  };
+
+  let anim = null, t = 0, firing = false, lastTs = null, finished = false;
+  let showPreview = false, previewTimer = null;
+
+  // Briefly show the parabolic path while idle (before launch), then hide it.
+  function flashPreview() {
+    clearTimeout(previewTimer);
+    showPreview = true;
+    drawScene();
+    previewTimer = setTimeout(function () {
+      showPreview = false;
+      if (!firing && !finished) drawScene();
+    }, 500);
+  }
+
+  function params() {
+    const v = parseFloat(speedEl.value);
+    const Dx = parseFloat(distEl.value);
+    const Dy = parseFloat(heightEl.value);
+    const L = Math.hypot(Dx, Dy);
+    const theta = Math.atan2(Dy, Dx);
+    const vx = v * Math.cos(theta);
+    const vy = v * Math.sin(theta);
+    const tHit = L / v;                 // time projectile's x reaches target x
+    const meetY = Dy - 0.5 * g * tHit * tHit;
+    const isHit = meetY > 0.02;
+    const tTargetGround = Math.sqrt(2 * Dy / g);
+    const tProjGround = 2 * vy / g;
+    const tEnd = isHit ? tHit : Math.max(tTargetGround, tProjGround);
+    return { v, Dx, Dy, L, theta, vx, vy, tHit, meetY, isHit, tEnd, tTargetGround };
+  }
+
+  const margin = { l: 46, r: 28, t: 26, b: 46 };
+  const BARREL_LEN = 44, PIVOT_UP = 20, WHEEL_R = 12;
+  function makeScale(p) {
+    const gy = H - margin.b;
+    const pivotX = margin.l + 8;
+    const pivotY = gy - PIVOT_UP;
+    // launch point = the barrel muzzle (world origin maps here)
+    const Lx = pivotX + BARREL_LEN * Math.cos(p.theta);
+    const Ly = pivotY - BARREL_LEN * Math.sin(p.theta);
+    const projPeak = (p.vy * p.vy) / (2 * g);
+    const worldW = Math.max(p.Dx * 1.18, 12);
+    const worldH = Math.max(p.Dy, projPeak) * 1.18;
+    const availW = (W - margin.r) - Lx;
+    const availH = Ly - margin.t;
+    const s = Math.max(2, Math.min(availW / worldW, availH / worldH));
+    return {
+      s, gy, pivotX, pivotY, Lx, Ly,
+      toX: (x) => Lx + x * s,
+      toY: (y) => Ly - y * s,
+    };
+  }
+
+  const varCache = {};
+  function getVar(name) {
+    if (!varCache[name]) {
+      varCache[name] = getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#fff";
+    }
+    return varCache[name];
+  }
+
+  function projPos(p, tt) {
+    return { x: p.vx * tt, y: p.vy * tt - 0.5 * g * tt * tt };
+  }
+  function targetPos(p, tt) {
+    return { x: p.Dx, y: p.Dy - 0.5 * g * tt * tt };
+  }
+
+  // ---------- drawing helpers ----------
+  function circle(x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
+
+  function niceStep(raw) {
+    const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+    const n = raw / pow;
+    let m; if (n < 1.5) m = 1; else if (n < 3.5) m = 2; else if (n < 7.5) m = 5; else m = 10;
+    return m * pow;
+  }
+
+  function arrowHead(x, y, angle, color, size) {
+    ctx.save();
+    ctx.translate(x, y); ctx.rotate(angle);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-size, -size * 0.55);
+    ctx.lineTo(-size, size * 0.55);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  // Draws the cannon on the ground with its barrel muzzle at (sc.Lx, sc.Ly),
+  // i.e. exactly at the launch origin so the parabola & aim line emerge from the mouth.
+  function drawCannon(sc, theta) {
+    const px = sc.pivotX, py = sc.pivotY, gy = sc.gy;
+    // carriage
+    ctx.fillStyle = "#1b1b1b";
+    ctx.beginPath();
+    ctx.moveTo(px - 16, gy); ctx.lineTo(px + 20, gy);
+    ctx.lineTo(px + 8, py + 2); ctx.lineTo(px - 12, py + 2);
+    ctx.closePath(); ctx.fill();
+    // barrel: base at pivot, muzzle at length BARREL_LEN (lands on the launch origin)
+    ctx.save();
+    ctx.translate(px, py); ctx.rotate(-theta);
+    ctx.fillStyle = "#26313f";
+    ctx.beginPath();
+    ctx.moveTo(0, -8); ctx.lineTo(BARREL_LEN, -6); ctx.lineTo(BARREL_LEN, 6); ctx.lineTo(0, 8);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#161d26";
+    ctx.fillRect(BARREL_LEN - 3, -8, 5, 16);   // muzzle ring
+    ctx.restore();
+    // wheel
+    ctx.fillStyle = "#111"; circle(px, gy - WHEEL_R, WHEEL_R);
+    ctx.strokeStyle = "#5b6570"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(px, gy - WHEEL_R, WHEEL_R, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = "#4a545e"; circle(px, gy - WHEEL_R, 3.5);
+  }
+
+  function drawApple(x, y, r, alpha) {
+    ctx.save();
+    if (alpha != null) ctx.globalAlpha = alpha;
+    ctx.fillStyle = "#e23b3b";
+    circle(x - r * 0.32, y, r);
+    circle(x + r * 0.32, y, r);
+    circle(x, y + r * 0.15, r * 0.95);
+    ctx.fillStyle = "rgba(255,255,255,0.35)";
+    circle(x - r * 0.45, y - r * 0.4, r * 0.26);
+    ctx.strokeStyle = "#5a3a22"; ctx.lineWidth = 2.2; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(x, y - r * 0.85); ctx.lineTo(x + 2, y - r * 1.7); ctx.stroke();
+    ctx.lineCap = "butt";
+    ctx.fillStyle = "#4fa346";
+    ctx.beginPath(); ctx.ellipse(x + 7, y - r * 1.5, 5, 2.6, -0.6, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawTree(sc, p, gy) {
+    const ax = sc.toX(p.Dx), ayHome = sc.toY(p.Dy);
+    let trunkX = Math.min(ax + 72, W - margin.r - 24);
+    trunkX = Math.max(trunkX, ax + 26);
+    const canopyY = Math.max(Math.min(ayHome - 30, gy - 130), margin.t + 78);
+    const trunkTop = canopyY + 34;
+    // trunk
+    ctx.strokeStyle = "#7a5330"; ctx.lineCap = "round"; ctx.lineWidth = 20;
+    ctx.beginPath(); ctx.moveTo(trunkX, gy); ctx.lineTo(trunkX, trunkTop); ctx.stroke();
+    // branch reaching toward the apple
+    ctx.lineWidth = 8;
+    ctx.beginPath(); ctx.moveTo(trunkX, trunkTop + 18); ctx.lineTo(ax, ayHome - 3); ctx.stroke();
+    ctx.lineCap = "butt";
+    // canopy (darker base blobs)
+    ctx.fillStyle = "#3f8a3a";
+    [[0,-6,54],[-48,4,40],[48,2,42],[-24,-42,38],[28,-40,40],[6,28,40],[-32,26,30]]
+      .forEach(function (b) { circle(trunkX + b[0], canopyY + b[1], b[2]); });
+    // lighter highlights
+    ctx.fillStyle = "#54ad49";
+    [[-26,-20,22],[22,-16,20],[2,6,26],[-42,10,16]]
+      .forEach(function (b) { circle(trunkX + b[0], canopyY + b[1], b[2]); });
+    // grass mound at base
+    ctx.fillStyle = "#54ad49";
+    ctx.beginPath(); ctx.ellipse(trunkX, gy, 36, 9, 0, 0, Math.PI * 2); ctx.fill();
+  }
+
+  function drawScene() {
+    const p = params();
+    const sc = makeScale(p);
+    ctx.clearRect(0, 0, W, H);
+    const gy = H - margin.b;
+    const ax = sc.toX(p.Dx), ayHome = sc.toY(p.Dy);
+
+    // apple tree (background)
+    drawTree(sc, p, gy);
+
+    // ground line + subtle distance ticks
+    ctx.strokeStyle = "#2b2b2b"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(margin.l - 8, gy); ctx.lineTo(W - margin.r, gy); ctx.stroke();
+    const ticksMax = (W - margin.r - sc.Lx) / sc.s;
+    const step = niceStep(ticksMax / 6);
+    ctx.fillStyle = "#5a6470"; ctx.font = "11px 'Courier New', monospace";
+    ctx.strokeStyle = "#b9c2cc"; ctx.lineWidth = 1;
+    for (let x = 0; x <= ticksMax; x += step) {
+      const X = sc.toX(x);
+      ctx.beginPath(); ctx.moveTo(X, gy - 4); ctx.lineTo(X, gy + 4); ctx.stroke();
+      ctx.fillText(x.toFixed(0) + "m", X + 2, gy + 15);
+    }
+
+    // cannon (muzzle sits at the launch origin)
+    const ox = sc.toX(0), oy = sc.toY(0);
+    drawCannon(sc, p.theta);
+
+    // line of sight to the apple's original position (with arrowhead)
+    if (aimEl.checked) {
+      const laX = ax - 14 * Math.cos(p.theta);
+      const laY = ayHome + 14 * Math.sin(p.theta);
+      ctx.strokeStyle = "#9aa3ad"; ctx.setLineDash([7, 6]); ctx.lineWidth = 2;
+      // start at the launch origin so the aim line is tangent to the green parabola
+      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(laX, laY); ctx.stroke();
+      ctx.setLineDash([]);
+      arrowHead(laX, laY, -p.theta, "#9aa3ad", 9);
+    }
+
+    // faint full trajectory: always after firing; a brief preview while idle
+    if (firing || finished || showPreview) {
+      ctx.strokeStyle = "rgba(43,140,52,0.55)"; ctx.lineWidth = 2;
+      ctx.beginPath();
+      let first = true;
+      for (let tt = 0; tt <= p.tEnd + 0.001; tt += p.tEnd / 120 || 1) {
+        const pp = projPos(p, tt);
+        if (pp.y < 0) break;
+        const X = sc.toX(pp.x), Y = sc.toY(pp.y);
+        if (first) { ctx.moveTo(X, Y); first = false; } else ctx.lineTo(X, Y);
+      }
+      ctx.stroke();
+    }
+
+    const tt = firing || finished ? Math.min(t, p.tEnd) : 0;
+    const pr = projPos(p, tt);
+    const tg = targetPos(p, tt);
+    const prY = Math.max(0, pr.y), tgY = Math.max(0, tg.y);
+
+    // traversed trajectory (bright)
+    if (tt > 0) {
+      ctx.strokeStyle = "#2e9e3a"; ctx.lineWidth = 2.5;
+      ctx.beginPath(); let f2 = true;
+      for (let s = 0; s <= tt + 0.0001; s += tt / 80 || 1) {
+        const pp = projPos(p, s); if (pp.y < 0) break;
+        const X = sc.toX(pp.x), Y = sc.toY(pp.y);
+        if (f2) { ctx.moveTo(X, Y); f2 = false; } else ctx.lineTo(X, Y);
+      }
+      ctx.stroke();
+    }
+
+    // equal-drop markers
+    if (dropEl.checked && tt > 0) {
+      const drop = 0.5 * g * tt * tt;
+      const aimPtY = p.vy * tt;                 // no-gravity y along aim line at this x
+      const projX = sc.toX(pr.x);
+      ctx.strokeStyle = "#d99400"; ctx.lineWidth = 2; ctx.setLineDash([3, 3]);
+      if (pr.y >= 0) {
+        ctx.beginPath(); ctx.moveTo(projX, sc.toY(aimPtY)); ctx.lineTo(projX, sc.toY(pr.y)); ctx.stroke();
+      }
+      if (tg.y >= 0) {
+        ctx.beginPath(); ctx.moveTo(ax, sc.toY(p.Dy)); ctx.lineTo(ax, sc.toY(tg.y)); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      ctx.fillStyle = "#b5790a"; ctx.font = "12px 'Courier New', monospace";
+      ctx.fillText("½gt²=" + drop.toFixed(1) + "m", ax + 12, sc.toY((p.Dy + Math.max(tgY, 0)) / 2));
+    }
+
+    // ghost of the apple's start position after it drops
+    if (aimEl.checked && tt > 0) drawApple(ax, ayHome, 9, 0.3);
+
+    // apple (target) at current position
+    drawApple(sc.toX(tg.x), sc.toY(tgY), 9);
+
+    // projectile (cannonball) + collision flash
+    const collide = p.isHit && tt >= p.tHit - 1e-6;
+    if (collide) {
+      ctx.fillStyle = "#ffb020"; circle(sc.toX(pr.x), sc.toY(prY), 15);
+      ctx.font = "bold 16px Arial"; ctx.fillText("💥", sc.toX(pr.x) - 10, sc.toY(prY) + 6);
+    } else {
+      ctx.fillStyle = "#1b1b1b"; circle(sc.toX(pr.x), sc.toY(prY), 6);
+    }
+  }
+
+  function updateReadouts() {
+    const p = params();
+    out.speed.textContent = p.v.toFixed(1).replace(/\.0$/, "");
+    out.dist.textContent = p.Dx.toFixed(1).replace(/\.0$/, "");
+    out.height.textContent = p.Dy.toFixed(1).replace(/\.0$/, "");
+    out.aim.textContent = (p.theta * 180 / Math.PI).toFixed(1) + "° · " + p.L.toFixed(1) + " m";
+    out.thit.textContent = p.tHit.toFixed(2) + " s";
+    out.drop.textContent = (0.5 * g * p.tHit * p.tHit).toFixed(1) + " m";
+  }
+
+  function setStatus(state, p) {
+    out.status.className = "status " + state;
+    if (state === "ready") out.status.textContent = "Ready — press Fire";
+    else if (state === "hit") out.status.textContent = "HIT! Met at " + p.meetY.toFixed(1) + " m up";
+    else out.status.textContent = "Target crashed first — but the shot still hit its spot";
+  }
+
+  function step(ts) {
+    if (lastTs == null) lastTs = ts;
+    const dt = (ts - lastTs) / 1000; lastTs = ts;
+    const p = params();
+    t += dt * (slowEl.checked ? 0.35 : 0.9);
+    if (t >= p.tEnd) {
+      t = p.tEnd; drawScene();
+      firing = false; finished = true; anim = null; lastTs = null;
+      setStatus(p.isHit ? "hit" : "miss", p);
+      return;
+    }
+    drawScene();
+    anim = requestAnimationFrame(step);
+  }
+
+  function fire() {
+    cancelAnimationFrame(anim);
+    clearTimeout(previewTimer); showPreview = false;
+    t = 0; lastTs = null; firing = true; finished = false;
+    out.status.className = "status ready"; out.status.textContent = "Firing…";
+    anim = requestAnimationFrame(step);
+  }
+  function reset() {
+    cancelAnimationFrame(anim);
+    anim = null; firing = false; finished = false; t = 0; lastTs = null;
+    updateReadouts(); setStatus("ready"); flashPreview();
+  }
+
+  [speedEl, distEl, heightEl].forEach((el) =>
+    el.addEventListener("input", () => { updateReadouts(); if (!firing) { finished = false; flashPreview(); } })
+  );
+  [aimEl, dropEl].forEach((el) => el.addEventListener("change", drawScene));
+  document.getElementById("fire").addEventListener("click", fire);
+  document.getElementById("reset").addEventListener("click", reset);
+
+  updateReadouts();
+  setStatus("ready");
+  fitCanvas();
+  flashPreview();
+  window.addEventListener("resize", fitCanvas);
+})();
+</script>
+<div class="dev-credit">Developed by Philip Jayson Lestojas</div>
+<script src="../sidebar.js"></script>
+</body>
+</html>
