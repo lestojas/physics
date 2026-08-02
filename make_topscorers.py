@@ -158,20 +158,25 @@ d.rectangle([x + s(148), tl_bottom, x + s(178), tl_bottom + s(9)], fill=YELLOW)
 
 # subtitle: PHYSICS 1  ·  [ Summative Test 1 ]  (test emphasized w/ highlight)
 sy = tl_bottom + s(30)
-d.text((x, sy + s(2)), "PHYSICS 1", font=f_sub_b, fill=GRAY)
-p1w = d.textlength("PHYSICS 1", font=f_sub_b)
-cur = x + p1w + s(16)
-# separator dot
-d.text((cur, sy + s(2)), "\u2022", font=f_sub_b, fill=GRAY_SOFT)
-cur += d.textlength("\u2022", font=f_sub_b) + s(16)
-# highlighted "Summative Test 1"
+d.text((x, sy), "PHYSICS 1", font=f_sub_b, fill=GRAY)
+pb = d.textbbox((0, 0), "PHYSICS 1", font=f_sub_b)
+line_mid = sy + (pb[1] + pb[3]) / 2.0            # vertical center of subtitle line
+cur = x + (pb[2] - pb[0]) + s(18)
+# separator dot, centered on the line
+dot = "\u2022"
+db = d.textbbox((0, 0), dot, font=f_sub_b)
+d.text((cur, line_mid - (db[1] + db[3]) / 2.0), dot, font=f_sub_b, fill=GRAY_SOFT)
+cur += (db[2] - db[0]) + s(18)
+# highlighted "Summative Test 1" — box symmetric around the glyph box
 tb = d.textbbox((0, 0), "Summative Test 1", font=f_test)
 tw, th = tb[2] - tb[0], tb[3] - tb[1]
-pad_x, pad_y = s(14), s(9)
-hl0 = (cur - s(2), sy - pad_y)
-hl1 = (cur + tw + pad_x, sy + th + pad_y)
-rrect(d, [hl0[0], hl0[1], hl1[0], hl1[1]], r=s(8), fill=YELLOW)
-d.text((cur + pad_x / 2 - tb[0], sy - tb[1] + pad_y / 2 - s(0)),
+pad_x, pad_y = s(16), s(11)
+box_l = cur
+box_t = line_mid - th / 2.0 - pad_y
+box_r = cur + tw + 2 * pad_x
+box_b = line_mid + th / 2.0 + pad_y
+rrect(d, [box_l, box_t, box_r, box_b], r=s(9), fill=YELLOW)
+d.text((box_l + pad_x - tb[0], line_mid - (tb[1] + tb[3]) / 2.0),
        "Summative Test 1", font=f_test, fill=INK)
 
 # ---------------------------------------------------------------- column anchors (dynamic)
@@ -216,21 +221,21 @@ for gi, (rank, students) in enumerate(GROUPS):
     grp_h = len(students) * row_h
     col = tier(rank)
 
-    # rank badge, centered on the group's vertical mid-line
-    grp_mid = grp_top + grp_h / 2.0
+    # rank badge, aligned to the FIRST student's row of this rank
+    first_cy = grp_top + row_h / 2.0
     bx0 = LM + 44 - BADGE / 2.0
-    by0 = grp_mid - BADGE / 2.0
+    by0 = first_cy - BADGE / 2.0
     if rank in MEDAL:
         medal_badge(int(round(bx0)), int(round(by0)), BADGE, MEDAL[rank])
         num_fill = medal_text(rank)
     else:
         outline_badge(int(round(bx0)), int(round(by0)), BADGE)
         num_fill = INK
-    # rank number centered on grp_mid -> aligns with the middle student's name
+    # rank number centered on the first student's row
     num = str(rank)
     nb = d.textbbox((0, 0), num, font=f_badge)
     d.text((s(LM + 44) - (nb[0] + nb[2]) / 2.0,
-            s(grp_mid) - (nb[1] + nb[3]) / 2.0),
+            s(first_cy) - (nb[1] + nb[3]) / 2.0),
            num, font=f_badge, fill=num_fill)
 
     for si, (name, section, score) in enumerate(students):
