@@ -51,13 +51,13 @@ def tier_text(rank):
 f_kicker  = F("NotoSans-ExtraBold.ttf", s(19))
 f_addr    = F("NotoSans-Regular.ttf",   s(20))
 f_strand  = F("NotoSans-Italic.ttf",    s(20))
-f_title   = F("NotoSans-Black.ttf",     s(96))
+f_title   = F("NotoSans-Black.ttf",     s(78))
 f_sub_b   = F("NotoSans-ExtraBold.ttf", s(26))
 f_sub     = F("NotoSans-Medium.ttf",    s(26))
 f_colhdr  = F("NotoSans-ExtraBold.ttf", s(15))
 f_name    = F("NotoSans-Bold.ttf",      s(28))
 f_meta    = F("NotoSans-Medium.ttf",    s(20))
-f_badge   = F("NotoSans-Black.ttf",     s(40))
+f_badge   = F("NotoSans-Black.ttf",     s(30))
 f_badge_s = F("NotoSans-ExtraBold.ttf", s(13))
 f_score   = F("NotoSans-Black.ttf",     s(34))
 f_scoremx = F("NotoSans-Bold.ttf",      s(19))
@@ -69,11 +69,11 @@ LM  = 96          # left margin
 RM  = 96
 CW  = W - LM - RM
 
-# vertical rhythm
-row_h      = 98
-grp_gap    = 16
-head_h     = 470
-foot_h     = 120
+# vertical rhythm (compact)
+row_h      = 74
+grp_gap    = 10
+head_h     = 396
+foot_h     = 34
 
 n_rows = sum(len(g[1]) for g in GROUPS)
 list_h = n_rows * row_h + (len(GROUPS) - 1) * grp_gap
@@ -95,31 +95,29 @@ def rrect(draw, box, r, fill=None, outline=None, width=1):
 
 # ---------------------------------------------------------------- header
 x = s(LM)
-y = s(70)
 
 # thin top accent tab (orange) — asymmetric, editorial
-d.rectangle([s(LM), s(52), s(LM) + s(56), s(52) + s(7)], fill=ORANGE)
+d.rectangle([s(LM), s(44), s(LM) + s(56), s(44) + s(7)], fill=ORANGE)
 
-text_tracked(d, (x, s(82)), "NIEVES VILLARICA NATIONAL HIGH SCHOOL",
+text_tracked(d, (x, s(70)), "NIEVES VILLARICA NATIONAL HIGH SCHOOL",
              f_kicker, INK, tracking=s(1.5))
-d.text((x, s(116)), "Brgy. Villarica, Babak District  \u2022  Island Garden City of Samal",
+d.text((x, s(102)), "Brgy. Villarica, Babak District  \u2022  Island Garden City of Samal",
        font=f_addr, fill=GRAY)
-d.text((x, s(150)), "Science, Technology, Engineering and Mathematics (STEM)",
+d.text((x, s(132)), "Science, Technology, Engineering and Mathematics (STEM)",
        font=f_strand, fill=GRAY)
 
 # big title
-ty = s(206)
+ty = s(182)
 d.text((x, ty), "TOP", font=f_title, fill=INK)
 top_w = d.textlength("TOP", font=f_title)
-d.text((x + top_w + s(24), ty), "SCORERS", font=f_title, fill=INK)
-# orange accent block sitting at the baseline gap between the two words? keep clean:
+d.text((x + top_w + s(20), ty), "SCORERS", font=f_title, fill=INK)
 # underline accent under whole title
-tl_bottom = ty + s(96) + s(18)
-d.rectangle([x, tl_bottom, x + s(150), tl_bottom + s(10)], fill=ORANGE)
-d.rectangle([x + s(158), tl_bottom, x + s(190), tl_bottom + s(10)], fill=YELLOW)
+tl_bottom = ty + s(78) + s(14)
+d.rectangle([x, tl_bottom, x + s(140), tl_bottom + s(9)], fill=ORANGE)
+d.rectangle([x + s(148), tl_bottom, x + s(178), tl_bottom + s(9)], fill=YELLOW)
 
 # subtitle
-sy = tl_bottom + s(34)
+sy = tl_bottom + s(26)
 sx = d.text((x, sy), "PHYSICS 1", font=f_sub_b, fill=INK)
 p1w = d.textlength("PHYSICS 1", font=f_sub_b)
 d.text((x + p1w + s(14), sy), "\u2014", font=f_sub, fill=GRAY_SOFT)
@@ -144,8 +142,8 @@ d.text((s(score_rx) - w_sc, s(chy)), sc_hdr, font=f_colhdr, fill=GRAY_SOFT)
 d.rectangle([s(LM), s(head_h), s(W - RM), s(head_h) + max(1, SS)], fill=INK)
 
 # ---------------------------------------------------------------- rows
-y = head_h + 60
-BADGE = 66
+y = head_h + 26
+BADGE = 54
 
 for gi, (rank, students) in enumerate(GROUPS):
     grp_top = y
@@ -173,7 +171,7 @@ for gi, (rank, students) in enumerate(GROUPS):
             d.rectangle([s(name_x), s(ry), s(W - RM), s(ry) + max(1, SS - 1)], fill=LINE)
 
         # name
-        d.text((s(name_x), s(cy - 30)), name, font=f_name, fill=INK)
+        d.text((s(name_x), s(cy - 26)), name, font=f_name, fill=INK)
         # meta: grade + section, section emphasized
         gtxt = "Grade 12"
         d.text((s(name_x), s(cy + 6)), gtxt, font=f_meta, fill=GRAY)
@@ -191,12 +189,12 @@ for gi, (rank, students) in enumerate(GROUPS):
         # baseline align: place big then mx
         total_w = w_big + s(3) + w_mx
         start_x = s(score_rx) - total_w
-        d.text((start_x, s(cy - 34)), big, font=f_score, fill=INK)
-        d.text((start_x + w_big + s(3), s(cy - 12)), mx, font=f_scoremx, fill=GRAY_SOFT)
+        d.text((start_x, s(cy - 30)), big, font=f_score, fill=INK)
+        d.text((start_x + w_big + s(3), s(cy - 10)), mx, font=f_scoremx, fill=GRAY_SOFT)
 
         # score bar under the score, right aligned
         frac = score / MAX_SCORE
-        by = cy + 18
+        by = cy + 16
         bx1 = score_rx
         bx0b = score_rx - 190
         rrect(d, [s(bx0b), s(by), s(bx1), s(by + 8)], r=s(4), fill=TRACK)
@@ -204,14 +202,6 @@ for gi, (rank, students) in enumerate(GROUPS):
         rrect(d, [s(bx0b), s(by), s(bx0b + fillw), s(by + 8)], r=s(4), fill=col)
 
     y += grp_h + grp_gap
-
-# ---------------------------------------------------------------- footer
-fy = H - foot_h + 24
-d.rectangle([s(LM), s(fy), s(W - RM), s(fy) + max(1, SS)], fill=LINE)
-d.text((s(LM), s(fy + 22)), "Highest scores \u2014 30 items", font=f_foot, fill=GRAY)
-rt = "13 students \u00b7 5 rank tiers"
-w_rt = d.textlength(rt, font=f_foot)
-d.text((s(W - RM) - w_rt, s(fy + 22)), rt, font=f_foot, fill=GRAY)
 
 # ---------------------------------------------------------------- output
 out = img.resize((W, H), Image.LANCZOS)
