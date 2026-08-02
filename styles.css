@@ -500,3 +500,21 @@ body.sim-page { overflow: hidden; }
 .mode-tab.m1.active { border-color: #ff8a3d; background: rgba(255,138,61,0.14); }
 .mode-tab.m2.active { border-color: #5cc46a; background: rgba(92,196,106,0.14); }
 .mode-tab.m3.active { border-color: #4aa3ff; background: rgba(74,163,255,0.14); }
+
+
+/* ---------- Developer credit footer ---------- */
+.site-credit {
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+/* Credit inside a simulator's side control panel */
+.sim-credit {
+  margin: 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12.5px;
+}
