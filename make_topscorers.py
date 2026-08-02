@@ -151,13 +151,10 @@ ty = s(182)
 d.text((x, ty), "TOP", font=f_title, fill=INK)
 top_w = d.textlength("TOP", font=f_title)
 d.text((x + top_w + s(20), ty), "SCORERS", font=f_title, fill=INK)
-# underline accent under whole title
-tl_bottom = ty + s(78) + s(14)
-d.rectangle([x, tl_bottom, x + s(140), tl_bottom + s(9)], fill=ORANGE)
-d.rectangle([x + s(148), tl_bottom, x + s(178), tl_bottom + s(9)], fill=YELLOW)
+tl_bottom = ty + s(78)
 
 # subtitle: PHYSICS 1  ·  [ Summative Test 1 ]  (test emphasized w/ highlight)
-sy = tl_bottom + s(30)
+sy = tl_bottom + s(22)
 d.text((x, sy), "PHYSICS 1", font=f_sub_b, fill=GRAY)
 pb = d.textbbox((0, 0), "PHYSICS 1", font=f_sub_b)
 line_mid = sy + (pb[1] + pb[3]) / 2.0            # vertical center of subtitle line
