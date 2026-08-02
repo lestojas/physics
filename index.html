@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Projectile Motion</title>
+<style>
+  :root{
+    --c1:#e8791f;   /* Case 1 - orange  */
+    --c1-bg:#fdf1e6;
+    --c2:#2f8f46;   /* Case 2 - green   */
+    --c2-bg:#eaf6ec;
+    --c3:#1f6fbf;   /* Case 3 - blue    */
+    --c3-bg:#e9f1fb;
+    --ink:#1f2933;
+    --muted:#61707d;
+    --line:#dfe6ec;
+    --panel:#ffffff;
+    --bg:#f4f6f8;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.45;
+  }
+  header.title{
+    text-align:center;
+    padding:22px 16px 10px;
+  }
+  header.title h1{
+    margin:0;
+    font-size:clamp(28px,5vw,46px);
+    font-weight:900;
+    letter-spacing:.5px;
+    color:var(--c1);
+    text-transform:uppercase;
+  }
+  header.title p{
+    margin:6px 0 0;
+    color:var(--muted);
+    font-size:15px;
+  }
+
+  /* ---- mode tabs ---- */
+  .modes{
+    display:flex;
+    gap:12px;
+    max-width:1180px;
+    margin:14px auto 0;
+    padding:0 16px;
+    flex-wrap:wrap;
+  }
+  .mode-card{
+    flex:1 1 300px;
+    border:2px solid var(--line);
+    border-radius:12px;
+    background:var(--panel);
+    padding:12px 14px;
+    cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease, border-color .12s;
+    user-select:none;
+  }
+  .mode-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.08)}
+  .mode-card .badge{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:26px;height:26px;border-radius:50%;
+    color:#fff;font-weight:800;font-size:14px;margin-right:8px;
+  }
+  .mode-card h3{margin:0;font-size:15px;display:flex;align-items:center}
+  .mode-card small{display:block;color:var(--muted);margin-top:6px;font-size:12.5px;padding-left:34px}
+  .mode-card[data-mode="1"] .badge{background:var(--c1)}
+  .mode-card[data-mode="2"] .badge{background:var(--c2)}
+  .mode-card[data-mode="3"] .badge{background:var(--c3)}
+  .mode-card.active[data-mode="1"]{border-color:var(--c1);background:var(--c1-bg)}
+  .mode-card.active[data-mode="2"]{border-color:var(--c2);background:var(--c2-bg)}
+  .mode-card.active[data-mode="3"]{border-color:var(--c3);background:var(--c3-bg)}
+
+  /* ---- main layout ---- */
+  .wrap{
+    max-width:1180px;margin:16px auto 40px;padding:0 16px;
+    display:grid;grid-template-columns:320px 1fr;gap:16px;
+  }
+  @media (max-width:900px){.wrap{grid-template-columns:1fr}}
+  .panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;
+  }
+  .panel h2{margin:0 0 12px;font-size:14px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+
+  .control{margin-bottom:16px}
+  .control label{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;margin-bottom:6px}
+  .control label .val{font-weight:800;font-variant-numeric:tabular-nums}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .cond{
+    font-size:12.5px;border-radius:8px;padding:10px 12px;margin-bottom:14px;
+    border:1px dashed var(--line);background:#fafbfc;
+  }
+  .cond b{display:block;text-transform:uppercase;font-size:11px;letter-spacing:.5px;color:var(--muted);margin-bottom:2px}
+
+  .btns{display:flex;gap:8px;margin-top:4px}
+  .btns button{
+    flex:1;border:none;border-radius:8px;padding:10px;font-weight:700;font-size:13px;cursor:pointer;
+    color:#fff;background:var(--accent);transition:filter .12s;
+  }
+  .btns button:hover{filter:brightness(1.06)}
+  .btns button.ghost{background:#eef1f4;color:var(--ink)}
+
+  /* ---- stage ---- */
+  .stage-panel{padding:0;overflow:hidden}
+  canvas{display:block;width:100%;height:auto;background:linear-gradient(#eaf4fb,#f7fbfe)}
+
+  .readouts{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1px;
+    background:var(--line);border-top:1px solid var(--line);
+  }
+  .ro{background:#fff;padding:10px 12px}
+  .ro .k{font-size:11px;color:var(--muted);font-weight:600}
+  .ro .v{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums}
+  .ro .u{font-size:11px;color:var(--muted);font-weight:600}
+
+  /* ---- equations ---- */
+  .eq-panel{grid-column:1 / -1}
+  .eq-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:760px){.eq-grid{grid-template-columns:1fr}}
+  .eq-box{border:1px solid var(--line);border-radius:10px;padding:14px}
+  .eq-box h4{margin:0 0 10px;font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .eq{
+    font-family:"Cambria Math","Times New Roman",Georgia,serif;
+    font-size:20px;margin:10px 0;display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;
+  }
+  .eq .lhs{font-style:italic;font-weight:700;min-width:56px}
+  .eq .plug{color:var(--muted);font-size:14px;font-family:inherit}
+  .eq .res{margin-left:auto;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+  sub{font-size:.62em}
+  .var{font-style:italic}
+  .note{font-size:12px;color:var(--muted);margin-top:8px}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);padding:10px 14px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .swatch{width:12px;height:12px;border-radius:3px;display:inline-block}
+</style>
+</head>
+<body>
+
+<header class="title">
+  <h1>Projectile Motion</h1>
+  <p>An interactive simulator for the three common cases of projectile motion</p>
+</header>
+
+<!-- MODE SELECTOR -->
+<div class="modes" id="modes">
+  <div class="mode-card active" data-mode="1">
+    <h3><span class="badge">1</span> Purely Horizontal (v<sub>0<span class="var">y</span></sub> = 0)</h3>
+    <small>Launch: purely horizontal &middot; Landing: below the launch point</small>
+  </div>
+  <div class="mode-card" data-mode="2">
+    <h3><span class="badge">2</span> At an angle, &theta;<sub><span class="var">i</span></sub></h3>
+    <small>Launch: at an angle &middot; Landing: same height as launch point</small>
+  </div>
+  <div class="mode-card" data-mode="3">
+    <h3><span class="badge">3</span> At an angle, &theta;<sub><span class="var">i</span></sub></h3>
+    <small>Launch: at an angle &middot; Landing: different height than launch point</small>
+  </div>
+</div>
+
+<div class="wrap">
+  <!-- CONTROLS -->
+  <div class="panel" id="controls">
+    <h2>Launch Parameters</h2>
+
+    <div class="cond" id="condBox">
+      <b>Launch condition</b><span id="launchCond"></span>
+      <b style="margin-top:8px">Landing condition</b><span id="landCond"></span>
+    </div>
+
+    <div class="control">
+      <label>Initial speed &nbsp;<span class="var">v</span><sub>0</sub><span class="val"><span id="v0v"></span> m/s</span></label>
+      <input type="range" id="v0" min="1" max="60" step="1" value="20">
+    </div>
+
+    <div class="control" id="angleCtl">
+      <label>Launch angle &nbsp;&theta;<sub><span class="var">i</span></sub><span class="val"><span id="thv"></span>&deg;</span></label>
+      <input type="range" id="theta" min="0" max="90" step="1" value="40">
+    </div>
+
+    <div class="control" id="h0Ctl">
+      <label>Launch height &nbsp;<span id="h0label">h</span><span class="val"><span id="h0v"></span> m</span></label>
+      <input type="range" id="h0" min="0" max="120" step="1" value="45">
+    </div>
+
+    <div class="control" id="hfCtl">
+      <label>Landing height &nbsp;<span class="var">h</span><sub><span class="var">f</span></sub><span class="val"><span id="hfv"></span> m</span></label>
+      <input type="range" id="hf" min="0" max="120" step="1" value="0">
+    </div>
+
+    <div class="control">
+      <label>Gravity &nbsp;<span class="var">g</span><span class="val"><span id="gv"></span> m/s&sup2;</span></label>
+      <input type="range" id="g" min="1.6" max="20" step="0.1" value="9.8">
+    </div>
+
+    <div class="btns">
+      <button id="play">&#9654; Launch</button>
+      <button id="reset" class="ghost">Reset</button>
+    </div>
+    <div class="control" style="margin-top:14px">
+      <label>Playback speed<span class="val"><span id="spv">1.0</span>&times;</span></label>
+      <input type="range" id="speed" min="0.1" max="2" step="0.1" value="1">
+    </div>
+  </div>
+
+  <!-- STAGE -->
+  <div class="panel stage-panel">
+    <canvas id="cv" width="820" height="470"></canvas>
+    <div class="legend">
+      <span><span class="swatch" style="background:#1f6fbf"></span> velocity <span class="var">v</span></span>
+      <span><span class="swatch" style="background:#e8791f"></span> horizontal comp. <span class="var">v</span><sub><span class="var">x</span></sub></span>
+      <span><span class="swatch" style="background:#2f8f46"></span> vertical comp. <span class="var">v</span><sub><span class="var">y</span></sub></span>
+      <span><span class="swatch" style="background:#8a94a0"></span> acceleration <span class="var">g</span></span>
+    </div>
+    <div class="readouts" id="readouts">
+      <div class="ro"><div class="k">time <span class="var">t</span></div><div class="v"><span id="roT">0.00</span></div><div class="u">s</div></div>
+      <div class="ro"><div class="k">&Delta;<span class="var">x</span> (horizontal)</div><div class="v"><span id="roDx">0.00</span></div><div class="u">m</div></div>
+      <div class="ro"><div class="k">&Delta;<span class="var">y</span> (vertical)</div><div class="v"><span id="roDy">0.00</span></div><div class="u">m</div></div>
+      <div class="ro"><div class="k"><span class="var">v</span><sub><span class="var">x</span></sub></div><div class="v"><span id="roVx">0.00</span></div><div class="u">m/s</div></div>
+      <div class="ro"><div class="k"><span class="var">v</span><sub><span class="var">y</span></sub></div><div class="v"><span id="roVy">0.00</span></div><div class="u">m/s</div></div>
+      <div class="ro"><div class="k">speed <span class="var">v</span></div><div class="v"><span id="roV">0.00</span></div><div class="u">m/s</div></div>
+    </div>
+  </div>
+
+  <!-- EQUATIONS -->
+  <div class="panel eq-panel">
+    <h2>Kinematic Equations <span id="eqMode" style="color:var(--accent)"></span></h2>
+    <div class="eq-grid">
+      <div class="eq-box">
+        <h4>Horizontal (constant velocity, <span class="var">a</span><sub><span class="var">x</span></sub> = 0)</h4>
+        <div class="eq">
+          <span class="lhs">&Delta;<span class="var">x</span> =</span>
+          <span><span class="var">v</span><sub>0<span class="var">x</span></sub> <span class="var">t</span></span>
+          <span class="plug" id="pl_dx"></span>
+          <span class="res" id="rs_dx"></span>
+        </div>
+        <div class="note">v<sub>0<span class="var">x</span></sub> = v<sub>0</sub> cos&theta;<sub><span class="var">i</span></sub> &nbsp;stays constant throughout the flight.</div>
+      </div>
+
+      <div class="eq-box">
+        <h4>Vertical (constant acceleration, <span class="var">a</span><sub><span class="var">y</span></sub> = &minus;<span class="var">g</span>)</h4>
+        <div class="eq">
+          <span class="lhs"><span class="var">v</span><sub><span class="var">f</span><span class="var">y</span></sub> =</span>
+          <span><span class="var">v</span><sub>0<span class="var">y</span></sub> + <span class="var">a</span><sub><span class="var">y</span></sub> <span class="var">t</span></span>
+          <span class="plug" id="pl_vfy"></span>
+          <span class="res" id="rs_vfy"></span>
+        </div>
+        <div class="eq">
+          <span class="lhs">&Delta;<span class="var">y</span> =</span>
+          <span><span class="var">v</span><sub>0<span class="var">y</span></sub> <span class="var">t</span> + &frac12; <span class="var">a</span><sub><span class="var">y</span></sub> <span class="var">t</span>&sup2;</span>
+          <span class="plug" id="pl_dy"></span>
+          <span class="res" id="rs_dy"></span>
+        </div>
+        <div class="eq">
+          <span class="lhs"><span class="var">v</span><sub><span class="var">f</span><span class="var">y</span></sub>&sup2; =</span>
+          <span><span class="var">v</span><sub>0<span class="var">y</span></sub>&sup2; + 2<span class="var">a</span><sub><span class="var">y</span></sub>&Delta;<span class="var">y</span></span>
+          <span class="plug" id="pl_vfy2"></span>
+          <span class="res" id="rs_vfy2"></span>
+        </div>
+      </div>
+    </div>
+    <div class="note" id="resultLine" style="margin-top:12px;font-size:13.5px;color:var(--ink)"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ------------------------------------------------------------------
+  //  Mode definitions -- the three common cases of projectile motion
+  // ------------------------------------------------------------------
+  var MODES = {
+    "1":{color:"#e8791f", name:"Purely Horizontal",
+         launch:"Purely horizontal (v<sub>0y</sub> = 0)",
+         land:"Below the launch point",
+         angleFixed:0, showAngle:false, showH0:true, showHf:false, h0label:"h"},
+    "2":{color:"#2f8f46", name:"At an angle \u03b8\u1d62 (level ground)",
+         launch:"At an angle, \u03b8<sub>i</sub>",
+         land:"Same height as the launch point",
+         showAngle:true, showH0:false, showHf:false, h0label:"h"},
+    "3":{color:"#1f6fbf", name:"At an angle \u03b8\u1d62 (uneven ground)",
+         launch:"At an angle, \u03b8<sub>i</sub>",
+         land:"Different height than the launch point",
+         showAngle:true, showH0:true, showHf:true, h0label:"h\u2080"}
+  };
+
+  var mode = "1";
+  var state = {t:0, playing:false, tLand:0, last:0};
+
+  // element refs
+  var $ = function(id){return document.getElementById(id);};
+  var cv = $("cv"), ctx = cv.getContext("2d");
+
+  var els = {
+    v0:$("v0"), theta:$("theta"), h0:$("h0"), hf:$("hf"), g:$("g"), speed:$("speed"),
+    v0v:$("v0v"), thv:$("thv"), h0v:$("h0v"), hfv:$("hfv"), gv:$("gv"), spv:$("spv"),
+    angleCtl:$("angleCtl"), h0Ctl:$("h0Ctl"), hfCtl:$("hfCtl"), h0label:$("h0label"),
+    launchCond:$("launchCond"), landCond:$("landCond"),
+    play:$("play"), reset:$("reset"), eqMode:$("eqMode"), resultLine:$("resultLine")
+  };
+
+  // ------------------------------------------------------------------
+  //  Physics.  Up is positive; a_y = -g.  Origin at launch point base.
+  // ------------------------------------------------------------------
+  function params(){
+    var m = MODES[mode];
+    var v0 = +els.v0.value;
+    var g  = +els.g.value;
+    var theta = m.showAngle ? (+els.theta.value) : (m.angleFixed||0);
+    var rad = theta*Math.PI/180;
+    var v0x = v0*Math.cos(rad);
+    var v0y = v0*Math.sin(rad);
+    var ay  = -g;
+
+    // launch / landing heights (metres above ground)
+    var y0, yLand;
+    if(mode==="1"){ y0 = +els.h0.value; yLand = 0; }
+    else if(mode==="2"){ y0 = 0; yLand = 0; }
+    else { y0 = +els.h0.value; yLand = Math.min(+els.hf.value, y0); } // land lower than launch
+
+    // time of flight: solve y0 + v0y t + 0.5 ay t^2 = yLand
+    // 0.5 g t^2 - v0y t + (yLand - y0) = 0
+    var A = 0.5*g, B = -v0y, C = (yLand - y0);
+    var disc = B*B - 4*A*C;
+    var tLand = disc>=0 ? (-B + Math.sqrt(disc))/(2*A) : 0;
+    if(tLand < 0) tLand = 0;
+
+    return {v0:v0, g:g, theta:theta, rad:rad, v0x:v0x, v0y:v0y, ay:ay,
+            y0:y0, yLand:yLand, tLand:tLand};
+  }
+
+  // kinematics at time t (relative to launch point)
+  function stateAt(p, t){
+    var dx = p.v0x*t;
+    var dy = p.v0y*t + 0.5*p.ay*t*t;
+    var vx = p.v0x;
+    var vy = p.v0y + p.ay*t;
+    return {dx:dx, dy:dy, vx:vx, vy:vy, v:Math.hypot(vx,vy),
+            x:dx, y:p.y0+dy};
+  }
+
+  function fmt(n,d){ d = (d===undefined)?2:d; return (Math.abs(n)<1e-9?0:n).toFixed(d); }
+
+  // ------------------------------------------------------------------
+  //  Drawing
+  // ------------------------------------------------------------------
+  function trajectoryExtent(p){
+    var maxX = p.v0x*p.tLand;
+    // apex height above ground
+    var tApex = p.v0y>0 ? p.v0y/p.g : 0;
+    tApex = Math.min(tApex, p.tLand);
+    var apexY = p.y0 + p.v0y*tApex + 0.5*p.ay*tApex*tApex;
+    var maxY = Math.max(apexY, p.y0, p.yLand);
+    return {maxX:Math.max(maxX,1), maxY:Math.max(maxY,1)};
+  }
+
+  var view = {sx:1, sy:1, padL:60, padR:40, padT:40, padB:60, groundY:0};
+
+  function setupView(p){
+    var ext = trajectoryExtent(p);
+    var w = cv.width, h = cv.height;
+    var usableW = w - view.padL - view.padR;
+    var usableH = h - view.padT - view.padB;
+    view.sx = usableW / (ext.maxX*1.12);
+    view.sy = usableH / (ext.maxY*1.18);
+    view.groundY = h - view.padB;                 // pixel y of ground (height 0)
+  }
+  function X(worldX){ return view.padL + worldX*view.sx; }
+  function Y(worldY){ return view.groundY - worldY*view.sy; }
+
+  function arrow(x1,y1,x2,y2,color,width){
+    ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=width||2.5;
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    var ang=Math.atan2(y2-y1,x2-x1), s=8;
+    ctx.beginPath();
+    ctx.moveTo(x2,y2);
+    ctx.lineTo(x2-s*Math.cos(ang-0.4), y2-s*Math.sin(ang-0.4));
+    ctx.lineTo(x2-s*Math.cos(ang+0.4), y2-s*Math.sin(ang+0.4));
+    ctx.closePath(); ctx.fill();
+  }
+
+  function dimLine(x1,y1,x2,y2,label,color){
+    ctx.save();
+    ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=1.2;
+    ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font="italic 15px 'Cambria Math',Georgia,serif";
+    var mx=(x1+x2)/2, my=(y1+y2)/2;
+    ctx.fillText(label, mx+6, my-4);
+    ctx.restore();
+  }
+
+  function draw(){
+    var p = params();
+    setupView(p);
+    var m = MODES[mode];
+    var w=cv.width, h=cv.height;
+    ctx.clearRect(0,0,w,h);
+
+    // sky gradient background is via CSS; draw ground
+    var gY = view.groundY;
+    var landX = X(p.v0x*p.tLand);
+
+    // ---- ground / terrain ----
+    ctx.fillStyle="#cfe8c9";
+    if(mode==="2"){
+      ctx.fillRect(0,gY,w,h-gY);
+      ctx.fillStyle="#3f9a4e"; ctx.fillRect(0,gY,w,4);
+    } else if(mode==="1"){
+      // cliff at launch (left), ground far below to the right
+      var cliffX = X(0);
+      ctx.fillStyle="#b98a5e";
+      ctx.fillRect(0, Y(p.y0), cliffX, h);          // cliff block under launch
+      ctx.fillStyle="#cfe8c9";
+      ctx.fillRect(cliffX, gY, w-cliffX, h-gY);      // low ground
+      ctx.fillStyle="#3f9a4e";
+      ctx.fillRect(0, Y(p.y0), cliffX, 5);           // grass top of cliff
+      ctx.fillRect(cliffX, gY, w-cliffX, 4);         // grass low ground
+    } else {
+      // launch on high ground (left), landing on lower ground (right)
+      var stepX = landX;
+      ctx.fillStyle="#b98a5e";
+      ctx.fillRect(0, Y(p.y0), stepX, h);            // high plateau
+      ctx.fillStyle="#cfe8c9";
+      ctx.fillRect(stepX, Y(p.yLand), w-stepX, h);   // lower plateau
+      ctx.fillStyle="#3f9a4e";
+      ctx.fillRect(0, Y(p.y0), stepX, 5);
+      ctx.fillRect(stepX, Y(p.yLand), w-stepX, 4);
+    }
+
+    // ---- gravity arrow (top-right) ----
+    arrow(w-40, 30, w-40, 70, "#8a94a0", 3);
+    ctx.fillStyle="#6b7784"; ctx.font="italic 16px 'Cambria Math',Georgia,serif";
+    ctx.fillText("g", w-32, 55);
+
+    // ---- full trajectory (dashed) ----
+    ctx.strokeStyle=m.color; ctx.lineWidth=2; ctx.setLineDash([6,5]);
+    ctx.beginPath();
+    var N=120;
+    for(var i=0;i<=N;i++){
+      var t=p.tLand*i/N, s=stateAt(p,t);
+      var px=X(s.x), py=Y(s.y);
+      if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+
+    // ---- dimension labels ----
+    if(mode==="1"){
+      dimLine(X(0)-18, Y(p.y0), X(0)-18, gY, "h", "#7a5230");
+    } else if(mode==="2"){
+      // range R
+      dimLine(X(0), gY+22, landX, gY+22, "R", "#2f6f3a");
+      // apex height h_max
+      var tA=p.v0y/p.g, apex=stateAt(p,tA);
+      dimLine(X(apex.x), Y(apex.y), X(apex.x), gY, "h\u2098\u2090\u2093", "#2f6f3a");
+    } else {
+      dimLine(X(0)-18, Y(p.y0), X(0)-18, gY, "h\u2080", "#7a5230");
+      if(p.yLand>0.5) dimLine(landX+16, Y(p.yLand), landX+16, gY, "h_f", "#1f5fa0");
+      dimLine(X(0), gY+22, landX, gY+22, "R", "#1f5fa0");
+    }
+
+    // ---- current projectile state ----
+    var t = Math.min(state.t, p.tLand);
+    var s = stateAt(p, t);
+    var px=X(s.x), py=Y(s.y);
+
+    // velocity vectors (scaled)
+    var vScale = 2.2;
+    // components
+    arrow(px,py, px + s.vx*vScale, py, "#e8791f", 2.5);          // vx (orange)
+    arrow(px,py, px, py - s.vy*vScale, "#2f8f46", 2.5);          // vy (green)
+    // resultant velocity (blue)
+    arrow(px,py, px + s.vx*vScale, py - s.vy*vScale, "#1f6fbf", 3);
+
+    // projectile
+    ctx.beginPath(); ctx.arc(px,py,8,0,7); 
+    ctx.fillStyle=m.color; ctx.fill();
+    ctx.lineWidth=2; ctx.strokeStyle="#fff"; ctx.stroke();
+
+    // v0 label at start when at rest
+    if(t<0.01){
+      ctx.fillStyle="#1f6fbf"; ctx.font="italic 15px 'Cambria Math',Georgia,serif";
+      ctx.fillText("v\u2080", px + s.vx*vScale*0.5 + 6, py - s.vy*vScale*0.5 - 6);
+      if(m.showAngle){
+        ctx.fillStyle=m.color;
+        ctx.fillText("\u03b8\u1d62", px+26, py-8);
+      }
+    }
+
+    updateReadouts(p, t, s);
+  }
+
+  // ------------------------------------------------------------------
+  //  Readouts + equation panel
+  // ------------------------------------------------------------------
+  function updateReadouts(p, t, s){
+    $("roT").textContent  = fmt(t);
+    $("roDx").textContent = fmt(s.dx);
+    $("roDy").textContent = fmt(s.dy);
+    $("roVx").textContent = fmt(s.vx);
+    $("roVy").textContent = fmt(s.vy);
+    $("roV").textContent  = fmt(s.v);
+
+    // equation plug-ins (live at current t)
+    $("pl_dx").innerHTML   = "= ("+fmt(p.v0x)+")("+fmt(t)+")";
+    $("rs_dx").textContent = fmt(s.dx)+" m";
+
+    $("pl_vfy").innerHTML   = "= "+fmt(p.v0y)+" + (\u2212"+fmt(p.g)+")("+fmt(t)+")";
+    $("rs_vfy").textContent = fmt(s.vy)+" m/s";
+
+    $("pl_dy").innerHTML   = "= ("+fmt(p.v0y)+")("+fmt(t)+") + \u00bd(\u2212"+fmt(p.g)+")("+fmt(t)+")\u00b2";
+    $("rs_dy").textContent = fmt(s.dy)+" m";
+
+    var vfy2 = p.v0y*p.v0y + 2*p.ay*s.dy;
+    $("pl_vfy2").innerHTML   = "= "+fmt(p.v0y*p.v0y)+" + 2(\u2212"+fmt(p.g)+")("+fmt(s.dy)+")";
+    $("rs_vfy2").textContent = fmt(vfy2)+" m\u00b2/s\u00b2";
+
+    // summary result line (full-flight quantities)
+    var full = stateAt(p, p.tLand);
+    var R = full.dx;
+    var tA = p.v0y>0 ? p.v0y/p.g : 0;
+    var hmaxAbove = p.v0y*tA + 0.5*p.ay*tA*tA; // rise above launch
+    var vLand = full.v;
+    var txt = "";
+    if(mode==="1"){
+      txt = "Time to fall t = "+fmt(p.tLand)+" s &middot; Horizontal range \u0394x = "+fmt(R)+" m &middot; Impact speed v = "+fmt(vLand)+" m/s.";
+    } else if(mode==="2"){
+      txt = "Time of flight t = "+fmt(p.tLand)+" s &middot; Range R = "+fmt(R)+" m &middot; Max height h<sub>max</sub> = "+fmt(hmaxAbove)+" m &middot; Landing speed v = "+fmt(vLand)+" m/s.";
+    } else {
+      txt = "Time of flight t = "+fmt(p.tLand)+" s &middot; Range R = "+fmt(R)+" m &middot; Rise above launch = "+fmt(hmaxAbove)+" m &middot; Landing speed v = "+fmt(vLand)+" m/s.";
+    }
+    els.resultLine.innerHTML = txt;
+  }
+
+  // ------------------------------------------------------------------
+  //  Mode switching + control visibility
+  // ------------------------------------------------------------------
+  function applyMode(){
+    var m = MODES[mode];
+    document.documentElement.style.setProperty('--accent', m.color);
+    // header title color follows selected case
+    document.querySelector("header.title h1").style.color = m.color;
+
+    els.angleCtl.style.display = m.showAngle ? "" : "none";
+    els.h0Ctl.style.display    = m.showH0 ? "" : "none";
+    els.hfCtl.style.display    = m.showHf ? "" : "none";
+    els.h0label.innerHTML      = m.h0label;
+    els.launchCond.innerHTML   = m.launch;
+    els.landCond.innerHTML     = m.land;
+    els.eqMode.textContent     = "\u2014 Case "+mode+": "+m.name;
+
+    // sensible defaults per mode
+    if(mode==="1"){ els.h0.value = Math.max(20, +els.h0.value); }
+    if(mode==="2"){ /* level ground */ }
+
+    document.querySelectorAll(".mode-card").forEach(function(c){
+      c.classList.toggle("active", c.dataset.mode===mode);
+    });
+    resetAnim();
+  }
+
+  // ------------------------------------------------------------------
+  //  Animation loop
+  // ------------------------------------------------------------------
+  function loop(ts){
+    if(!state.playing){ return; }
+    if(!state.last) state.last = ts;
+    var dt = (ts - state.last)/1000;
+    state.last = ts;
+    var p = params();
+    state.t += dt * (+els.speed.value);
+    if(state.t >= p.tLand){
+      state.t = p.tLand;
+      state.playing = false;
+      els.play.innerHTML = "&#9654; Replay";
+    }
+    draw();
+    if(state.playing) requestAnimationFrame(loop);
+  }
+
+  function play(){
+    var p = params();
+    if(state.t >= p.tLand) state.t = 0;   // replay from start
+    state.playing = true; state.last = 0;
+    els.play.innerHTML = "&#10073;&#10073; Pause";
+    requestAnimationFrame(loop);
+  }
+  function pause(){
+    state.playing = false;
+    els.play.innerHTML = "&#9654; Launch";
+  }
+  function resetAnim(){
+    state.playing = false; state.t = 0; state.last = 0;
+    els.play.innerHTML = "&#9654; Launch";
+    draw();
+  }
+
+  // ------------------------------------------------------------------
+  //  Wire up UI
+  // ------------------------------------------------------------------
+  function syncLabels(){
+    els.v0v.textContent = els.v0.value;
+    els.thv.textContent = els.theta.value;
+    els.h0v.textContent = els.h0.value;
+    els.hfv.textContent = els.hf.value;
+    els.gv.textContent  = (+els.g.value).toFixed(1);
+    els.spv.textContent = (+els.speed.value).toFixed(1);
+  }
+
+  ["v0","theta","h0","hf","g"].forEach(function(id){
+    els[id].addEventListener("input", function(){
+      syncLabels();
+      // ensure hf < h0 in mode 3
+      if(mode==="3" && +els.hf.value >= +els.h0.value){
+        els.hf.value = Math.max(0, +els.h0.value - 1);
+        els.hfv.textContent = els.hf.value;
+      }
+      resetAnim();
+    });
+  });
+  els.speed.addEventListener("input", function(){ syncLabels(); });
+
+  document.querySelectorAll(".mode-card").forEach(function(c){
+    c.addEventListener("click", function(){ mode = c.dataset.mode; applyMode(); });
+  });
+
+  els.play.addEventListener("click", function(){
+    if(state.playing) pause(); else play();
+  });
+  els.reset.addEventListener("click", resetAnim);
+
+  // init
+  syncLabels();
+  applyMode();
+})();
+</script>
+</body>
+</html>
