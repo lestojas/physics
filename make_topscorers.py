@@ -9,7 +9,8 @@ WHITE      = (255, 255, 255)
 INK        = (23, 23, 23)      # near-black
 GRAY       = (138, 138, 138)   # secondary text
 GRAY_SOFT  = (176, 176, 176)
-LINE       = (232, 232, 232)   # hairlines
+LINE       = (234, 234, 234)   # hairlines (within a tied group)
+GRP_LINE   = (213, 213, 213)   # divider between rank groups
 TRACK      = (240, 240, 240)   # bar track
 PANEL      = (247, 247, 247)   # faint panel
 YELLOW     = (255, 196, 0)
@@ -89,7 +90,7 @@ head_h     = 396
 foot_h     = 36
 
 n_rows = sum(len(g[1]) for g in GROUPS)
-list_h = n_rows * row_h + (len(GROUPS) - 1) * grp_gap
+list_h = n_rows * row_h           # uniform row height, no per-group gaps
 H = head_h + 26 + list_h + foot_h
 
 img  = Image.new("RGB", (s(W), s(H)), WHITE)
@@ -215,61 +216,64 @@ for gi, (rank, students) in enumerate(GROUPS):
     grp_h = len(students) * row_h
     col = tier(rank)
 
-    # rank badge, vertically centered in group
-    bx0 = LM + 44 - BADGE // 2
-    by0 = grp_top + (grp_h - BADGE) // 2
+    # rank badge, centered on the group's vertical mid-line
+    grp_mid = grp_top + grp_h / 2.0
+    bx0 = LM + 44 - BADGE / 2.0
+    by0 = grp_mid - BADGE / 2.0
     if rank in MEDAL:
-        medal_badge(bx0, by0, BADGE, MEDAL[rank])
+        medal_badge(int(round(bx0)), int(round(by0)), BADGE, MEDAL[rank])
         num_fill = medal_text(rank)
     else:
-        outline_badge(bx0, by0, BADGE)
+        outline_badge(int(round(bx0)), int(round(by0)), BADGE)
         num_fill = INK
-    # rank number centered
+    # rank number centered on grp_mid -> aligns with the middle student's name
     num = str(rank)
     nb = d.textbbox((0, 0), num, font=f_badge)
-    nw, nh = nb[2] - nb[0], nb[3] - nb[1]
-    d.text((s(bx0 + BADGE // 2) - nw / 2 - nb[0],
-            s(by0 + BADGE // 2) - nh / 2 - nb[1]),
+    d.text((s(LM + 44) - (nb[0] + nb[2]) / 2.0,
+            s(grp_mid) - (nb[1] + nb[3]) / 2.0),
            num, font=f_badge, fill=num_fill)
 
     for si, (name, section, score) in enumerate(students):
         ry = y + si * row_h
-        cy = ry + row_h // 2
+        cy = ry + row_h / 2.0
         dcy = s(cy)
 
-        # subtle row separator within group (not before first)
-        if si > 0:
+        # row separators: full-width divider at each new group (merged rank cell),
+        # thin partial line (from name column) between students tied at one rank
+        if si == 0:
+            if gi > 0:
+                d.rectangle([s(LM), s(ry), s(W - RM), s(ry) + max(1, SS)], fill=GRP_LINE)
+        else:
             d.rectangle([s(name_x), s(ry), s(W - RM), s(ry) + max(1, SS - 1)], fill=LINE)
 
-        # col 2: name of student (single line, vertically centered)
-        text_vc(d, s(name_x), dcy - s(6), name, f_name, INK)
+        # col 2: name of student (centered on cy)
+        text_vc(d, s(name_x), dcy, name, f_name, INK)
 
-        # col 3: grade & section  ->  "Grade 12 - Maxwell" (hyphen)
-        gx = text_vc(d, s(sect_x), dcy - s(6), "Grade 12 - ", f_meta, GRAY)
-        text_vc(d, s(sect_x) + gx, dcy - s(6), section, f_meta, INK)
+        # col 3: grade & section -> "Grade 12 - <section>" (hyphen)
+        gx = text_vc(d, s(sect_x), dcy, "Grade 12 - ", f_meta, GRAY)
+        text_vc(d, s(sect_x) + gx, dcy, section, f_meta, INK)
 
-        # col 4: score, right aligned "27 / 30"
+        # col 4: score "27 / 30" right aligned, number centered on cy
         big = str(score)
         mx  = " / %d" % MAX_SCORE
         w_big = d.textlength(big, font=f_score)
         w_mx  = d.textlength(mx, font=f_scoremx)
-        bb = d.textbbox((0, 0), big, font=f_score)
         start_x = s(score_rx) - (w_big + w_mx)
-        d.text((start_x, dcy - s(6) - (bb[1] + bb[3]) / 2), big, font=f_score, fill=INK)
+        bb = d.textbbox((0, 0), big, font=f_score)
+        d.text((start_x, dcy - (bb[1] + bb[3]) / 2.0), big, font=f_score, fill=INK)
         mb = d.textbbox((0, 0), mx, font=f_scoremx)
-        d.text((start_x + w_big, dcy - s(6) - (mb[1] + mb[3]) / 2), mx,
+        d.text((start_x + w_big, dcy - (mb[1] + mb[3]) / 2.0), mx,
                font=f_scoremx, fill=GRAY_SOFT)
 
-        # thin score accent bar beneath the score number, right aligned
+        # thin score accent bar under the number (identical offset every row)
         frac = score / MAX_SCORE
-        by = cy + 15
-        bx1 = score_rx
-        bx0b = score_rx - bar_w
-        rrect(d, [s(bx0b), s(by), s(bx1), s(by + 6)], r=s(3), fill=TRACK)
-        fillw = int((bx1 - bx0b) * frac)
-        rrect(d, [s(bx0b), s(by), s(bx0b + fillw), s(by + 6)], r=s(3), fill=col)
+        by = cy + 20
+        bx0b, bx1b = s(score_rx - bar_w), s(score_rx)
+        rrect(d, [bx0b, s(by), bx1b, s(by) + s(6)], r=s(3), fill=TRACK)
+        fillw = int(round((bx1b - bx0b) * frac))
+        rrect(d, [bx0b, s(by), bx0b + fillw, s(by) + s(6)], r=s(3), fill=col)
 
-    y += grp_h + grp_gap
+    y += grp_h
 
 # ---------------------------------------------------------------- output
 out = img.resize((W, H), Image.LANCZOS)
