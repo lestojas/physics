@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Velocity Components Simulator — Uniform Circular Motion</title>
+  <!-- Relative stylesheet; onerror surfaces load failure (Req 2.7). -->
+  <link rel="stylesheet" href="sim.css"
+        onerror="window.__vcsAssetError && window.__vcsAssetError('Stylesheet sim.css could not be loaded.')" />
+</head>
+<body>
+  <!-- Visible error banner, hidden until an asset/context failure occurs. -->
+  <div id="error-banner" class="error-banner" role="alert" hidden></div>
+
+  <header class="app-header">
+    <h1>Velocity Components Simulator</h1>
+    <p class="subtitle">Uniform circular motion — explore how radius, mass, and
+      one motion driver (T, v, or &omega;) shape the coupled quantities.</p>
+    <p><a class="back-link" href="../../index.html">&larr; Back to simulations</a></p>
+  </header>
+
+  <main class="layout">
+    <!-- Animation_View -->
+    <section class="panel animation-panel" aria-label="Animation">
+      <canvas id="sim-canvas" width="480" height="480"
+              aria-label="Circular motion animation"></canvas>
+    </section>
+
+    <!-- Control_Panel (widgets injected by ui.js) -->
+    <section class="panel" aria-label="Controls">
+      <h2>Controls</h2>
+      <div id="control-panel"></div>
+    </section>
+
+    <!-- Readout_Panel (rows injected by ui.js) -->
+    <section class="panel" aria-label="Readouts">
+      <h2>Live values</h2>
+      <div id="readout-panel"></div>
+    </section>
+
+    <!-- Equation_Panel (static content, Req 10) -->
+    <section class="panel equation-panel" id="equation-panel" aria-label="Equations">
+      <h2>Governing equations</h2>
+      <ul class="equation-list">
+        <li>v = 2&pi;r / T</li>
+        <li>&omega; = 2&pi; / T</li>
+        <li>v = r&omega;</li>
+        <li>a<sub>c</sub> = v&sup2; / r</li>
+        <li>a<sub>c</sub> = r&omega;&sup2;</li>
+        <li>F<sub>net</sub> = m&middot;a<sub>c</sub></li>
+        <li>F<sub>net</sub> = m&middot;v&sup2; / r</li>
+      </ul>
+
+      <h3>Symbol legend</h3>
+      <dl class="legend">
+        <dt>r</dt><dd>radius (meters, m)</dd>
+        <dt>m</dt><dd>mass (kilograms, kg)</dd>
+        <dt>T</dt><dd>period (seconds, s)</dd>
+        <dt>v</dt><dd>tangential speed (meters per second, m/s)</dd>
+        <dt>&omega;</dt><dd>angular speed (radians per second, rad/s)</dd>
+        <dt>a<sub>c</sub></dt><dd>centripetal acceleration (meters per second squared, m/s&sup2;)</dd>
+        <dt>F<sub>net</sub></dt><dd>net centripetal force (newtons, N)</dd>
+      </dl>
+    </section>
+  </main>
+
+  <!--
+    Classic <script> tags in dependency order (NOT type="module") so the app
+    runs from file:// with no server, bundler, or CORS restriction. Each attaches
+    to the single global VCS namespace. onerror surfaces a load failure.
+  -->
+  <script>
+    // Minimal early hook so link/script onerror handlers can report failures
+    // even before ui.js is available.
+    window.__vcsAssetError = function (text) {
+      var banner = document.getElementById("error-banner");
+      if (banner) {
+        banner.textContent = text;
+        banner.hidden = false;
+        banner.className = (banner.className + " visible").trim();
+      }
+    };
+  </script>
+  <script src="physics.js" onerror="window.__vcsAssetError('Required script physics.js could not be loaded.')"></script>
+  <script src="render.js" onerror="window.__vcsAssetError('Required script render.js could not be loaded.')"></script>
+  <script src="ui.js" onerror="window.__vcsAssetError('Required script ui.js could not be loaded.')"></script>
+  <script src="main.js" onerror="window.__vcsAssetError('Required script main.js could not be loaded.')"></script>
+</body>
+</html>
