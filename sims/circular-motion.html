@@ -72,6 +72,7 @@
         <p class="cb-title">Readings</p>
         <div class="readouts">
           <div class="readout"><div class="k">Period T</div><div class="n" id="out-T">4.000 s</div></div>
+          <div class="readout vy"><div class="k">Frequency f</div><div class="n" id="out-f">0.250 Hz</div></div>
           <div class="readout v"><div class="k">Tangential speed v</div><div class="n" id="out-v">3.142 m/s</div></div>
           <div class="readout vx"><div class="k">Angular speed &omega;</div><div class="n" id="out-w">1.571 rad/s</div></div>
           <div class="readout path"><div class="k">Centripetal accel. a<sub>c</sub></div><div class="n" id="out-ac">4.935 m/s<sup>2</sup></div></div>
@@ -81,7 +82,7 @@
         <div class="cb-divider"></div>
         <p class="cb-title">Relationships</p>
         <div class="formula">
-          v = 2&pi;r / T &nbsp;&middot;&nbsp; <b>&omega;</b> = 2&pi; / T<br>
+          <b>f</b> = 1 / T &nbsp;&middot;&nbsp; v = 2&pi;r / T &nbsp;&middot;&nbsp; <b>&omega;</b> = 2&pi; / T<br>
           v = r&omega;<br>
           <b>a<sub>c</sub></b> = v<sup>2</sup> / r = r&omega;<sup>2</sup><br>
           <b>F<sub>net</sub></b> = m&middot;a<sub>c</sub> = m v<sup>2</sup> / r
@@ -131,7 +132,7 @@
     else if (state.driver === "v") { v = state.driverValue; T = TAU * r / v; w = v / r; }
     else { w = state.driverValue; T = TAU / w; v = r * w; }
     var ac = v * v / r;
-    return { r: r, m: m, T: T, v: v, w: w, ac: ac, F: m * ac };
+    return { r: r, m: m, T: T, f: 1 / T, v: v, w: w, ac: ac, F: m * ac };
   }
 
   // ---- Elements ----
@@ -231,6 +232,7 @@
   function updateReadouts() {
     var mo = motion();
     $("out-T").textContent   = fmt(mo.T) + " s";
+    $("out-f").textContent   = fmt(mo.f) + " Hz";
     $("out-v").textContent   = fmt(mo.v) + " m/s";
     $("out-w").innerHTML     = fmt(mo.w) + " rad/s";
     $("out-ac").innerHTML    = fmt(mo.ac) + " m/s<sup>2</sup>";
