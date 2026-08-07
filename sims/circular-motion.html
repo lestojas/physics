@@ -27,22 +27,18 @@
       <aside class="sim-controls">
         <a class="back-link" href="../index.html">&#8592; All simulators</a>
         <h2 class="sim-title">Circular Motion</h2>
-        <p class="sim-sub">Uniform circular motion. Pick one motion driver (period, tangential speed, or angular speed); the others stay consistent. Velocity is always tangent to the path; the net force always points to the center.</p>
+        <p class="sim-sub">Uniform circular motion, focused on centripetal force. Choose a driver: set the period (or frequency), or set radius, mass and period to explore tangential speed. Velocity is always tangent; the net force always points to the center.</p>
 
         <div class="cb-divider"></div>
         <p class="cb-title">Motion driver</p>
         <div class="mode-tabs" id="drivers">
-          <button type="button" class="mode-tab m1 active" data-driver="T">
+          <button type="button" class="mode-tab m1 active" data-mode="period">
             <span class="mnum">T</span>
-            <span class="mt"><b>Period</b><small>set the time for one revolution</small></span>
+            <span class="mt"><b>Period</b><small>set period or frequency (interchangeable)</small></span>
           </button>
-          <button type="button" class="mode-tab m2" data-driver="v">
+          <button type="button" class="mode-tab m2" data-mode="tangential">
             <span class="mnum">v</span>
-            <span class="mt"><b>Tangential speed</b><small>set how fast the object moves</small></span>
-          </button>
-          <button type="button" class="mode-tab m3" data-driver="w">
-            <span class="mnum">&omega;</span>
-            <span class="mt"><b>Angular speed</b><small>set the turning rate in rad/s</small></span>
+            <span class="mt"><b>Tangential speed</b><small>set mass, radius and period</small></span>
           </button>
         </div>
 
@@ -55,6 +51,12 @@
         <div class="control">
           <label>Mass <span class="v-c">m</span> <span class="val"><span id="m-val">1.0</span> kg</span></label>
           <input type="range" id="m" min="0.1" max="100" step="0.1" value="1">
+        </div>
+        <div class="control" id="kind-ctl">
+          <label>Time input <span class="val"><select id="kind">
+            <option value="T">Period (T)</option>
+            <option value="f">Frequency (f)</option>
+          </select></span></label>
         </div>
         <div class="control" id="driver-ctl">
           <label><span id="driver-name">Period</span> <span id="driver-sym" class="v-c">T</span> <span class="val"><span id="driver-val">4.0</span> <span id="driver-unit">s</span></span></label>
@@ -70,21 +72,13 @@
 
         <div class="cb-divider"></div>
         <p class="cb-title">Readings</p>
-        <div class="readouts">
-          <div class="readout"><div class="k">Period T</div><div class="n" id="out-T">4.000 s</div></div>
-          <div class="readout vy"><div class="k">Frequency f</div><div class="n" id="out-f">0.250 Hz</div></div>
-          <div class="readout v"><div class="k">Tangential speed v</div><div class="n" id="out-v">3.142 m/s</div></div>
-          <div class="readout vx"><div class="k">Angular speed &omega;</div><div class="n" id="out-w">1.571 rad/s</div></div>
-          <div class="readout path"><div class="k">Centripetal accel. a<sub>c</sub></div><div class="n" id="out-ac">4.935 m/s<sup>2</sup></div></div>
-          <div class="readout target"><div class="k">Net force F<sub>net</sub></div><div class="n" id="out-fnet">4.935 N</div></div>
-        </div>
+        <div class="readouts" id="readouts"></div>
 
         <div class="cb-divider"></div>
         <p class="cb-title">Relationships</p>
         <div class="formula">
-          <b>f</b> = 1 / T &nbsp;&middot;&nbsp; v = 2&pi;r / T &nbsp;&middot;&nbsp; <b>&omega;</b> = 2&pi; / T<br>
-          v = r&omega;<br>
-          <b>a<sub>c</sub></b> = v<sup>2</sup> / r = r&omega;<sup>2</sup><br>
+          <b>f</b> = 1 / T &nbsp;&middot;&nbsp; v = 2&pi;r / T<br>
+          <b>a<sub>c</sub></b> = v<sup>2</sup> / r<br>
           <b>F<sub>net</sub></b> = m&middot;a<sub>c</sub> = m v<sup>2</sup> / r
         </div>
 
@@ -104,44 +98,40 @@
 /* ============================================================
    Circular Motion Simulator
    Uniform circular motion on a dark stage, matching the shared
-   PHYlip Simulators interface. Physics is exact; the vectors are
-   drawn tangent (velocity) and toward the center (force).
+   PHYlip Simulators interface. Two drivers:
+     - Period      : input period T OR frequency f (dropdown);
+                     the other one appears in the readings.
+     - Tangential  : input mass, radius, period; speed v is a
+                     reading.
+   Readings lead with centripetal acceleration a_c, then F_net.
+   Physics is exact and depends only on r, m and the period T.
    ============================================================ */
 (function () {
   "use strict";
   var TAU = 2 * Math.PI;
 
-  // ---- Ranges (single source of truth) ----
-  var RANGE = {
-    T: { min: 0.5, max: 60,  step: 0.1, unit: "s",     name: "Period",         sym: "T" },
-    v: { min: 0.1, max: 100, step: 0.1, unit: "m/s",   name: "Tangential speed", sym: "v" },
-    w: { min: 0.1, max: 12,  step: 0.1, unit: "rad/s", name: "Angular speed",  sym: "\u03c9" }
-  };
+  // Slider ranges for the period / frequency inputs.
+  var R_T = { min: 0.5,  max: 60, step: 0.1 };   // period (s)
+  var R_F = { min: 0.02, max: 2,  step: 0.01 };  // frequency (Hz)
 
-  // ---- State ----
-  var state = { r: 2, m: 1, driver: "T", driverValue: 4 };
-  var theta = 0;          // current angle (radians), counter-clockwise
-  var playing = false;
-  var lastTs = null;
+  // ---- State (T is the canonical time quantity) ----
+  var state = { r: 2, m: 1, T: 4, mode: "period", kind: "T" };
+  var theta = 0, playing = false, lastTs = null;
   var showVel = true, showForce = true;
 
-  // ---- Physics: derive the full motion from r + one driver ----
+  var $ = function (id) { return document.getElementById(id); };
+  function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
+
+  // ---- Physics: everything derives from r, m and T ----
   function motion() {
-    var r = state.r, m = state.m, T, v, w;
-    if (state.driver === "T") { T = state.driverValue; w = TAU / T; v = r * w; }
-    else if (state.driver === "v") { v = state.driverValue; T = TAU * r / v; w = v / r; }
-    else { w = state.driverValue; T = TAU / w; v = r * w; }
-    var ac = v * v / r;
+    var r = state.r, m = state.m, T = state.T;
+    var w = TAU / T, v = r * w, ac = v * v / r;
     return { r: r, m: m, T: T, f: 1 / T, v: v, w: w, ac: ac, F: m * ac };
   }
 
-  // ---- Elements ----
-  var $ = function (id) { return document.getElementById(id); };
+  // ---- Canvas ----
   var canvas = $("c"), ctx = canvas.getContext("2d");
-  var W = canvas.width, H = canvas.height;
-  var cx = W / 2, cy = H / 2;
-
-  // Read theme colors from the shared stylesheet so we stay in sync.
+  var W = canvas.width, H = canvas.height, cx = W / 2, cy = H / 2;
   function cssVar(name, fallback) {
     var val = getComputedStyle(document.documentElement).getPropertyValue(name);
     return (val && val.trim()) || fallback;
@@ -154,8 +144,6 @@
     muted: cssVar("--muted", "#a9a9a9"),
     line:  cssVar("--line", "#444")
   };
-
-  // ---- Geometry helpers ----
   function radiusPx(r) {
     var minR = 46, maxR = Math.min(cx, cy) - 78;
     return minR + (r - 0.1) / (10 - 0.1) * (maxR - minR);
@@ -169,115 +157,112 @@
     var x1 = x0 + ux * len, y1 = y0 + uy * len;
     ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
-    // arrowhead
-    var ah = 11, aw = 6;
-    var bx = x1 - ux * ah, by = y1 - uy * ah;
-    var px = -uy, py = ux;
+    var ah = 11, aw = 6, bx = x1 - ux * ah, by = y1 - uy * ah, px = -uy, py = ux;
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(bx + px * aw, by + py * aw);
     ctx.lineTo(bx - px * aw, by - py * aw);
     ctx.closePath(); ctx.fill();
-    if (label) {
-      ctx.font = "bold 20px Georgia, serif";
-      ctx.fillText(label, x1 + ux * 12 - 4, y1 + uy * 12 + 6);
-    }
+    if (label) { ctx.font = "bold 20px Georgia, serif"; ctx.fillText(label, x1 + ux * 12 - 4, y1 + uy * 12 + 6); }
   }
 
-  // ---- Draw ----
   function draw() {
-    var mo = motion();
-    var R = radiusPx(state.r);
+    var mo = motion(), R = radiusPx(state.r);
     ctx.clearRect(0, 0, W, H);
-
-    // circular path
-    ctx.strokeStyle = COL.path; ctx.globalAlpha = 0.55; ctx.lineWidth = 2;
-    ctx.setLineDash([6, 7]);
+    // path
+    ctx.strokeStyle = COL.path; ctx.globalAlpha = 0.55; ctx.lineWidth = 2; ctx.setLineDash([6, 7]);
     ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.stroke();
     ctx.setLineDash([]); ctx.globalAlpha = 1;
-
-    // center marker
-    ctx.fillStyle = COL.muted;
-    ctx.beginPath(); ctx.arc(cx, cy, 3.5, 0, TAU); ctx.fill();
-
+    // center
+    ctx.fillStyle = COL.muted; ctx.beginPath(); ctx.arc(cx, cy, 3.5, 0, TAU); ctx.fill();
     var p = objPos(R);
-
-    // radius line (center -> object)
+    // radius line
     ctx.strokeStyle = COL.line; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.9;
-    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(p.x, p.y); ctx.stroke();
-    ctx.globalAlpha = 1;
-
-    // force vector (toward center): unit = (center - obj)
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.globalAlpha = 1;
+    // force (toward center)
     if (showForce) {
       var fLen = Math.max(0.05 * R, Math.min(R, mo.F * 18));
       arrow(p.x, p.y, cx - p.x, cy - p.y, fLen, COL.force, "F");
     }
-    // velocity vector (tangent, direction of motion = d/dtheta of position)
+    // velocity (tangent, direction of motion)
     if (showVel) {
       var vLen = Math.max(26, Math.min(160, mo.v * 14));
       arrow(p.x, p.y, -Math.sin(theta), -Math.cos(theta), vLen, COL.vel, "v");
     }
-
     // object
-    ctx.fillStyle = COL.obj;
-    ctx.beginPath(); ctx.arc(p.x, p.y, 9, 0, TAU); ctx.fill();
+    ctx.fillStyle = COL.obj; ctx.beginPath(); ctx.arc(p.x, p.y, 9, 0, TAU); ctx.fill();
     ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 2; ctx.stroke();
   }
 
-  // ---- Readouts ----
+  // ---- Readings (dynamic; a_c first, then F_net, then mode-specific) ----
   function fmt(x) {
     if (x !== 0 && Math.abs(x) < 0.001) return x.toExponential(2);
     return (Math.round(x * 1000) / 1000).toString();
   }
-  function updateReadouts() {
+  var CARD = {
+    ac: function (mo) { return { cls: "readout path",   k: 'Centripetal accel. a<sub>c</sub>', n: fmt(mo.ac) + ' m/s<sup>2</sup>' }; },
+    F:  function (mo) { return { cls: "readout target", k: 'Net force F<sub>net</sub>',        n: fmt(mo.F) + ' N' }; },
+    f:  function (mo) { return { cls: "readout vy",     k: 'Frequency f',                      n: fmt(mo.f) + ' Hz' }; },
+    T:  function (mo) { return { cls: "readout",        k: 'Period T',                         n: fmt(mo.T) + ' s' }; },
+    v:  function (mo) { return { cls: "readout v",      k: 'Tangential speed v',               n: fmt(mo.v) + ' m/s' }; }
+  };
+  function readingKeys() {
+    if (state.mode === "period") return ["ac", "F", state.kind === "T" ? "f" : "T"];
+    return ["ac", "F", "v"]; // tangential speed driver
+  }
+  function renderReadouts() {
     var mo = motion();
-    $("out-T").textContent   = fmt(mo.T) + " s";
-    $("out-f").textContent   = fmt(mo.f) + " Hz";
-    $("out-v").textContent   = fmt(mo.v) + " m/s";
-    $("out-w").innerHTML     = fmt(mo.w) + " rad/s";
-    $("out-ac").innerHTML    = fmt(mo.ac) + " m/s<sup>2</sup>";
-    $("out-fnet").textContent = fmt(mo.F) + " N";
+    $("readouts").innerHTML = readingKeys().map(function (key) {
+      var d = CARD[key](mo);
+      return '<div class="' + d.cls + '"><div class="k">' + d.k + '</div><div class="n">' + d.n + '</div></div>';
+    }).join("");
   }
 
-  // ---- Control sync ----
-  function syncDriverControl() {
-    var rg = RANGE[state.driver];
+  // ---- Driver control (period vs frequency slider) ----
+  function syncDriver() {
     var slider = $("driver");
-    slider.min = rg.min; slider.max = rg.max; slider.step = rg.step;
-    slider.value = state.driverValue;
-    $("driver-name").textContent = rg.name;
-    $("driver-sym").innerHTML = rg.sym;
-    $("driver-unit").textContent = rg.unit;
-    $("driver-val").textContent = (+state.driverValue).toFixed(rg.step < 1 ? 1 : 0);
+    // The Period/Frequency dropdown is only relevant in Period mode.
+    $("kind-ctl").style.display = (state.mode === "period") ? "" : "none";
+    var useFreq = (state.mode === "period" && state.kind === "f");
+    if (useFreq) {
+      slider.min = R_F.min; slider.max = R_F.max; slider.step = R_F.step;
+      slider.value = clamp(1 / state.T, R_F.min, R_F.max);
+      $("driver-name").textContent = "Frequency"; $("driver-sym").innerHTML = "f"; $("driver-unit").textContent = "Hz";
+      $("driver-val").textContent = (+slider.value).toFixed(2);
+    } else {
+      slider.min = R_T.min; slider.max = R_T.max; slider.step = R_T.step;
+      slider.value = clamp(state.T, R_T.min, R_T.max);
+      $("driver-name").textContent = "Period"; $("driver-sym").innerHTML = "T"; $("driver-unit").textContent = "s";
+      $("driver-val").textContent = (+slider.value).toFixed(1);
+    }
   }
-  function refresh() { syncDriverControl(); updateReadouts(); draw(); }
+  function refresh() { syncDriver(); renderReadouts(); draw(); }
 
-  // ---- Wire inputs ----
+  // ---- Inputs ----
   $("r").addEventListener("input", function () {
-    state.r = +this.value; $("r-val").textContent = state.r.toFixed(1);
-    updateReadouts(); draw();
+    state.r = +this.value; $("r-val").textContent = state.r.toFixed(1); renderReadouts(); draw();
   });
   $("m").addEventListener("input", function () {
-    state.m = +this.value; $("m-val").textContent = state.m.toFixed(1);
-    updateReadouts(); draw();
+    state.m = +this.value; $("m-val").textContent = state.m.toFixed(1); renderReadouts(); draw();
   });
   $("driver").addEventListener("input", function () {
-    state.driverValue = +this.value;
-    $("driver-val").textContent = state.driverValue.toFixed(RANGE[state.driver].step < 1 ? 1 : 0);
-    updateReadouts(); draw();
+    var val = +this.value;
+    if (state.mode === "period" && state.kind === "f") { state.T = 1 / val; $("driver-val").textContent = val.toFixed(2); }
+    else { state.T = val; $("driver-val").textContent = val.toFixed(1); }
+    renderReadouts(); draw();
+  });
+  $("kind").addEventListener("change", function () {
+    state.kind = this.value;  // T preserved; slider re-expresses it as period or frequency
+    refresh();
   });
 
-  // Driver tabs — preserve the motion when switching driver.
+  // Driver tabs
   Array.prototype.forEach.call(document.querySelectorAll("#drivers .mode-tab"), function (tab) {
     tab.addEventListener("click", function () {
-      var mo = motion();                       // current consistent motion
-      var next = tab.getAttribute("data-driver");
       document.querySelectorAll("#drivers .mode-tab").forEach(function (t) { t.classList.remove("active"); });
       tab.classList.add("active");
-      var preserved = (next === "T") ? mo.T : (next === "v") ? mo.v : mo.w;
-      var rg = RANGE[next];
-      state.driver = next;
-      state.driverValue = Math.min(rg.max, Math.max(rg.min, preserved));  // clamp into new range
+      state.mode = tab.getAttribute("data-mode");
+      if (state.mode === "tangential") { state.kind = "T"; $("kind").value = "T"; }
       refresh();
     });
   });
@@ -285,12 +270,12 @@
   $("show-vel").addEventListener("change", function () { showVel = this.checked; draw(); });
   $("show-force").addEventListener("change", function () { showForce = this.checked; draw(); });
 
-  // ---- Animation ----
+  // ---- Animation (one revolution per period T) ----
   function frame(ts) {
     if (!playing) return;
     if (lastTs == null) lastTs = ts;
     var dt = (ts - lastTs) / 1000; lastTs = ts;
-    theta = (theta + motion().w * dt) % TAU;    // one revolution per period T
+    theta = (theta + motion().w * dt) % TAU;
     draw();
     requestAnimationFrame(frame);
   }
@@ -301,9 +286,7 @@
     if (playing) { lastTs = null; requestAnimationFrame(frame); }
   });
   $("reset").addEventListener("click", function () {
-    playing = false; theta = 0; lastTs = null;
-    playBtn.innerHTML = "Play &#9654;";
-    draw();
+    playing = false; theta = 0; lastTs = null; playBtn.innerHTML = "Play &#9654;"; draw();
   });
 
   // ---- Init ----

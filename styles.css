@@ -527,3 +527,15 @@ body.sim-page { overflow: hidden; }
   background: var(--bg);
   pointer-events: none;               /* click-through: never covers/blocks the UI */
 }
+
+/* Dark-mode dropdowns inside simulator control panels */
+.sim-controls select {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
