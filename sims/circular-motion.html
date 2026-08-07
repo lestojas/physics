@@ -18,7 +18,7 @@
         </div>
         <div class="sim-legend">
           <span><i class="swatch" style="background:var(--v)"></i><span class="lg">velocity v (tangent to path)</span></span>
-          <span><i class="swatch" style="background:var(--target)"></i><span class="lg">centripetal force F<sub>net</sub> (toward center)</span></span>
+          <span><i class="swatch" id="lg-cent-sw" style="background:var(--vy)"></i><span class="lg" id="lg-cent-txt">centripetal acceleration a<sub>c</sub> (toward center)</span></span>
           <span><i class="swatch" style="background:var(--path)"></i><span class="lg">circular path</span></span>
           <span><i class="dot" style="background:var(--vx)"></i><span class="lg">object (mass m)</span></span>
         </div>
@@ -27,30 +27,21 @@
       <aside class="sim-controls">
         <a class="back-link" href="../index.html">&#8592; All simulators</a>
         <h2 class="sim-title">Circular Motion</h2>
-        <p class="sim-sub">Uniform circular motion, focused on centripetal force. Choose a driver: set the period (or frequency), or set radius, mass and period to explore tangential speed. Velocity is always tangent; the net force always points to the center.</p>
-
-        <div class="cb-divider"></div>
-        <p class="cb-title">Motion driver</p>
-        <div class="mode-tabs" id="drivers">
-          <button type="button" class="mode-tab m1 active" data-mode="period">
-            <span class="mnum">T</span>
-            <span class="mt"><b>Period</b><small>set period or frequency (interchangeable)</small></span>
-          </button>
-          <button type="button" class="mode-tab m2" data-mode="tangential">
-            <span class="mnum">v</span>
-            <span class="mt"><b>Tangential speed</b><small>set mass, radius and period</small></span>
-          </button>
-        </div>
+        <p class="sim-sub">Uniform circular motion. Set mass, tangential speed, radius, and period (or frequency); the quantities stay consistent (v = 2&pi;r / T). Velocity is always tangent; the centripetal vector always points to the center.</p>
 
         <div class="cb-divider"></div>
         <p class="cb-title">Inputs</p>
         <div class="control">
-          <label>Radius <span class="v-c">r</span> <span class="val"><span id="r-val">2.0</span> m</span></label>
-          <input type="range" id="r" min="0.1" max="10" step="0.1" value="2">
-        </div>
-        <div class="control">
           <label>Mass <span class="v-c">m</span> <span class="val"><span id="m-val">1.0</span> kg</span></label>
           <input type="range" id="m" min="0.1" max="100" step="0.1" value="1">
+        </div>
+        <div class="control">
+          <label>Tangential speed <span class="v-c">v</span> <span class="val"><span id="v-val">3.142</span> m/s</span></label>
+          <input type="range" id="v" min="0.1" max="100" step="0.1" value="3.142">
+        </div>
+        <div class="control">
+          <label>Radius <span class="v-c">r</span> <span class="val"><span id="r-val">2.0</span> m</span></label>
+          <input type="range" id="r" min="0.1" max="10" step="0.1" value="2">
         </div>
         <div class="control" id="kind-ctl">
           <label>Time input <span class="val"><select id="kind">
@@ -64,10 +55,16 @@
         </div>
 
         <div class="cb-divider"></div>
-        <p class="cb-title">Options</p>
+        <p class="cb-title">Vectors</p>
+        <div class="control">
+          <label>Centripetal vector <span class="val"><select id="cent-kind">
+            <option value="a">Acceleration a_c</option>
+            <option value="F">Force F_c</option>
+          </select></span></label>
+        </div>
         <div class="toggle-row">
           <label><input type="checkbox" id="show-vel" checked> Show velocity vector</label>
-          <label><input type="checkbox" id="show-force" checked> Show centripetal force vector</label>
+          <label><input type="checkbox" id="show-cent" checked> Show centripetal vector</label>
         </div>
 
         <div class="cb-divider"></div>
@@ -79,7 +76,7 @@
         <div class="formula">
           <b>f</b> = 1 / T &nbsp;&middot;&nbsp; v = 2&pi;r / T<br>
           <b>a<sub>c</sub></b> = v<sup>2</sup> / r<br>
-          <b>F<sub>net</sub></b> = m&middot;a<sub>c</sub> = m v<sup>2</sup> / r
+          <b>F<sub>c</sub></b> = m&middot;a<sub>c</sub> = m v<sup>2</sup> / r
         </div>
 
         <div class="cb-divider"></div>
@@ -96,33 +93,32 @@
 
 <script>
 /* ============================================================
-   Circular Motion Simulator
-   Uniform circular motion on a dark stage, matching the shared
-   PHYlip Simulators interface. Two drivers:
-     - Period      : input period T OR frequency f (dropdown);
-                     the other one appears in the readings.
-     - Tangential  : input mass, radius, period; speed v is a
-                     reading.
-   Readings lead with centripetal acceleration a_c, then F_net.
-   Physics is exact and depends only on r, m and the period T.
+   Circular Motion Simulator (unified)
+   Inputs: mass m, tangential speed v, radius r, and period T
+   (with a Period/Frequency dropdown). The quantities are kept
+   consistent through v = 2*pi*r / T:
+     - drag r or the time input  -> v is recomputed
+     - drag v                    -> the period T is recomputed
+   The visualized centripetal vector can be centripetal
+   acceleration (a_c) or centripetal force (F_c); both point to
+   the center. Velocity is always tangent. Physics is exact.
    ============================================================ */
 (function () {
   "use strict";
   var TAU = 2 * Math.PI;
 
-  // Slider ranges for the period / frequency inputs.
-  var R_T = { min: 0.5,  max: 60, step: 0.1 };   // period (s)
-  var R_F = { min: 0.02, max: 2,  step: 0.01 };  // frequency (Hz)
+  var R_T = { min: 0.5,  max: 60, step: 0.1 };   // period slider (s)
+  var R_F = { min: 0.02, max: 2,  step: 0.01 };  // frequency slider (Hz)
+  var V_MIN = 0.1, V_MAX = 100;                  // tangential-speed slider (m/s)
 
-  // ---- State (T is the canonical time quantity) ----
-  var state = { r: 2, m: 1, T: 4, mode: "period", kind: "T" };
+  // Canonical state: r, m, T. v is derived (= 2*pi*r/T) but also editable.
+  var state = { r: 2, m: 1, T: 4, kind: "T", centKind: "a" };
   var theta = 0, playing = false, lastTs = null;
-  var showVel = true, showForce = true;
+  var showVel = true, showCent = true;
 
   var $ = function (id) { return document.getElementById(id); };
   function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
 
-  // ---- Physics: everything derives from r, m and T ----
   function motion() {
     var r = state.r, m = state.m, T = state.T;
     var w = TAU / T, v = r * w, ac = v * v / r;
@@ -138,6 +134,7 @@
   }
   var COL = {
     vel:   cssVar("--v", "#ffd24a"),
+    accel: cssVar("--vy", "#ff7a59"),
     force: cssVar("--target", "#ff5d73"),
     path:  cssVar("--path", "#7ee787"),
     obj:   cssVar("--vx", "#4aa3ff"),
@@ -153,8 +150,7 @@
   function arrow(x0, y0, dx, dy, len, color, label) {
     var mag = Math.hypot(dx, dy);
     if (mag < 1e-9 || len < 1) return;
-    var ux = dx / mag, uy = dy / mag;
-    var x1 = x0 + ux * len, y1 = y0 + uy * len;
+    var ux = dx / mag, uy = dy / mag, x1 = x0 + ux * len, y1 = y0 + uy * len;
     ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
     var ah = 11, aw = 6, bx = x1 - ux * ah, by = y1 - uy * ah, px = -uy, py = ux;
@@ -169,61 +165,56 @@
   function draw() {
     var mo = motion(), R = radiusPx(state.r);
     ctx.clearRect(0, 0, W, H);
-    // path
     ctx.strokeStyle = COL.path; ctx.globalAlpha = 0.55; ctx.lineWidth = 2; ctx.setLineDash([6, 7]);
     ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.stroke();
     ctx.setLineDash([]); ctx.globalAlpha = 1;
-    // center
     ctx.fillStyle = COL.muted; ctx.beginPath(); ctx.arc(cx, cy, 3.5, 0, TAU); ctx.fill();
     var p = objPos(R);
-    // radius line
     ctx.strokeStyle = COL.line; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.9;
     ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.globalAlpha = 1;
-    // force (toward center)
-    if (showForce) {
-      var fLen = Math.max(0.05 * R, Math.min(R, mo.F * 18));
-      arrow(p.x, p.y, cx - p.x, cy - p.y, fLen, COL.force, "F");
+    // centripetal vector (toward center): acceleration or force
+    if (showCent) {
+      var isF = state.centKind === "F";
+      var magVal = isF ? mo.F : mo.ac;
+      var cLen = Math.max(0.05 * R, Math.min(R, magVal * 18));
+      arrow(p.x, p.y, cx - p.x, cy - p.y, cLen, isF ? COL.force : COL.accel, isF ? "F" : "a");
     }
-    // velocity (tangent, direction of motion)
+    // velocity vector (tangent, direction of motion)
     if (showVel) {
       var vLen = Math.max(26, Math.min(160, mo.v * 14));
       arrow(p.x, p.y, -Math.sin(theta), -Math.cos(theta), vLen, COL.vel, "v");
     }
-    // object
     ctx.fillStyle = COL.obj; ctx.beginPath(); ctx.arc(p.x, p.y, 9, 0, TAU); ctx.fill();
     ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 2; ctx.stroke();
   }
 
-  // ---- Readings (dynamic; a_c first, then F_net, then mode-specific) ----
+  // ---- Readings (a_c first, then F, then the complementary time quantity) ----
   function fmt(x) {
     if (x !== 0 && Math.abs(x) < 0.001) return x.toExponential(2);
     return (Math.round(x * 1000) / 1000).toString();
   }
   var CARD = {
     ac: function (mo) { return { cls: "readout path",   k: 'Centripetal accel. a<sub>c</sub>', n: fmt(mo.ac) + ' m/s<sup>2</sup>' }; },
-    F:  function (mo) { return { cls: "readout target", k: 'Net force F<sub>net</sub>',        n: fmt(mo.F) + ' N' }; },
+    F:  function (mo) { return { cls: "readout target", k: 'Centripetal force F<sub>c</sub>',   n: fmt(mo.F) + ' N' }; },
     f:  function (mo) { return { cls: "readout vy",     k: 'Frequency f',                      n: fmt(mo.f) + ' Hz' }; },
-    T:  function (mo) { return { cls: "readout",        k: 'Period T',                         n: fmt(mo.T) + ' s' }; },
-    v:  function (mo) { return { cls: "readout v",      k: 'Tangential speed v',               n: fmt(mo.v) + ' m/s' }; }
+    T:  function (mo) { return { cls: "readout",        k: 'Period T',                         n: fmt(mo.T) + ' s' }; }
   };
-  function readingKeys() {
-    if (state.mode === "period") return ["ac", "F", state.kind === "T" ? "f" : "T"];
-    return ["ac", "F", "v"]; // tangential speed driver
-  }
   function renderReadouts() {
-    var mo = motion();
-    $("readouts").innerHTML = readingKeys().map(function (key) {
+    var mo = motion(), keys = ["ac", "F", state.kind === "T" ? "f" : "T"];
+    $("readouts").innerHTML = keys.map(function (key) {
       var d = CARD[key](mo);
       return '<div class="' + d.cls + '"><div class="k">' + d.k + '</div><div class="n">' + d.n + '</div></div>';
     }).join("");
   }
 
-  // ---- Driver control (period vs frequency slider) ----
-  function syncDriver() {
-    var slider = $("driver");
-    // The Period/Frequency dropdown is only relevant in Period mode.
-    $("kind-ctl").style.display = (state.mode === "period") ? "" : "none";
-    var useFreq = (state.mode === "period" && state.kind === "f");
+  // ---- Keep the v and time sliders in sync with the canonical state ----
+  function syncVSlider() {
+    var v = motion().v;
+    $("v").value = clamp(v, V_MIN, V_MAX);   // browser clamps the thumb
+    $("v-val").textContent = fmt(v);
+  }
+  function syncTimeSlider() {
+    var slider = $("driver"), useFreq = (state.kind === "f");
     if (useFreq) {
       slider.min = R_F.min; slider.max = R_F.max; slider.step = R_F.step;
       slider.value = clamp(1 / state.T, R_F.min, R_F.max);
@@ -236,39 +227,44 @@
       $("driver-val").textContent = (+slider.value).toFixed(1);
     }
   }
-  function refresh() { syncDriver(); renderReadouts(); draw(); }
+  function updateLegend() {
+    var isF = state.centKind === "F";
+    $("lg-cent-sw").style.background = isF ? COL.force : COL.accel;
+    $("lg-cent-txt").innerHTML = isF
+      ? 'centripetal force F<sub>c</sub> (toward center)'
+      : 'centripetal acceleration a<sub>c</sub> (toward center)';
+  }
+  function refresh() { syncVSlider(); syncTimeSlider(); renderReadouts(); updateLegend(); draw(); }
 
   // ---- Inputs ----
-  $("r").addEventListener("input", function () {
-    state.r = +this.value; $("r-val").textContent = state.r.toFixed(1); renderReadouts(); draw();
-  });
   $("m").addEventListener("input", function () {
-    state.m = +this.value; $("m-val").textContent = state.m.toFixed(1); renderReadouts(); draw();
+    state.m = +this.value; $("m-val").textContent = state.m.toFixed(1);
+    renderReadouts(); draw();          // only F changes
+  });
+  $("r").addEventListener("input", function () {
+    state.r = +this.value; $("r-val").textContent = state.r.toFixed(1);
+    syncVSlider(); renderReadouts(); draw();   // v = 2*pi*r/T recomputed
+  });
+  $("v").addEventListener("input", function () {
+    var v = clamp(+this.value, V_MIN, V_MAX);
+    var T = clamp(TAU * state.r / v, R_T.min, R_T.max);  // T from v (r fixed), clamped
+    state.T = T;
+    syncVSlider(); syncTimeSlider(); renderReadouts(); draw();
   });
   $("driver").addEventListener("input", function () {
     var val = +this.value;
-    if (state.mode === "period" && state.kind === "f") { state.T = 1 / val; $("driver-val").textContent = val.toFixed(2); }
-    else { state.T = val; $("driver-val").textContent = val.toFixed(1); }
-    renderReadouts(); draw();
+    state.T = (state.kind === "f") ? 1 / val : val;
+    $("driver-val").textContent = (state.kind === "f") ? val.toFixed(2) : val.toFixed(1);
+    syncVSlider(); renderReadouts(); draw();
   });
   $("kind").addEventListener("change", function () {
-    state.kind = this.value;  // T preserved; slider re-expresses it as period or frequency
-    refresh();
+    state.kind = this.value; syncTimeSlider(); renderReadouts();
   });
-
-  // Driver tabs
-  Array.prototype.forEach.call(document.querySelectorAll("#drivers .mode-tab"), function (tab) {
-    tab.addEventListener("click", function () {
-      document.querySelectorAll("#drivers .mode-tab").forEach(function (t) { t.classList.remove("active"); });
-      tab.classList.add("active");
-      state.mode = tab.getAttribute("data-mode");
-      if (state.mode === "tangential") { state.kind = "T"; $("kind").value = "T"; }
-      refresh();
-    });
+  $("cent-kind").addEventListener("change", function () {
+    state.centKind = this.value; updateLegend(); draw();
   });
-
   $("show-vel").addEventListener("change", function () { showVel = this.checked; draw(); });
-  $("show-force").addEventListener("change", function () { showForce = this.checked; draw(); });
+  $("show-cent").addEventListener("change", function () { showCent = this.checked; draw(); });
 
   // ---- Animation (one revolution per period T) ----
   function frame(ts) {
@@ -289,7 +285,6 @@
     playing = false; theta = 0; lastTs = null; playBtn.innerHTML = "Play &#9654;"; draw();
   });
 
-  // ---- Init ----
   refresh();
 })();
 </script>
