@@ -1,140 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Physics Simulations</title>
-  <style>
-    /* Inline styles keep the landing page fully self-contained (no network). */
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      color: #1a202c;
-      background: #f7fafc;
-      line-height: 1.5;
-    }
-    header {
-      padding: 2rem 1.5rem 1rem;
-      max-width: 960px;
-      margin: 0 auto;
-    }
-    header h1 { margin: 0 0 0.25rem; }
-    header p { margin: 0.25rem 0; color: #4a5568; }
-    main {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 0 1.5rem 3rem;
-    }
-    #launch-error {
-      margin: 0 0 1rem;
-      padding: 0.75rem 1rem;
-      background: #fff5f5;
-      border: 2px solid #e53e3e;
-      border-radius: 6px;
-      color: #9b2c2c;
-      font-weight: 600;
-    }
-    #launch-error[hidden] { display: none; }
-    /* Extensible card grid — add more sims by adding more .sim-card elements. */
-    .sim-list {
-      display: grid;
-      gap: 1rem;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    .sim-card {
-      background: #ffffff;
-      border: 1px solid #cbd5e0;
-      border-radius: 10px;
-      padding: 1.25rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-    .sim-card h2 { margin: 0; font-size: 1.15rem; }
-    .sim-card p { margin: 0; color: #4a5568; flex: 1 1 auto; }
-    .launch-btn {
-      align-self: flex-start;
-      display: inline-block;
-      margin-top: 0.5rem;
-      padding: 0.5rem 1rem;
-      background: #1e88e5;
-      color: #ffffff;
-      border: none;
-      border-radius: 6px;
-      text-decoration: none;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .launch-btn:hover { background: #1669bb; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHYlip Simulators</title>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <h1>Physics Simulations</h1>
-    <p>Interactive, zero-setup physics simulations. Open any simulation directly
-      in your browser &mdash; no server or installation required.</p>
-  </header>
+<div class="app">
+  <aside id="app-sidebar" class="sidebar"></aside>
 
-  <main>
-    <!-- Launch-failure message; hidden until a launch fails (Req 1.6). -->
-    <div id="launch-error" role="alert" hidden></div>
+  <main class="content">
+    <div class="wrap">
+      <h1><span class="phy-grad">PHY</span>lip Simulators</h1>
+      <p class="subtitle">A collection of interactive physics simulators</p>
 
-    <ul class="sim-list">
-      <!-- Velocity Components Simulator card -->
-      <li class="sim-card">
-        <h2>Velocity Components Simulator</h2>
-        <p>Explore uniform circular motion: adjust radius, mass, and a motion
-          driver (period, tangential speed, or angular speed) and watch the
-          velocity and centripetal force vectors update in real time.</p>
-        <a class="launch-btn"
-           id="launch-velocity-components"
-           href="sims/velocity-components.html"
-           data-sim-url="sims/velocity-components.html">
-          Launch simulator
+      <div class="cards">
+        <a class="card" href="sims/velocity-components.html">
+          <h3>Velocity Components</h3>
+          <p>Explore uniform circular motion: adjust radius, mass, and a motion driver (period, tangential speed, or angular speed) and watch the tangential velocity and centripetal force vectors update live.</p>
         </a>
-      </li>
-      <!-- Add future simulations here as additional <li class="sim-card"> cards. -->
-    </ul>
+        <a class="card" href="sims/falling-target.html">
+          <h3>Falling Target</h3>
+          <p>Aim a projectile directly at a target and fire the instant it's released. It always hits — because both fall the same distance in the same time.</p>
+        </a>
+        <a class="card" href="sims/projectile-motion.html">
+          <h3>Projectile Motion</h3>
+          <p>Explore the three common cases of projectile motion — launched horizontally, at an angle onto level ground, or at an angle onto ground of a different height.</p>
+        </a>
+      </div>
+    </div>
   </main>
-
-  <script>
-    // Guarded launch: attempt navigation to the simulator via its relative path
-    // and, if navigation cannot be initiated, show an inline message and remain
-    // on this page. No network request is made. (Req 1.4, 1.6)
-    (function () {
-      function showLaunchError(msg) {
-        var box = document.getElementById("launch-error");
-        if (box) {
-          box.textContent = msg;
-          box.hidden = false;
-        }
-      }
-
-      var links = document.querySelectorAll("[data-sim-url]");
-      Array.prototype.forEach.call(links, function (link) {
-        link.addEventListener("click", function (event) {
-          event.preventDefault();
-          var url = link.getAttribute("data-sim-url");
-          try {
-            if (!url) {
-              throw new Error("No simulator URL configured.");
-            }
-            // Initiate navigation to the simulator page.
-            window.location.assign(url);
-          } catch (err) {
-            showLaunchError(
-              "The simulator could not be opened. Please check that the " +
-              "simulation files are present, then try again."
-            );
-          }
-        });
-      });
-    })();
-  </script>
+</div>
+<div class="dev-credit">Developed by Philip Jayson Lestojas</div>
+<script src="sidebar.js"></script>
 </body>
 </html>

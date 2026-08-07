@@ -1,54 +1,63 @@
-# Physics Simulations
+# PHYlip Simulators
 
-A collection of interactive, **zero-setup** physics simulations that run directly
-in the browser. There is no build step, no server, and no external/network
-dependencies - just open `index.html` and pick a simulation.
+A collection of interactive, **zero-setup** physics simulators that run directly
+in the browser. Open `index.html` and pick a simulator - no build step and no
+external/network dependencies.
+
+Developed by Philip Jayson Lestojas.
 
 ## Quick start
 
-1. Clone or download this repository.
-2. Open `index.html` (at the repository root) in a web browser - a double-click
-   works, since everything runs over `file://`.
-3. Click **Launch simulator** on any card.
+1. Open `index.html` (repository root) in a browser and click a simulator card.
+2. Every simulator also works on its own - open any file in `sims/` directly.
 
-## Simulations
+> Tip: the collapsible sidebar auto-discovers simulators when the folder is
+> served by a local web server. When opened via `file://` (double-click), it
+> falls back to a built-in list (see `sidebar.js`), which already includes all
+> current simulators.
 
-Every simulation is a **single self-contained `.html` file** living in the
-`sims/` folder (CSS and JavaScript are inlined, so each file works on its own).
+## Simulators
 
-| Simulation | Topic | File |
+All simulators live in the `sims/` folder, one `.html` file each:
+
+| Simulator | Topic | File |
 | --- | --- | --- |
-| Velocity Components Simulator | Uniform circular motion - period, tangential/angular speed, centripetal acceleration & force | `sims/velocity-components.html` |
+| Velocity Components | Uniform circular motion - period, tangential/angular speed, centripetal acceleration & force | `sims/velocity-components.html` |
+| Projectile Motion | The common cases of projectile motion | `sims/projectile-motion.html` |
+| Falling Target | Why an aimed projectile always hits a target dropped at launch | `sims/falling-target.html` |
 
 ## Repository layout
 
 ```
 .
-|-- index.html                       # Landing page linking to every simulation
-|-- README.md                        # This file
-`-- sims/                            # All simulations, one .html file each
-    `-- velocity-components.html     # Uniform circular motion simulator
+|-- index.html                       # Landing page (cards for every simulator)
+|-- styles.css                       # Shared site styles
+|-- sidebar.js                       # Shared, auto-discovering collapsible sidebar
+|-- README.md
+`-- sims/                            # All simulators, one .html file each
+    |-- velocity-components.html
+    |-- projectile-motion.html
+    |-- falling-target.html
+    `-- _template.html               # Starter template (files starting with "_" are ignored)
 ```
 
-## Adding a new simulation
+## Adding a new simulator
 
-1. Create a new single self-contained file `sims/<your-sim-name>.html` with its
-   CSS and JavaScript inlined (no external assets, relative links only).
-2. Add a new `<li class="sim-card">` card to the landing page (`index.html`)
-   pointing at `sims/<your-sim-name>.html`.
+1. Copy `sims/_template.html` to `sims/<your-sim-name>.html` (lowercase, hyphens).
+2. Change the `<title>` and heading, and build the simulator inside
+   `<main class="content">`. Keep the two lines that load `../styles.css` and
+   `../sidebar.js`.
+3. Add a matching card to `index.html`. For reliable `file://` navigation, also
+   add the filename to the `FALLBACK` list in `sidebar.js`.
 
-That's it - the new simulation lives alongside the others in the same folder.
+## Conventions
 
-## Design conventions
-
-- **No build tooling.** Plain HTML, CSS, and JavaScript only.
-- **Single-file simulations.** Each simulator is one `.html` file with inline
-  `<style>` and `<script>` blocks - simple to open, copy, or share.
-- **Classic `<script>` blocks**, not ES modules, so pages load correctly from
-  `file://` (ES-module imports are blocked by browser CORS rules on `file://`).
-- **No CDN/network requests**, so a simulation works fully offline.
-- Each simulation namespaces its JavaScript under a single global object to avoid
-  collisions.
+- **No build tooling** - plain HTML, CSS, and JavaScript.
+- **Classic `<script>` blocks**, not ES modules, so pages load from `file://`.
+- **Relative paths only**, **no CDN/network requests** - works fully offline.
+- Simulators with heavier logic namespace their JavaScript (e.g. Velocity
+  Components uses a single global `VCS` object) and prefix any sim-specific CSS
+  classes that would otherwise collide with `styles.css`.
 
 ## Specifications
 

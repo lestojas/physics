@@ -1,10 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Velocity Components Simulator — Uniform Circular Motion</title>
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Velocity Components — PHYlip Simulators</title>
+<link rel="stylesheet" href="../styles.css">      <!-- KEEP: shared site styles -->
+<style>
+/* Sim-specific styles. Colliding class names (.panel/.layout/.legend/.back-link)
+   are namespaced with a "vc-" prefix so they do not clash with styles.css.
+   Loaded AFTER styles.css so these scoped rules win where they apply. */
 /*
  * sim.css — Layout and styling for the Velocity Components Simulator.
  * Uses only system/generic fonts and no external resources (Req 2.3).
@@ -38,9 +42,9 @@ body {
   padding: 1.25rem 1.5rem 0.5rem;
 }
 .app-header h1 { margin: 0 0 0.25rem; font-size: 1.5rem; }
-.subtitle { margin: 0.25rem 0; color: var(--color-muted); }
-.back-link { color: var(--color-velocity); text-decoration: none; }
-.back-link:hover { text-decoration: underline; }
+.vc-subtitle-unused { margin: 0.25rem 0; color: var(--color-muted); }
+.vc-back-link { color: var(--color-velocity); text-decoration: none; }
+.vc-back-link:hover { text-decoration: underline; }
 
 /* Error banner */
 .error-banner {
@@ -55,7 +59,7 @@ body {
 .error-banner[hidden] { display: none; }
 
 /* Responsive grid layout for the panels */
-.layout {
+.vc-layout {
   display: grid;
   gap: 1rem;
   padding: 1rem 1.5rem;
@@ -63,17 +67,17 @@ body {
   align-items: start;
 }
 @media (max-width: 800px) {
-  .layout { grid-template-columns: 1fr; }
+  .vc-layout { grid-template-columns: 1fr; }
 }
 
-.panel {
+.vc-panel {
   background: var(--color-panel);
   border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 1rem;
 }
-.panel h2 { margin-top: 0; font-size: 1.1rem; }
-.panel h3 { font-size: 0.95rem; margin-bottom: 0.35rem; }
+.vc-panel h2 { margin-top: 0; font-size: 1.1rem; }
+.vc-panel h3 { font-size: 0.95rem; margin-bottom: 0.35rem; }
 
 .animation-panel {
   grid-row: span 2;
@@ -156,78 +160,80 @@ body {
   padding: 0.15rem 0;
   font-family: "Cambria Math", Georgia, "Times New Roman", serif;
 }
-.legend {
+.vc-legend {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 0.15rem 0.75rem;
   margin: 0;
 }
-.legend dt { font-weight: 700; }
-.legend dd { margin: 0; color: var(--color-muted); }
-  </style>
+.vc-legend dt { font-weight: 700; }
+.vc-legend dd { margin: 0; color: var(--color-muted); }
+</style>
 </head>
 <body>
-  <!-- Visible error banner, hidden until an asset/context failure occurs. -->
-  <div id="error-banner" class="error-banner" role="alert" hidden></div>
+<div class="app">
+  <aside id="app-sidebar" class="sidebar"></aside>       <!-- KEEP: shared sidebar mounts here -->
 
-  <header class="app-header">
-    <h1>Velocity Components Simulator</h1>
-    <p class="subtitle">Uniform circular motion — explore how radius, mass, and
-      one motion driver (T, v, or &omega;) shape the coupled quantities.</p>
-    <p><a class="back-link" href="../index.html">&larr; Back to simulations</a></p>
-  </header>
+  <main class="content">
+    <div class="wrap">
+      <!-- Error banner, hidden until an asset/context failure occurs. -->
+      <div id="error-banner" class="error-banner" role="alert" hidden></div>
 
-  <main class="layout">
-    <!-- Animation view -->
-    <section class="panel animation-panel" aria-label="Animation">
-      <canvas id="sim-canvas" width="480" height="480"
-              aria-label="Circular motion animation"></canvas>
-    </section>
+      <h1>Velocity Components Simulator</h1>
+      <p class="subtitle">Uniform circular motion — explore how radius, mass, and
+        one motion driver (T, v, or &omega;) shape the coupled quantities.</p>
 
-    <!-- Control panel (widgets injected by the ui module) -->
-    <section class="panel" aria-label="Controls">
-      <h2>Controls</h2>
-      <div id="control-panel"></div>
-    </section>
+      <div class="vc-layout">
+        <!-- Animation view -->
+        <section class="vc-panel animation-panel" aria-label="Animation">
+          <canvas id="sim-canvas" width="480" height="480"
+                  aria-label="Circular motion animation"></canvas>
+        </section>
 
-    <!-- Readout panel (rows injected by the ui module) -->
-    <section class="panel" aria-label="Readouts">
-      <h2>Live values</h2>
-      <div id="readout-panel"></div>
-    </section>
+        <!-- Control panel (widgets injected by the ui module) -->
+        <section class="vc-panel" aria-label="Controls">
+          <h2>Controls</h2>
+          <div id="control-panel"></div>
+        </section>
 
-    <!-- Equation panel (static content) -->
-    <section class="panel equation-panel" id="equation-panel" aria-label="Equations">
-      <h2>Governing equations</h2>
-      <ul class="equation-list">
-        <li>v = 2&pi;r / T</li>
-        <li>&omega; = 2&pi; / T</li>
-        <li>v = r&omega;</li>
-        <li>a<sub>c</sub> = v&sup2; / r</li>
-        <li>a<sub>c</sub> = r&omega;&sup2;</li>
-        <li>F<sub>net</sub> = m&middot;a<sub>c</sub></li>
-        <li>F<sub>net</sub> = m&middot;v&sup2; / r</li>
-      </ul>
+        <!-- Readout panel (rows injected by the ui module) -->
+        <section class="vc-panel" aria-label="Readouts">
+          <h2>Live values</h2>
+          <div id="readout-panel"></div>
+        </section>
 
-      <h3>Symbol legend</h3>
-      <dl class="legend">
-        <dt>r</dt><dd>radius (meters, m)</dd>
-        <dt>m</dt><dd>mass (kilograms, kg)</dd>
-        <dt>T</dt><dd>period (seconds, s)</dd>
-        <dt>v</dt><dd>tangential speed (meters per second, m/s)</dd>
-        <dt>&omega;</dt><dd>angular speed (radians per second, rad/s)</dd>
-        <dt>a<sub>c</sub></dt><dd>centripetal acceleration (meters per second squared, m/s&sup2;)</dd>
-        <dt>F<sub>net</sub></dt><dd>net centripetal force (newtons, N)</dd>
-      </dl>
-    </section>
+        <!-- Equation panel (static content) -->
+        <section class="vc-panel equation-panel" id="equation-panel" aria-label="Equations">
+          <h2>Governing equations</h2>
+          <ul class="equation-list">
+            <li>v = 2&pi;r / T</li>
+            <li>&omega; = 2&pi; / T</li>
+            <li>v = r&omega;</li>
+            <li>a<sub>c</sub> = v&sup2; / r</li>
+            <li>a<sub>c</sub> = r&omega;&sup2;</li>
+            <li>F<sub>net</sub> = m&middot;a<sub>c</sub></li>
+            <li>F<sub>net</sub> = m&middot;v&sup2; / r</li>
+          </ul>
+
+          <h3>Symbol legend</h3>
+          <dl class="vc-legend">
+            <dt>r</dt><dd>radius (meters, m)</dd>
+            <dt>m</dt><dd>mass (kilograms, kg)</dd>
+            <dt>T</dt><dd>period (seconds, s)</dd>
+            <dt>v</dt><dd>tangential speed (meters per second, m/s)</dd>
+            <dt>&omega;</dt><dd>angular speed (radians per second, rad/s)</dd>
+            <dt>a<sub>c</sub></dt><dd>centripetal acceleration (meters per second squared, m/s&sup2;)</dd>
+            <dt>F<sub>net</sub></dt><dd>net centripetal force (newtons, N)</dd>
+          </dl>
+        </section>
+      </div>
+    </div>
   </main>
+</div>
 
-  <!--
-    All logic is inlined below as classic scripts (NOT ES modules) so this single
-    file runs from file:// with no server, bundler, or CORS restriction. Each
-    block attaches to the shared global VCS namespace, in dependency order:
-    physics -> render -> ui -> main.
-  -->
+<div class="dev-credit">Developed by Philip Jayson Lestojas</div>
+
+<!-- Inlined logic (classic scripts under the VCS namespace): physics -> render -> ui -> main -->
   <script>
     // Early hook so a canvas/context failure can be reported before the ui module runs.
     window.__vcsAssetError = function (text) {
@@ -240,7 +246,6 @@ body {
     };
   </script>
 
-  <!-- ===== physics: pure computation model ===== -->
   <script>
 /*
  * physics.js — Pure computation model for the Velocity Components Simulator.
@@ -492,7 +497,6 @@ body {
 })(typeof window !== "undefined" ? window : this);
   </script>
 
-  <!-- ===== render: canvas drawing + animation loop ===== -->
   <script>
 /*
  * render.js — Canvas drawing and animation loop for the simulator.
@@ -806,7 +810,6 @@ body {
 })(typeof window !== "undefined" ? window : this);
   </script>
 
-  <!-- ===== ui: controls, readouts, messages ===== -->
   <script>
 /*
  * ui.js — Control_Panel, Readout_Panel wiring, validation messages, and the
@@ -1116,7 +1119,6 @@ body {
 })(typeof window !== "undefined" ? window : this);
   </script>
 
-  <!-- ===== main: bootstrap + wiring ===== -->
   <script>
 /*
  * main.js — Application bootstrap and orchestration (VCS.main).
@@ -1360,5 +1362,7 @@ body {
   }
 })(typeof window !== "undefined" ? window : this);
   </script>
+
+<script src="../sidebar.js"></script>              <!-- KEEP: shared sidebar -->
 </body>
 </html>
