@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Velocity Components — PHYlip Simulators</title>
+<title>Circular Motion — PHYlip Simulators</title>
 <link rel="stylesheet" href="../styles.css">      <!-- KEEP: shared site styles -->
 <style>
 /* Sim-specific styles. Colliding class names (.panel/.layout/.legend/.back-link)
    are namespaced with a "vc-" prefix so they do not clash with styles.css.
    Loaded AFTER styles.css so these scoped rules win where they apply. */
 /*
- * sim.css — Layout and styling for the Velocity Components Simulator.
+ * sim.css — Layout and styling for the Circular Motion Simulator.
  * Uses only system/generic fonts and no external resources (Req 2.3).
  */
 
@@ -179,7 +179,7 @@ body {
       <!-- Error banner, hidden until an asset/context failure occurs. -->
       <div id="error-banner" class="error-banner" role="alert" hidden></div>
 
-      <h1>Velocity Components Simulator</h1>
+      <h1>Circular Motion Simulator</h1>
       <p class="subtitle">Uniform circular motion — explore how radius, mass, and
         one motion driver (T, v, or &omega;) shape the coupled quantities.</p>
 
@@ -248,7 +248,7 @@ body {
 
   <script>
 /*
- * physics.js — Pure computation model for the Velocity Components Simulator.
+ * physics.js — Pure computation model for the Circular Motion Simulator.
  *
  * This module is DOM-free and side-effect-free (apart from attaching itself to
  * the single global `VCS` namespace). It owns:

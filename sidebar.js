@@ -7,7 +7,7 @@
      sidebar.js          <- this file
      sims/               <- put every simulator .html in here
        falling-target.html
-       velocity-components.html
+       circular-motion.html
        _template.html     (files starting with "_" are ignored)
 
    HOW NEW SIMULATORS APPEAR
@@ -28,14 +28,14 @@
   var FALLBACK = [
     "falling-target.html",
     "projectile-motion.html",
-    "velocity-components.html"
+    "circular-motion.html"
   ];
 
   // Optional prettier labels. Unlisted files are auto-titled.
   var META = {
     "falling-target.html":    { title: "Falling Target" },
     "projectile-motion.html": { title: "Projectile Motion" },
-    "velocity-components.html": { title: "Velocity Components" }
+    "circular-motion.html": { title: "Circular Motion" }
   };
 
   // Are we currently on a page inside sims/ ?
