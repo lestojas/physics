@@ -2,7 +2,7 @@
 
 A collection of interactive, **zero-setup** physics simulations that run directly
 in the browser. There is no build step, no server, and no external/network
-dependencies - just open `index.html` in any modern browser and pick a simulation.
+dependencies - just open `index.html` and pick a simulation.
 
 ## Quick start
 
@@ -13,47 +13,40 @@ dependencies - just open `index.html` in any modern browser and pick a simulatio
 
 ## Simulations
 
-| Simulation | Topic | Folder |
+Every simulation is a **single self-contained `.html` file** living in the
+`sims/` folder (CSS and JavaScript are inlined, so each file works on its own).
+
+| Simulation | Topic | File |
 | --- | --- | --- |
-| Velocity Components Simulator | Uniform circular motion - period, tangential/angular speed, centripetal acceleration & force | `sims/velocity-components/` |
+| Velocity Components Simulator | Uniform circular motion - period, tangential/angular speed, centripetal acceleration & force | `sims/velocity-components.html` |
 
 ## Repository layout
 
 ```
 .
-|-- index.html                     # Landing page linking to every simulation
-|-- README.md                      # This file
-`-- sims/                          # One self-contained folder per simulation
-    `-- velocity-components/
-        |-- index.html             # The simulation page
-        |-- css/                   # Stylesheets
-        |   `-- sim.css
-        |-- js/                    # Simulation scripts (loaded as classic scripts)
-        |   |-- physics.js         # Pure computation model
-        |   |-- render.js          # Canvas rendering + animation loop
-        |   |-- ui.js              # Controls & readouts
-        |   `-- main.js            # Bootstrap / wiring
-        |-- tests/                 # Test-only assets (not shipped with the page)
-        |   `-- lib/pbt.js         # Vendored zero-dependency property-test helper
-        `-- README.md              # Simulation-specific documentation
+|-- index.html                       # Landing page linking to every simulation
+|-- README.md                        # This file
+`-- sims/                            # All simulations, one .html file each
+    `-- velocity-components.html     # Uniform circular motion simulator
 ```
 
 ## Adding a new simulation
 
-The layout is intentionally extensible:
+1. Create a new single self-contained file `sims/<your-sim-name>.html` with its
+   CSS and JavaScript inlined (no external assets, relative links only).
+2. Add a new `<li class="sim-card">` card to the landing page (`index.html`)
+   pointing at `sims/<your-sim-name>.html`.
 
-1. Create a new folder under `sims/<your-sim-name>/` following the same
-   `index.html` + `css/` + `js/` structure.
-2. Add a new `<li class="sim-card">` card to the landing page (`index.html`) that
-   links to `sims/<your-sim-name>/index.html`.
+That's it - the new simulation lives alongside the others in the same folder.
 
 ## Design conventions
 
 - **No build tooling.** Plain HTML, CSS, and JavaScript only.
-- **Classic `<script>` tags**, not ES modules, so pages load correctly from
+- **Single-file simulations.** Each simulator is one `.html` file with inline
+  `<style>` and `<script>` blocks - simple to open, copy, or share.
+- **Classic `<script>` blocks**, not ES modules, so pages load correctly from
   `file://` (ES-module imports are blocked by browser CORS rules on `file://`).
-- **Relative paths only** and **no CDN/network requests**, so a simulation can be
-  copied, zipped, or hosted anywhere and still work offline.
+- **No CDN/network requests**, so a simulation works fully offline.
 - Each simulation namespaces its JavaScript under a single global object to avoid
   collisions.
 
