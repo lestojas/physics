@@ -4,1364 +4,310 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Circular Motion — PHYlip Simulators</title>
-<link rel="stylesheet" href="../styles.css">      <!-- KEEP: shared site styles -->
-<style>
-/* Sim-specific styles. Colliding class names (.panel/.layout/.legend/.back-link)
-   are namespaced with a "vc-" prefix so they do not clash with styles.css.
-   Loaded AFTER styles.css so these scoped rules win where they apply. */
-/*
- * sim.css — Layout and styling for the Circular Motion Simulator.
- * Uses only system/generic fonts and no external resources (Req 2.3).
- */
-
-:root {
-  /* Vector colors kept in sync with render.js constants. */
-  --color-velocity: #1e88e5; /* blue  */
-  --color-force: #e53935;    /* red   */
-  --color-bg: #f7fafc;
-  --color-panel: #ffffff;
-  --color-border: #cbd5e0;
-  --color-text: #1a202c;
-  --color-muted: #4a5568;
-  --color-error-bg: #fff5f5;
-  --color-error-border: #e53e3e;
-}
-
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  padding: 0 0 2rem;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  color: var(--color-text);
-  background: var(--color-bg);
-  line-height: 1.5;
-}
-
-.app-header {
-  padding: 1.25rem 1.5rem 0.5rem;
-}
-.app-header h1 { margin: 0 0 0.25rem; font-size: 1.5rem; }
-.vc-subtitle-unused { margin: 0.25rem 0; color: var(--color-muted); }
-.vc-back-link { color: var(--color-velocity); text-decoration: none; }
-.vc-back-link:hover { text-decoration: underline; }
-
-/* Error banner */
-.error-banner {
-  margin: 0.75rem 1.5rem;
-  padding: 0.75rem 1rem;
-  background: var(--color-error-bg);
-  border: 2px solid var(--color-error-border);
-  border-radius: 6px;
-  color: #9b2c2c;
-  font-weight: 600;
-}
-.error-banner[hidden] { display: none; }
-
-/* Responsive grid layout for the panels */
-.vc-layout {
-  display: grid;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  grid-template-columns: minmax(320px, 520px) 1fr;
-  align-items: start;
-}
-@media (max-width: 800px) {
-  .vc-layout { grid-template-columns: 1fr; }
-}
-
-.vc-panel {
-  background: var(--color-panel);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 1rem;
-}
-.vc-panel h2 { margin-top: 0; font-size: 1.1rem; }
-.vc-panel h3 { font-size: 0.95rem; margin-bottom: 0.35rem; }
-
-.animation-panel {
-  grid-row: span 2;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-#sim-canvas {
-  width: 100%;
-  max-width: 480px;
-  height: auto;
-  background: #ffffff;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-}
-
-/* Control panel rows */
-.control-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.6rem;
-}
-.control-label {
-  flex: 0 0 auto;
-  min-width: 160px;
-  font-weight: 600;
-}
-.control-input {
-  flex: 0 1 120px;
-  padding: 0.3rem 0.4rem;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  font-size: 1rem;
-}
-.control-message {
-  flex: 1 1 100%;
-  color: #9b2c2c;
-  font-size: 0.85rem;
-  min-height: 1em;
-}
-.control-message.visible { font-weight: 600; }
-
-.button-row { gap: 0.5rem; }
-.btn {
-  padding: 0.4rem 0.9rem;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  background: #edf2f7;
-  cursor: pointer;
-  font-size: 0.95rem;
-}
-.btn:hover:not(:disabled) { background: #e2e8f0; }
-.btn:disabled { opacity: 0.5; cursor: default; }
-
-/* Readout panel */
-.readout-list {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.25rem 0.75rem;
-  margin: 0;
-}
-.readout-term {
-  font-weight: 700;
-  color: var(--color-muted);
-}
-.readout-def { margin: 0; }
-.readout-value { font-variant-numeric: tabular-nums; }
-.readout-unit { color: var(--color-muted); }
-
-/* Equation panel */
-.equation-list {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 0.75rem;
-  font-size: 1.05rem;
-}
-.equation-list li {
-  padding: 0.15rem 0;
-  font-family: "Cambria Math", Georgia, "Times New Roman", serif;
-}
-.vc-legend {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.15rem 0.75rem;
-  margin: 0;
-}
-.vc-legend dt { font-weight: 700; }
-.vc-legend dd { margin: 0; color: var(--color-muted); }
-</style>
+<link rel="stylesheet" href="../styles.css">
 </head>
-<body>
+<body class="sim-page">
 <div class="app">
-  <aside id="app-sidebar" class="sidebar"></aside>       <!-- KEEP: shared sidebar mounts here -->
+  <aside id="app-sidebar" class="sidebar"></aside>
 
   <main class="content">
-    <div class="wrap">
-      <!-- Error banner, hidden until an asset/context failure occurs. -->
-      <div id="error-banner" class="error-banner" role="alert" hidden></div>
-
-      <h1>Circular Motion Simulator</h1>
-      <p class="subtitle">Uniform circular motion — explore how radius, mass, and
-        one motion driver (T, v, or &omega;) shape the coupled quantities.</p>
-
-      <div class="vc-layout">
-        <!-- Animation view -->
-        <section class="vc-panel animation-panel" aria-label="Animation">
-          <canvas id="sim-canvas" width="480" height="480"
-                  aria-label="Circular motion animation"></canvas>
-        </section>
-
-        <!-- Control panel (widgets injected by the ui module) -->
-        <section class="vc-panel" aria-label="Controls">
-          <h2>Controls</h2>
-          <div id="control-panel"></div>
-        </section>
-
-        <!-- Readout panel (rows injected by the ui module) -->
-        <section class="vc-panel" aria-label="Readouts">
-          <h2>Live values</h2>
-          <div id="readout-panel"></div>
-        </section>
-
-        <!-- Equation panel (static content) -->
-        <section class="vc-panel equation-panel" id="equation-panel" aria-label="Equations">
-          <h2>Governing equations</h2>
-          <ul class="equation-list">
-            <li>v = 2&pi;r / T</li>
-            <li>&omega; = 2&pi; / T</li>
-            <li>v = r&omega;</li>
-            <li>a<sub>c</sub> = v&sup2; / r</li>
-            <li>a<sub>c</sub> = r&omega;&sup2;</li>
-            <li>F<sub>net</sub> = m&middot;a<sub>c</sub></li>
-            <li>F<sub>net</sub> = m&middot;v&sup2; / r</li>
-          </ul>
-
-          <h3>Symbol legend</h3>
-          <dl class="vc-legend">
-            <dt>r</dt><dd>radius (meters, m)</dd>
-            <dt>m</dt><dd>mass (kilograms, kg)</dd>
-            <dt>T</dt><dd>period (seconds, s)</dd>
-            <dt>v</dt><dd>tangential speed (meters per second, m/s)</dd>
-            <dt>&omega;</dt><dd>angular speed (radians per second, rad/s)</dd>
-            <dt>a<sub>c</sub></dt><dd>centripetal acceleration (meters per second squared, m/s&sup2;)</dd>
-            <dt>F<sub>net</sub></dt><dd>net centripetal force (newtons, N)</dd>
-          </dl>
-        </section>
+    <div class="sim-layout">
+      <div class="sim-main">
+        <div class="sim-canvas-wrap">
+          <canvas id="c" width="1024" height="576"></canvas>
+        </div>
+        <div class="sim-legend">
+          <span><i class="swatch" style="background:var(--v)"></i><span class="lg">velocity v (tangent to path)</span></span>
+          <span><i class="swatch" style="background:var(--target)"></i><span class="lg">centripetal force F<sub>net</sub> (toward center)</span></span>
+          <span><i class="swatch" style="background:var(--path)"></i><span class="lg">circular path</span></span>
+          <span><i class="dot" style="background:var(--vx)"></i><span class="lg">object (mass m)</span></span>
+        </div>
       </div>
+
+      <aside class="sim-controls">
+        <a class="back-link" href="../index.html">&#8592; All simulators</a>
+        <h2 class="sim-title">Circular Motion</h2>
+        <p class="sim-sub">Uniform circular motion. Pick one motion driver (period, tangential speed, or angular speed); the others stay consistent. Velocity is always tangent to the path; the net force always points to the center.</p>
+
+        <div class="cb-divider"></div>
+        <p class="cb-title">Motion driver</p>
+        <div class="mode-tabs" id="drivers">
+          <button type="button" class="mode-tab m1 active" data-driver="T">
+            <span class="mnum">T</span>
+            <span class="mt"><b>Period</b><small>set the time for one revolution</small></span>
+          </button>
+          <button type="button" class="mode-tab m2" data-driver="v">
+            <span class="mnum">v</span>
+            <span class="mt"><b>Tangential speed</b><small>set how fast the object moves</small></span>
+          </button>
+          <button type="button" class="mode-tab m3" data-driver="w">
+            <span class="mnum">&omega;</span>
+            <span class="mt"><b>Angular speed</b><small>set the turning rate in rad/s</small></span>
+          </button>
+        </div>
+
+        <div class="cb-divider"></div>
+        <p class="cb-title">Inputs</p>
+        <div class="control">
+          <label>Radius <span class="v-c">r</span> <span class="val"><span id="r-val">2.0</span> m</span></label>
+          <input type="range" id="r" min="0.1" max="10" step="0.1" value="2">
+        </div>
+        <div class="control">
+          <label>Mass <span class="v-c">m</span> <span class="val"><span id="m-val">1.0</span> kg</span></label>
+          <input type="range" id="m" min="0.1" max="100" step="0.1" value="1">
+        </div>
+        <div class="control" id="driver-ctl">
+          <label><span id="driver-name">Period</span> <span id="driver-sym" class="v-c">T</span> <span class="val"><span id="driver-val">4.0</span> <span id="driver-unit">s</span></span></label>
+          <input type="range" id="driver" min="0.5" max="60" step="0.1" value="4">
+        </div>
+
+        <div class="cb-divider"></div>
+        <p class="cb-title">Options</p>
+        <div class="toggle-row">
+          <label><input type="checkbox" id="show-vel" checked> Show velocity vector</label>
+          <label><input type="checkbox" id="show-force" checked> Show centripetal force vector</label>
+        </div>
+
+        <div class="cb-divider"></div>
+        <p class="cb-title">Readings</p>
+        <div class="readouts">
+          <div class="readout"><div class="k">Period T</div><div class="n" id="out-T">4.000 s</div></div>
+          <div class="readout v"><div class="k">Tangential speed v</div><div class="n" id="out-v">3.142 m/s</div></div>
+          <div class="readout vx"><div class="k">Angular speed &omega;</div><div class="n" id="out-w">1.571 rad/s</div></div>
+          <div class="readout path"><div class="k">Centripetal accel. a<sub>c</sub></div><div class="n" id="out-ac">4.935 m/s<sup>2</sup></div></div>
+          <div class="readout target"><div class="k">Net force F<sub>net</sub></div><div class="n" id="out-fnet">4.935 N</div></div>
+        </div>
+
+        <div class="cb-divider"></div>
+        <p class="cb-title">Relationships</p>
+        <div class="formula">
+          v = 2&pi;r / T &nbsp;&middot;&nbsp; <b>&omega;</b> = 2&pi; / T<br>
+          v = r&omega;<br>
+          <b>a<sub>c</sub></b> = v<sup>2</sup> / r = r&omega;<sup>2</sup><br>
+          <b>F<sub>net</sub></b> = m&middot;a<sub>c</sub> = m v<sup>2</sup> / r
+        </div>
+
+        <div class="cb-divider"></div>
+        <div class="sim-actions">
+          <button id="playpause" class="btn-primary">Play &#9654;</button>
+          <button id="reset" class="secondary">Reset</button>
+        </div>
+      </aside>
     </div>
   </main>
 </div>
 
 <div class="dev-credit">Developed by Philip Jayson Lestojas</div>
 
-<!-- Inlined logic (classic scripts under the VCS namespace): physics -> render -> ui -> main -->
-  <script>
-    // Early hook so a canvas/context failure can be reported before the ui module runs.
-    window.__vcsAssetError = function (text) {
-      var banner = document.getElementById("error-banner");
-      if (banner) {
-        banner.textContent = text;
-        banner.hidden = false;
-        banner.className = (banner.className + " visible").trim();
-      }
-    };
-  </script>
-
-  <script>
-/*
- * physics.js — Pure computation model for the Circular Motion Simulator.
- *
- * This module is DOM-free and side-effect-free (apart from attaching itself to
- * the single global `VCS` namespace). It owns:
- *   - the canonical quantity ranges (single source of truth for bounds),
- *   - the coupled temporal computation ({T, v, ω}),
- *   - the derived quantities (centripetal acceleration a_c and net force F_net),
- *   - input classification/validation,
- *   - driver switching (preserving the {T, v, ω} triple), and
- *   - numeric formatting for the readouts.
- *
- * Everything here is deliberately pure so it can be reasoned about and property
- * tested in isolation. It is loaded via a classic <script> tag (NOT an ES
- * module) so it works from file:// with no server or bundler.
- */
-(function (global) {
+<script>
+/* ============================================================
+   Circular Motion Simulator
+   Uniform circular motion on a dark stage, matching the shared
+   PHYlip Simulators interface. Physics is exact; the vectors are
+   drawn tangent (velocity) and toward the center (force).
+   ============================================================ */
+(function () {
   "use strict";
-
-  // The global namespace shared by all simulator modules.
-  var VCS = global.VCS = global.VCS || {};
-
   var TAU = 2 * Math.PI;
 
-  /**
-   * Inclusive validity ranges for every user-facing quantity. This is the
-   * single source of truth consumed by both validation and the UI.
-   * (Requirements 3.5, 3.6, 3.7, 3.9, 3.10)
-   */
-  var RANGES = {
-    r:     { min: 0.1, max: 10,  unit: "m"     },
-    m:     { min: 0.1, max: 100, unit: "kg"    },
-    T:     { min: 0.5, max: 60,  unit: "s"     },
-    v:     { min: 0.1, max: 100, unit: "m/s"   },
-    omega: { min: 0.1, max: 12,  unit: "rad/s" }
+  // ---- Ranges (single source of truth) ----
+  var RANGE = {
+    T: { min: 0.5, max: 60,  step: 0.1, unit: "s",     name: "Period",         sym: "T" },
+    v: { min: 0.1, max: 100, step: 0.1, unit: "m/s",   name: "Tangential speed", sym: "v" },
+    w: { min: 0.1, max: 12,  step: 0.1, unit: "rad/s", name: "Angular speed",  sym: "\u03c9" }
   };
 
-  /**
-   * Compute the consistent temporal triple {T, v, omega} from a radius and a
-   * single motion driver. The driver's own value is preserved exactly; the two
-   * non-driver quantities are derived from the governing equations.
-   *
-   *   driver "T":     v = 2πr / T ;   ω = 2π / T
-   *   driver "v":     T = 2πr / v ;   ω = v / r
-   *   driver "omega": v = r·ω     ;   T = 2π / ω
-   *
-   * (Requirements 4.1, 4.2, 4.3, 4.4, 4.5)
-   *
-   * @param {number} r          radius in meters (> 0)
-   * @param {string} driver     one of "T", "v", "omega"
-   * @param {number} driverValue value of the selected driver (> 0)
-   * @returns {{T:number, v:number, omega:number}}
-   */
-  function computeTriple(r, driver, driverValue) {
-    var T, v, omega;
-    switch (driver) {
-      case "T":
-        T = driverValue;
-        v = (TAU * r) / T;
-        omega = TAU / T;
-        break;
-      case "v":
-        v = driverValue;
-        T = (TAU * r) / v;
-        omega = v / r;
-        break;
-      case "omega":
-        omega = driverValue;
-        v = r * omega;
-        T = TAU / omega;
-        break;
-      default:
-        throw new Error("computeTriple: unknown driver '" + driver + "'");
-    }
-    return { T: T, v: v, omega: omega };
+  // ---- State ----
+  var state = { r: 2, m: 1, driver: "T", driverValue: 4 };
+  var theta = 0;          // current angle (radians), counter-clockwise
+  var playing = false;
+  var lastTs = null;
+  var showVel = true, showForce = true;
+
+  // ---- Physics: derive the full motion from r + one driver ----
+  function motion() {
+    var r = state.r, m = state.m, T, v, w;
+    if (state.driver === "T") { T = state.driverValue; w = TAU / T; v = r * w; }
+    else if (state.driver === "v") { v = state.driverValue; T = TAU * r / v; w = v / r; }
+    else { w = state.driverValue; T = TAU / w; v = r * w; }
+    var ac = v * v / r;
+    return { r: r, m: m, T: T, v: v, w: w, ac: ac, F: m * ac };
   }
 
-  /**
-   * Compute the derived quantities from radius, mass and the temporal triple.
-   * a_c is computed as v²/r; rω² is available as a cross-check and agrees with
-   * v²/r whenever the triple is consistent. F_net = m·a_c. Both are returned as
-   * non-negative magnitudes.
-   *
-   * (Requirements 5.1, 5.2, 5.3, 5.4, 5.5, 5.6)
-   *
-   * @param {number} r
-   * @param {number} m
-   * @param {{v:number, omega:number}} triple
-   * @returns {{a_c:number, F_net:number}}
-   */
-  function computeDerived(r, m, triple) {
-    var v = triple.v;
-    var omega = triple.omega;
-    var a_c = (v * v) / r;          // primary formula: a_c = v² / r
-    var a_c_cross = r * omega * omega; // cross-check: a_c = rω²
-    // Guard against any tiny negative from floating point; magnitudes only.
-    a_c = Math.abs(a_c);
-    var F_net = Math.abs(m * a_c);
-    return { a_c: a_c, F_net: F_net, a_c_cross: Math.abs(a_c_cross) };
+  // ---- Elements ----
+  var $ = function (id) { return document.getElementById(id); };
+  var canvas = $("c"), ctx = canvas.getContext("2d");
+  var W = canvas.width, H = canvas.height;
+  var cx = W / 2, cy = H / 2;
+
+  // Read theme colors from the shared stylesheet so we stay in sync.
+  function cssVar(name, fallback) {
+    var val = getComputedStyle(document.documentElement).getPropertyValue(name);
+    return (val && val.trim()) || fallback;
   }
-
-  /**
-   * Convenience: compute the full motion state (triple + derived) from a state
-   * object containing {r, m, driver, driverValue}.
-   *
-   * (Requirements 4, 5)
-   *
-   * @param {{r:number, m:number, driver:string, driverValue:number}} state
-   * @returns {{T:number, v:number, omega:number, a_c:number, F_net:number}}
-   */
-  function computeMotion(state) {
-    var triple = computeTriple(state.r, state.driver, state.driverValue);
-    var derived = computeDerived(state.r, state.m, triple);
-    return {
-      T: triple.T,
-      v: triple.v,
-      omega: triple.omega,
-      a_c: derived.a_c,
-      F_net: derived.F_net
-    };
-  }
-
-  /**
-   * Classify a raw input string for a given field. Centralizes all validation
-   * so main.js can decide whether to recompute or retain the last valid state.
-   *
-   *   non-numeric / empty          -> "ignored"  (Req 11.6)
-   *   numeric <= 0                 -> "rejected" (Req 11.1–11.4)
-   *   numeric > 0 but out of range -> "clamped"  (value = nearest bound) (Req 11.5)
-   *   numeric within range         -> "accepted"
-   *
-   * @param {string} field one of "r", "m", "T", "v", "omega"
-   * @param {*} raw raw input value (string from a text/number input)
-   * @returns {{status:string, value?:number, message?:string}}
-   */
-  function classifyInput(field, raw) {
-    var range = RANGES[field];
-    if (!range) {
-      throw new Error("classifyInput: unknown field '" + field + "'");
-    }
-
-    // Treat empty / whitespace-only as ignored.
-    if (raw === null || raw === undefined) {
-      return { status: "ignored", message: "Input ignored; kept last valid value." };
-    }
-    var str = String(raw).trim();
-    if (str === "") {
-      return { status: "ignored", message: "Input ignored; kept last valid value." };
-    }
-
-    // Number(...) rejects things like "1.2.3" and "abc" (returns NaN) while
-    // still accepting scientific notation and signed values.
-    var num = Number(str);
-    if (!isFinite(num)) {
-      return { status: "ignored", message: "Input ignored; kept last valid value." };
-    }
-
-    // Non-positive values are rejected for all physical quantities.
-    if (num <= 0) {
-      return { status: "rejected", message: "Value must be greater than zero; rejected." };
-    }
-
-    // Strictly-positive but out-of-range values are clamped to the nearest bound.
-    if (num < range.min) {
-      return { status: "clamped", value: range.min };
-    }
-    if (num > range.max) {
-      return { status: "clamped", value: range.max };
-    }
-
-    return { status: "accepted", value: num };
-  }
-
-  /**
-   * Switch the active motion driver without changing the physical motion. The
-   * current consistent triple {T, v, ω} is recomputed and preserved, and the
-   * new driver's `driverValue` is set to the current value of that quantity so
-   * that no quantity changes on switch.
-   *
-   * (Requirements 4.6, 4.7)
-   *
-   * @param {{r:number, m:number, driver:string, driverValue:number}} state
-   * @param {string} newDriver one of "T", "v", "omega"
-   * @returns {object} a new state object with driver switched and preserved triple
-   */
-  function switchDriver(state, newDriver) {
-    if (newDriver !== "T" && newDriver !== "v" && newDriver !== "omega") {
-      throw new Error("switchDriver: unknown driver '" + newDriver + "'");
-    }
-    // Recompute the current triple from the existing driver so we have all
-    // three values, then read off the value for the new driver.
-    var triple = computeTriple(state.r, state.driver, state.driverValue);
-    var newValue = triple[newDriver];
-    var newState = {
-      r: state.r,
-      m: state.m,
-      driver: newDriver,
-      driverValue: newValue
-    };
-    // Carry any extra fields (e.g. cached quantities) forward, then overwrite
-    // with the freshly preserved values.
-    return newState;
-  }
-
-  /**
-   * Format a numeric value for display: at most 3 decimal places. For nonzero
-   * magnitudes smaller than 0.001, fall back to a form that preserves at least
-   * one significant figure instead of rendering "0.000".
-   *
-   * (Requirements 6.3, 6.4)
-   *
-   * @param {number} x
-   * @returns {string}
-   */
-  function formatValue(x) {
-    if (typeof x !== "number" || !isFinite(x)) {
-      return String(x);
-    }
-    if (x === 0) {
-      return "0";
-    }
-
-    var mag = Math.abs(x);
-    // Tiny nonzero magnitude: preserve >=1 significant figure.
-    if (mag < 0.001) {
-      // toPrecision(1) keeps a single significant figure, e.g. 0.00004 -> "4e-5".
-      var p = x.toPrecision(1);
-      // Normalize numeric noise (e.g. "0.00004000000001") without losing the
-      // significant figure.
-      return String(Number(p));
-    }
-
-    // Round to at most 3 decimals; strip trailing zeros for readability.
-    var rounded = Math.round(x * 1000) / 1000;
-    return String(rounded);
-  }
-
-  VCS.physics = {
-    TAU: TAU,
-    RANGES: RANGES,
-    computeTriple: computeTriple,
-    computeDerived: computeDerived,
-    computeMotion: computeMotion,
-    classifyInput: classifyInput,
-    switchDriver: switchDriver,
-    formatValue: formatValue
+  var COL = {
+    vel:   cssVar("--v", "#ffd24a"),
+    force: cssVar("--target", "#ff5d73"),
+    path:  cssVar("--path", "#7ee787"),
+    obj:   cssVar("--vx", "#4aa3ff"),
+    muted: cssVar("--muted", "#a9a9a9"),
+    line:  cssVar("--line", "#444")
   };
-})(typeof window !== "undefined" ? window : this);
-  </script>
 
-  <script>
-/*
- * render.js — Canvas drawing and animation loop for the simulator.
- *
- * Responsibilities (VCS.render):
- *   - map physical radius (meters) to a pixel radius that always fits the canvas,
- *   - place the object on the circular path for a given angle,
- *   - compute the velocity (tangent) and force (radial-to-center) vectors,
- *   - draw the path, object, and both vectors with arrowheads, distinct colors,
- *     and text labels,
- *   - run a requestAnimationFrame loop timed to real wall-clock so one full
- *     revolution takes the current period T,
- *   - implement the play / pause / reset state machine.
- *
- * Loaded as a classic <script> (no ES module) and attaches to the global VCS
- * namespace. Pure geometry helpers are exposed for testing.
- */
-(function (global) {
-  "use strict";
-
-  var VCS = global.VCS = global.VCS || {};
-  var TAU = 2 * Math.PI;
-
-  // ---- Rendering constants -------------------------------------------------
-  // Pixel radius bounds for the circular path. R_MAX_PX plus MARGIN_PX must
-  // leave room inside the canvas for the object, vectors, and labels.
-  var R_MIN_PX = 30;
-  var R_MAX_PX = 150;
-  var MARGIN_PX = 70;      // reserved space outside the path for vectors/labels
-
-  var K_V = 1.5;           // velocity vector: pixels per (m/s)
-  var K_F = 0.5;           // force vector: pixels per newton (pre-clamp)
-  var FORCE_MIN_FRAC = 0.05; // force length min as fraction of R_px
-  var FORCE_MAX_FRAC = 1.00; // force length max as fraction of R_px
-
-  var COLOR_PATH = "#4a5568";
-  var COLOR_OBJECT = "#1a202c";
-  var COLOR_VELOCITY = "#1e88e5"; // blue
-  var COLOR_FORCE = "#e53935";    // red
-  var COLOR_CENTER = "#a0aec0";
-
-  var R_RANGE = { min: 0.1, max: 10 }; // must match physics RANGES.r
-
-  // ---- Pure geometry helpers (exposed for tests) ---------------------------
-
-  /**
-   * Monotonic linear map from physical radius (meters) to a pixel radius.
-   * Larger r yields a strictly larger pixel radius; the full path plus margin
-   * always fits within the canvas. (Requirement 7.1)
-   *
-   * @param {number} r radius in meters
-   * @returns {number} pixel radius
-   */
-  function mapRadius(r) {
-    var t = (r - R_RANGE.min) / (R_RANGE.max - R_RANGE.min);
-    if (t < 0) t = 0;
-    if (t > 1) t = 1;
-    return R_MIN_PX + (R_MAX_PX - R_MIN_PX) * t;
+  // ---- Geometry helpers ----
+  function radiusPx(r) {
+    var minR = 46, maxR = Math.min(cx, cy) - 78;
+    return minR + (r - 0.1) / (10 - 0.1) * (maxR - minR);
   }
+  function objPos(R) { return { x: cx + R * Math.cos(theta), y: cy - R * Math.sin(theta) }; }
 
-  /**
-   * Velocity vector length in pixels — strictly increasing in speed. (Req 8.6)
-   * @param {number} v tangential speed (m/s)
-   * @returns {number}
-   */
-  function velocityLength(v) {
-    return K_V * v;
-  }
-
-  /**
-   * Unclamped force vector length (pre-clamp), linear in F_net with a single
-   * constant scale factor. (Requirement 9.5)
-   * @param {number} fNet net centripetal force (N)
-   * @returns {number}
-   */
-  function forceLengthRaw(fNet) {
-    return K_F * fNet;
-  }
-
-  /**
-   * Clamp a force vector length to [5%, 100%] of the pixel radius. Clamping is
-   * idempotent. (Requirement 9.6)
-   * @param {number} rawLength unclamped length in pixels
-   * @param {number} rPx pixel radius of the path
-   * @returns {number}
-   */
-  function clampForceLength(rawLength, rPx) {
-    var lo = FORCE_MIN_FRAC * rPx;
-    var hi = FORCE_MAX_FRAC * rPx;
-    if (rawLength < lo) return lo;
-    if (rawLength > hi) return hi;
-    return rawLength;
-  }
-
-  /**
-   * Object position on the path for a given center, pixel radius, and angle.
-   * Canvas y grows downward. (Requirement 7.2)
-   * @returns {{x:number, y:number}}
-   */
-  function objectPosition(center, rPx, theta) {
-    return {
-      x: center.x + rPx * Math.cos(theta),
-      y: center.y + rPx * Math.sin(theta)
-    };
-  }
-
-  /**
-   * Unit vectors at a given angle:
-   *   tangent (direction of motion) = direction * (-sinθ, cosθ)  [⊥ to radius]
-   *   radial-to-center              = -(cosθ, sinθ)              [obj -> center]
-   * @returns {{tangent:{x,y}, toCenter:{x,y}}}
-   */
-  function unitVectors(theta, direction) {
-    var d = direction >= 0 ? 1 : -1;
-    return {
-      tangent: { x: d * -Math.sin(theta), y: d * Math.cos(theta) },
-      toCenter: { x: -Math.cos(theta), y: -Math.sin(theta) }
-    };
-  }
-
-  // ---- Canvas drawing primitives -------------------------------------------
-
-  function drawArrow(ctx, from, dir, length, color, label) {
-    if (length <= 0) return;
-    var tipX = from.x + dir.x * length;
-    var tipY = from.y + dir.y * length;
-
-    ctx.save();
-    ctx.strokeStyle = color;
-    ctx.fillStyle = color;
-    ctx.lineWidth = 3;
-
-    // shaft
-    ctx.beginPath();
-    ctx.moveTo(from.x, from.y);
-    ctx.lineTo(tipX, tipY);
-    ctx.stroke();
-
+  function arrow(x0, y0, dx, dy, len, color, label) {
+    var mag = Math.hypot(dx, dy);
+    if (mag < 1e-9 || len < 1) return;
+    var ux = dx / mag, uy = dy / mag;
+    var x1 = x0 + ux * len, y1 = y0 + uy * len;
+    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
     // arrowhead
-    var ang = Math.atan2(dir.y, dir.x);
-    var head = 10;
+    var ah = 11, aw = 6;
+    var bx = x1 - ux * ah, by = y1 - uy * ah;
+    var px = -uy, py = ux;
     ctx.beginPath();
-    ctx.moveTo(tipX, tipY);
-    ctx.lineTo(
-      tipX - head * Math.cos(ang - Math.PI / 6),
-      tipY - head * Math.sin(ang - Math.PI / 6)
-    );
-    ctx.lineTo(
-      tipX - head * Math.cos(ang + Math.PI / 6),
-      tipY - head * Math.sin(ang + Math.PI / 6)
-    );
-    ctx.closePath();
-    ctx.fill();
-
-    // label near the tip
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(bx + px * aw, by + py * aw);
+    ctx.lineTo(bx - px * aw, by - py * aw);
+    ctx.closePath(); ctx.fill();
     if (label) {
-      ctx.font = "13px sans-serif";
-      ctx.fillText(label, tipX + 6, tipY - 6);
+      ctx.font = "bold 20px Georgia, serif";
+      ctx.fillText(label, x1 + ux * 12 - 4, y1 + uy * 12 + 6);
     }
-    ctx.restore();
   }
 
-  // ---- init() : builds the controller + rAF loop ---------------------------
+  // ---- Draw ----
+  function draw() {
+    var mo = motion();
+    var R = radiusPx(state.r);
+    ctx.clearRect(0, 0, W, H);
 
-  /**
-   * Initialize the renderer on a canvas.
-   *
-   * @param {HTMLCanvasElement} canvas
-   * @param {function():object} getState returns the current MotionState
-   *        ({r, m, T, v, omega, a_c, F_net}).
-   * @param {function():object} getViewOptions returns { showForce:boolean }.
-   * @returns {{play:Function, pause:Function, reset:Function,
-   *            isPlaying:Function, currentAngle:Function, draw:Function}}
-   */
-  function init(canvas, getState, getViewOptions) {
-    var ctx = canvas.getContext("2d");
-    if (!ctx) {
-      throw new Error("render.init: 2D canvas context unavailable");
+    // circular path
+    ctx.strokeStyle = COL.path; ctx.globalAlpha = 0.55; ctx.lineWidth = 2;
+    ctx.setLineDash([6, 7]);
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha = 1;
+
+    // center marker
+    ctx.fillStyle = COL.muted;
+    ctx.beginPath(); ctx.arc(cx, cy, 3.5, 0, TAU); ctx.fill();
+
+    var p = objPos(R);
+
+    // radius line (center -> object)
+    ctx.strokeStyle = COL.line; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.9;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(p.x, p.y); ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // force vector (toward center): unit = (center - obj)
+    if (showForce) {
+      var fLen = Math.max(0.05 * R, Math.min(R, mo.F * 18));
+      arrow(p.x, p.y, cx - p.x, cy - p.y, fLen, COL.force, "F");
+    }
+    // velocity vector (tangent, direction of motion = d/dtheta of position)
+    if (showVel) {
+      var vLen = Math.max(26, Math.min(160, mo.v * 14));
+      arrow(p.x, p.y, -Math.sin(theta), -Math.cos(theta), vLen, COL.vel, "v");
     }
 
-    var view = {
-      theta: 0,          // current angular position (radians)
-      initialTheta: 0,   // fixed reference start for reset (Req 7.7)
-      direction: 1,      // constant sense of travel
-      playing: false,    // state-machine flag
-      lastTs: null       // last rAF timestamp for dt integration
-    };
-
-    function center() {
-      return { x: canvas.width / 2, y: canvas.height / 2 };
-    }
-
-    function draw() {
-      var state = getState();
-      var opts = getViewOptions ? getViewOptions() : { showForce: true };
-      var c = center();
-      var rPx = mapRadius(state.r);
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // circular path
-      ctx.save();
-      ctx.strokeStyle = COLOR_PATH;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(c.x, c.y, rPx, 0, TAU);
-      ctx.stroke();
-      ctx.restore();
-
-      // center marker
-      ctx.save();
-      ctx.fillStyle = COLOR_CENTER;
-      ctx.beginPath();
-      ctx.arc(c.x, c.y, 3, 0, TAU);
-      ctx.fill();
-      ctx.restore();
-
-      var obj = objectPosition(c, rPx, view.theta);
-      var units = unitVectors(view.theta, view.direction);
-
-      // force vector (drawn first so velocity sits on top) — Req 9.7 toggle
-      if (opts.showForce) {
-        var lf = clampForceLength(forceLengthRaw(state.F_net), rPx);
-        drawArrow(ctx, obj, units.toCenter, lf, COLOR_FORCE, "F_net (centripetal)");
-      }
-
-      // velocity vector (tangent, direction of motion) — Req 8
-      var lv = velocityLength(state.v);
-      drawArrow(ctx, obj, units.tangent, lv, COLOR_VELOCITY, "v (velocity)");
-
-      // the object itself
-      ctx.save();
-      ctx.fillStyle = COLOR_OBJECT;
-      ctx.beginPath();
-      ctx.arc(obj.x, obj.y, 7, 0, TAU);
-      ctx.fill();
-      ctx.restore();
-    }
-
-    function step(now) {
-      if (view.lastTs === null) view.lastTs = now;
-      var dt = (now - view.lastTs) / 1000; // seconds
-      view.lastTs = now;
-
-      if (view.playing) {
-        var state = getState();
-        var T = state.T > 0 ? state.T : 1;
-        // one revolution (2π) per real period T (Requirement 7.3)
-        view.theta += view.direction * (TAU / T) * dt;
-        // keep theta bounded for numeric stability
-        view.theta = view.theta % TAU;
-      }
-
-      draw();
-      global.requestAnimationFrame(step);
-    }
-
-    // Kick off the continuous render loop (draws even while paused so that
-    // input changes are reflected immediately).
-    if (typeof global.requestAnimationFrame === "function") {
-      global.requestAnimationFrame(step);
-    }
-
-    return {
-      play: function () {
-        if (!view.playing) {
-          view.playing = true;
-          view.lastTs = null; // avoid a large dt jump after a pause
-        }
-      },
-      pause: function () {
-        view.playing = false;
-      },
-      reset: function () {
-        view.theta = view.initialTheta;
-        view.playing = false;
-        view.lastTs = null;
-        draw();
-      },
-      isPlaying: function () {
-        return view.playing;
-      },
-      currentAngle: function () {
-        return view.theta;
-      },
-      draw: draw
-    };
+    // object
+    ctx.fillStyle = COL.obj;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 9, 0, TAU); ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 2; ctx.stroke();
   }
 
-  VCS.render = {
-    init: init,
-    // Pure helpers exposed for tests and reuse:
-    mapRadius: mapRadius,
-    velocityLength: velocityLength,
-    forceLengthRaw: forceLengthRaw,
-    clampForceLength: clampForceLength,
-    objectPosition: objectPosition,
-    unitVectors: unitVectors,
-    constants: {
-      R_MIN_PX: R_MIN_PX,
-      R_MAX_PX: R_MAX_PX,
-      MARGIN_PX: MARGIN_PX,
-      K_V: K_V,
-      K_F: K_F,
-      FORCE_MIN_FRAC: FORCE_MIN_FRAC,
-      FORCE_MAX_FRAC: FORCE_MAX_FRAC,
-      COLOR_VELOCITY: COLOR_VELOCITY,
-      COLOR_FORCE: COLOR_FORCE
-    }
-  };
-})(typeof window !== "undefined" ? window : this);
-  </script>
-
-  <script>
-/*
- * ui.js — Control_Panel, Readout_Panel wiring, validation messages, and the
- * asset-error banner (VCS.ui).
- *
- * This module builds the interactive widgets inside the (initially empty)
- * panel containers provided by index.html, echoes readouts/driver values, and
- * surfaces per-field validation messages. It holds no physics; it only calls
- * back into handlers supplied by main.js.
- *
- * Loaded as a classic <script> (no ES module) and attaches to global VCS.
- */
-(function (global) {
-  "use strict";
-
-  var VCS = global.VCS = global.VCS || {};
-  var doc = global.document;
-
-  // Human-friendly metadata for the driver value input.
-  var DRIVER_META = {
-    T:     { label: "Period T", unit: "s" },
-    v:     { label: "Tangential speed v", unit: "m/s" },
-    omega: { label: "Angular speed \u03C9", unit: "rad/s" } // ω
-  };
-
-  // Readout rows: order + symbol + unit. (Requirements 6.1, 6.2)
-  var READOUT_ROWS = [
-    { key: "r",     symbol: "r",              unit: "m"      },
-    { key: "m",     symbol: "m",              unit: "kg"     },
-    { key: "T",     symbol: "T",              unit: "s"      },
-    { key: "v",     symbol: "v",              unit: "m/s"    },
-    { key: "omega", symbol: "\u03C9",         unit: "rad/s"  }, // ω
-    { key: "a_c",   symbol: "a\u1D04",        unit: "m/s\u00B2" }, // a_c, m/s²
-    { key: "F_net", symbol: "F\u2099\u2091\u209C", unit: "N" }   // F_net
-  ];
-
-  // Internal references to created DOM elements, populated by buildControls /
-  // buildReadouts.
-  var els = {
-    inputs: {},     // field -> <input>
-    messages: {},   // field -> <span> message element
-    readouts: {},   // key -> <span> value element
-    driverSelect: null,
-    driverValueInput: null,
-    driverValueLabel: null,
-    driverValueUnit: null,
-    forceToggle: null,
-    playBtn: null,
-    pauseBtn: null,
-    resetBtn: null,
-    banner: null
-  };
-
-  function el(tag, opts) {
-    var node = doc.createElement(tag);
-    opts = opts || {};
-    if (opts.className) node.className = opts.className;
-    if (opts.text != null) node.textContent = opts.text;
-    if (opts.id) node.id = opts.id;
-    if (opts.attrs) {
-      Object.keys(opts.attrs).forEach(function (k) {
-        node.setAttribute(k, opts.attrs[k]);
-      });
-    }
-    return node;
+  // ---- Readouts ----
+  function fmt(x) {
+    if (x !== 0 && Math.abs(x) < 0.001) return x.toExponential(2);
+    return (Math.round(x * 1000) / 1000).toString();
+  }
+  function updateReadouts() {
+    var mo = motion();
+    $("out-T").textContent   = fmt(mo.T) + " s";
+    $("out-v").textContent   = fmt(mo.v) + " m/s";
+    $("out-w").innerHTML     = fmt(mo.w) + " rad/s";
+    $("out-ac").innerHTML    = fmt(mo.ac) + " m/s<sup>2</sup>";
+    $("out-fnet").textContent = fmt(mo.F) + " N";
   }
 
-  /**
-   * Build a labeled numeric input row with an inline message span.
-   * @returns {HTMLElement} the row container
-   */
-  function buildNumericRow(field, labelText, value, handlers) {
-    var range = VCS.physics.RANGES[field];
-    var row = el("div", { className: "control-row" });
+  // ---- Control sync ----
+  function syncDriverControl() {
+    var rg = RANGE[state.driver];
+    var slider = $("driver");
+    slider.min = rg.min; slider.max = rg.max; slider.step = rg.step;
+    slider.value = state.driverValue;
+    $("driver-name").textContent = rg.name;
+    $("driver-sym").innerHTML = rg.sym;
+    $("driver-unit").textContent = rg.unit;
+    $("driver-val").textContent = (+state.driverValue).toFixed(rg.step < 1 ? 1 : 0);
+  }
+  function refresh() { syncDriverControl(); updateReadouts(); draw(); }
 
-    var label = el("label", { className: "control-label", text: labelText });
-    var input = el("input", {
-      className: "control-input",
-      attrs: {
-        type: "number",
-        step: "any",
-        min: String(range.min),
-        max: String(range.max),
-        value: String(value)
-      }
+  // ---- Wire inputs ----
+  $("r").addEventListener("input", function () {
+    state.r = +this.value; $("r-val").textContent = state.r.toFixed(1);
+    updateReadouts(); draw();
+  });
+  $("m").addEventListener("input", function () {
+    state.m = +this.value; $("m-val").textContent = state.m.toFixed(1);
+    updateReadouts(); draw();
+  });
+  $("driver").addEventListener("input", function () {
+    state.driverValue = +this.value;
+    $("driver-val").textContent = state.driverValue.toFixed(RANGE[state.driver].step < 1 ? 1 : 0);
+    updateReadouts(); draw();
+  });
+
+  // Driver tabs — preserve the motion when switching driver.
+  Array.prototype.forEach.call(document.querySelectorAll("#drivers .mode-tab"), function (tab) {
+    tab.addEventListener("click", function () {
+      var mo = motion();                       // current consistent motion
+      var next = tab.getAttribute("data-driver");
+      document.querySelectorAll("#drivers .mode-tab").forEach(function (t) { t.classList.remove("active"); });
+      tab.classList.add("active");
+      var preserved = (next === "T") ? mo.T : (next === "v") ? mo.v : mo.w;
+      var rg = RANGE[next];
+      state.driver = next;
+      state.driverValue = Math.min(rg.max, Math.max(rg.min, preserved));  // clamp into new range
+      refresh();
     });
-    var msg = el("span", { className: "control-message", attrs: { role: "alert" } });
+  });
 
-    input.addEventListener("change", function () {
-      handlers.onInput(field, input.value);
-    });
+  $("show-vel").addEventListener("change", function () { showVel = this.checked; draw(); });
+  $("show-force").addEventListener("change", function () { showForce = this.checked; draw(); });
 
-    row.appendChild(label);
-    row.appendChild(input);
-    row.appendChild(msg);
-
-    els.inputs[field] = input;
-    els.messages[field] = msg;
-    return row;
+  // ---- Animation ----
+  function frame(ts) {
+    if (!playing) return;
+    if (lastTs == null) lastTs = ts;
+    var dt = (ts - lastTs) / 1000; lastTs = ts;
+    theta = (theta + motion().w * dt) % TAU;    // one revolution per period T
+    draw();
+    requestAnimationFrame(frame);
   }
+  var playBtn = $("playpause");
+  playBtn.addEventListener("click", function () {
+    playing = !playing;
+    playBtn.innerHTML = playing ? "Pause &#10073;&#10073;" : "Play &#9654;";
+    if (playing) { lastTs = null; requestAnimationFrame(frame); }
+  });
+  $("reset").addEventListener("click", function () {
+    playing = false; theta = 0; lastTs = null;
+    playBtn.innerHTML = "Play &#9654;";
+    draw();
+  });
 
-  /**
-   * Build all Control_Panel widgets and the animation controls.
-   * (Requirements 3.1, 3.2, 3.3, 3.4, 3.11, 7.4, 9.7)
-   *
-   * @param {HTMLElement} root container for the control panel
-   * @param {object} handlers { onInput(field, raw), onDriverChange(driver),
-   *                            onDriverValue(raw), onForceToggle(bool),
-   *                            onPlay(), onPause(), onReset() }
-   * @param {object} initial   { r, m, driver, driverValue, showForce }
-   */
-  function buildControls(root, handlers, initial) {
-    root.innerHTML = "";
-
-    // radius + mass
-    root.appendChild(buildNumericRow("r", "Radius r (m)", initial.r, handlers));
-    root.appendChild(buildNumericRow("m", "Mass m (kg)", initial.m, handlers));
-
-    // driver selector
-    var driverRow = el("div", { className: "control-row" });
-    driverRow.appendChild(el("label", { className: "control-label", text: "Motion driver" }));
-    var select = el("select", { className: "control-input" });
-    [
-      { v: "T", t: "Period (T)" },
-      { v: "v", t: "Tangential speed (v)" },
-      { v: "omega", t: "Angular speed (\u03C9)" }
-    ].forEach(function (o) {
-      var opt = el("option", { text: o.t });
-      opt.value = o.v;
-      if (o.v === initial.driver) opt.selected = true;
-      select.appendChild(opt);
-    });
-    select.addEventListener("change", function () {
-      handlers.onDriverChange(select.value);
-    });
-    driverRow.appendChild(select);
-    root.appendChild(driverRow);
-    els.driverSelect = select;
-
-    // active driver value input
-    var meta = DRIVER_META[initial.driver];
-    var dRow = el("div", { className: "control-row" });
-    var dLabel = el("label", {
-      className: "control-label",
-      text: meta.label + " (" + meta.unit + ")"
-    });
-    var dInput = el("input", {
-      className: "control-input",
-      attrs: {
-        type: "number",
-        step: "any",
-        value: String(initial.driverValue)
-      }
-    });
-    var dMsg = el("span", { className: "control-message", attrs: { role: "alert" } });
-    dInput.addEventListener("change", function () {
-      handlers.onDriverValue(dInput.value);
-    });
-    dRow.appendChild(dLabel);
-    dRow.appendChild(dInput);
-    dRow.appendChild(dMsg);
-    root.appendChild(dRow);
-    els.driverValueInput = dInput;
-    els.driverValueLabel = dLabel;
-    els.messages.driver = dMsg;
-
-    // force-display toggle
-    var fRow = el("div", { className: "control-row" });
-    var fLabel = el("label", { className: "control-label", text: "Show force vector" });
-    var fToggle = el("input", { attrs: { type: "checkbox" } });
-    fToggle.checked = initial.showForce !== false;
-    fToggle.addEventListener("change", function () {
-      handlers.onForceToggle(fToggle.checked);
-    });
-    fLabel.insertBefore(fToggle, fLabel.firstChild);
-    fRow.appendChild(fLabel);
-    root.appendChild(fRow);
-    els.forceToggle = fToggle;
-
-    // play / pause / reset buttons
-    var btnRow = el("div", { className: "control-row button-row" });
-    var play = el("button", { className: "btn", text: "Play" });
-    var pause = el("button", { className: "btn", text: "Pause" });
-    var reset = el("button", { className: "btn", text: "Reset" });
-    play.addEventListener("click", handlers.onPlay);
-    pause.addEventListener("click", handlers.onPause);
-    reset.addEventListener("click", handlers.onReset);
-    btnRow.appendChild(play);
-    btnRow.appendChild(pause);
-    btnRow.appendChild(reset);
-    root.appendChild(btnRow);
-    els.playBtn = play;
-    els.pauseBtn = pause;
-    els.resetBtn = reset;
-  }
-
-  /**
-   * Build the Readout_Panel rows (values filled later by updateReadouts).
-   * (Requirements 6.1, 6.2)
-   * @param {HTMLElement} root
-   */
-  function buildReadouts(root) {
-    root.innerHTML = "";
-    var list = el("dl", { className: "readout-list" });
-    READOUT_ROWS.forEach(function (row) {
-      var dt = el("dt", { className: "readout-term", text: row.symbol });
-      var dd = el("dd", { className: "readout-def" });
-      var val = el("span", { className: "readout-value", text: "-" });
-      var unit = el("span", { className: "readout-unit", text: " " + row.unit });
-      dd.appendChild(val);
-      dd.appendChild(unit);
-      list.appendChild(dt);
-      list.appendChild(dd);
-      els.readouts[row.key] = val;
-    });
-    root.appendChild(list);
-  }
-
-  /**
-   * Write the seven readout values with formatting. (Requirements 6.1–6.4)
-   * @param {object} values { r, m, T, v, omega, a_c, F_net }
-   */
-  function updateReadouts(values) {
-    READOUT_ROWS.forEach(function (row) {
-      var span = els.readouts[row.key];
-      if (span && values[row.key] != null) {
-        span.textContent = VCS.physics.formatValue(values[row.key]);
-      }
-    });
-  }
-
-  /**
-   * After a driver switch, update the driver value input's label/unit and echo
-   * the preserved value. (Requirement 4.7)
-   * @param {string} driver
-   * @param {number} value
-   */
-  function echoDriverInput(driver, value) {
-    var meta = DRIVER_META[driver];
-    if (els.driverValueLabel && meta) {
-      els.driverValueLabel.textContent = meta.label + " (" + meta.unit + ")";
-    }
-    if (els.driverValueInput) {
-      els.driverValueInput.value = VCS.physics.formatValue(value);
-    }
-  }
-
-  /**
-   * Re-display a field's value in its input (used after reject/ignore/clamp).
-   * @param {string} field  "r", "m", or "driver"
-   * @param {number} value
-   */
-  function echoInput(field, value) {
-    var input = field === "driver" ? els.driverValueInput : els.inputs[field];
-    if (input) {
-      input.value = VCS.physics.formatValue(value);
-    }
-  }
-
-  /** Show a per-field validation message. (Req 11.2–11.6) */
-  function showMessage(field, text) {
-    var msg = els.messages[field];
-    if (msg) {
-      msg.textContent = text;
-      msg.classList.add("visible");
-    }
-  }
-
-  /** Clear a per-field validation message. (Req 11.7) */
-  function clearMessage(field) {
-    var msg = els.messages[field];
-    if (msg) {
-      msg.textContent = "";
-      msg.classList.remove("visible");
-    }
-  }
-
-  /** Show the global asset-error banner. (Req 1.6, 2.7) */
-  function showAssetError(text) {
-    if (!els.banner) {
-      els.banner = doc.getElementById("error-banner");
-    }
-    if (els.banner) {
-      els.banner.textContent = text;
-      els.banner.classList.add("visible");
-      els.banner.hidden = false;
-    }
-  }
-
-  /** Reflect play/pause state on the buttons (optional visual cue). */
-  function setPlaying(isPlaying) {
-    if (els.playBtn) els.playBtn.disabled = isPlaying;
-    if (els.pauseBtn) els.pauseBtn.disabled = !isPlaying;
-  }
-
-  VCS.ui = {
-    buildControls: buildControls,
-    buildReadouts: buildReadouts,
-    updateReadouts: updateReadouts,
-    echoDriverInput: echoDriverInput,
-    echoInput: echoInput,
-    showMessage: showMessage,
-    clearMessage: clearMessage,
-    showAssetError: showAssetError,
-    setPlaying: setPlaying
-  };
-})(typeof window !== "undefined" ? window : this);
-  </script>
-
-  <script>
-/*
- * main.js — Application bootstrap and orchestration (VCS.main).
- *
- * Holds the authoritative MotionState, performs the asset self-check, wires the
- * Control_Panel to the physics model and renderer, and keeps the Readout_Panel
- * in sync. Runs after physics.js, render.js and ui.js have loaded.
- *
- * Flow on any input change:
- *   input -> classifyInput -> (accepted|clamped) recompute + update readouts +
- *   push state to renderer ; (rejected|ignored) keep last valid state + message.
- *
- * Loaded as a classic <script> (no ES module) and attaches to global VCS.
- */
-(function (global) {
-  "use strict";
-
-  var VCS = global.VCS = global.VCS || {};
-  var doc = global.document;
-
-  // Default initial inputs (Design: Default Initial Inputs).
-  var DEFAULTS = { r: 2, m: 1, driver: "T", driverValue: 4 };
-
-  // Authoritative application state (last valid inputs + cached quantities).
-  var state = {
-    r: DEFAULTS.r,
-    m: DEFAULTS.m,
-    driver: DEFAULTS.driver,
-    driverValue: DEFAULTS.driverValue,
-    T: 0, v: 0, omega: 0, a_c: 0, F_net: 0
-  };
-
-  // View options owned here and read by the renderer via getViewOptions.
-  var viewOptions = { showForce: true };
-
-  var controller = null; // render controller
-
-  /** Recompute all coupled/derived quantities into `state`. */
-  function recompute() {
-    var motion = VCS.physics.computeMotion(state);
-    state.T = motion.T;
-    state.v = motion.v;
-    state.omega = motion.omega;
-    state.a_c = motion.a_c;
-    state.F_net = motion.F_net;
-  }
-
-  /** Push the current readouts to the UI. */
-  function refreshReadouts() {
-    VCS.ui.updateReadouts({
-      r: state.r,
-      m: state.m,
-      T: state.T,
-      v: state.v,
-      omega: state.omega,
-      a_c: state.a_c,
-      F_net: state.F_net
-    });
-  }
-
-  /**
-   * Handle a change to the radius or mass input.
-   * @param {string} field "r" or "m"
-   * @param {string} raw
-   */
-  function onInput(field, raw) {
-    var result = VCS.physics.classifyInput(field, raw);
-    if (result.status === "accepted" || result.status === "clamped") {
-      state[field] = result.value;
-      VCS.ui.echoInput(field, result.value); // reflect clamped/normalized value
-      VCS.ui.clearMessage(field);            // Req 11.7
-      recompute();
-      refreshReadouts();
-    } else {
-      // rejected or ignored: keep last valid, re-display it, show message
-      VCS.ui.echoInput(field, state[field]);
-      VCS.ui.showMessage(field, result.message);
-      // Readouts intentionally left unchanged (Req 6.7).
-    }
-  }
-
-  /**
-   * Handle a change to the active driver value input.
-   * @param {string} raw
-   */
-  function onDriverValue(raw) {
-    var field = state.driver; // "T" | "v" | "omega"
-    var result = VCS.physics.classifyInput(field, raw);
-    if (result.status === "accepted" || result.status === "clamped") {
-      state.driverValue = result.value;
-      VCS.ui.echoInput("driver", result.value);
-      VCS.ui.clearMessage("driver");
-      recompute();
-      refreshReadouts();
-    } else {
-      VCS.ui.echoInput("driver", state.driverValue);
-      VCS.ui.showMessage("driver", result.message);
-    }
-  }
-
-  /**
-   * Handle a driver selector change: preserve the {T, v, ω} triple and echo the
-   * preserved value into the driver input. (Req 4.6, 4.7)
-   * @param {string} newDriver
-   */
-  function onDriverChange(newDriver) {
-    var newState = VCS.physics.switchDriver(state, newDriver);
-    state.driver = newState.driver;
-    state.driverValue = newState.driverValue;
-    VCS.ui.clearMessage("driver");
-    recompute();
-    VCS.ui.echoDriverInput(state.driver, state.driverValue);
-    refreshReadouts();
-  }
-
-  function onForceToggle(checked) {
-    viewOptions.showForce = !!checked;
-    if (controller) controller.draw();
-  }
-
-  function onPlay() {
-    if (controller) {
-      controller.play();
-      VCS.ui.setPlaying(true);
-    }
-  }
-
-  function onPause() {
-    if (controller) {
-      controller.pause();
-      VCS.ui.setPlaying(false);
-    }
-  }
-
-  function onReset() {
-    if (controller) {
-      controller.reset();
-      VCS.ui.setPlaying(false);
-    }
-  }
-
-  /**
-   * Verify required modules and the canvas 2D context are present. Returns true
-   * when the app can run; otherwise shows the error banner and returns false.
-   * (Requirements 2.7)
-   */
-  function assetSelfCheck(canvas) {
-    var missing = [];
-    if (!VCS.physics) missing.push("physics");
-    if (!VCS.render) missing.push("render");
-    if (!VCS.ui) missing.push("ui");
-
-    if (missing.length > 0) {
-      showBannerFallback("A required asset could not be loaded (" +
-        missing.join(", ") + "). Please ensure all files are present.");
-      return false;
-    }
-    if (!canvas || typeof canvas.getContext !== "function" || !canvas.getContext("2d")) {
-      VCS.ui.showAssetError("The animation canvas is unavailable in this browser.");
-      return false;
-    }
-    return true;
-  }
-
-  // Fallback banner in case VCS.ui itself failed to load.
-  function showBannerFallback(text) {
-    if (VCS.ui && VCS.ui.showAssetError) {
-      VCS.ui.showAssetError(text);
-      return;
-    }
-    var banner = doc.getElementById("error-banner");
-    if (banner) {
-      banner.textContent = text;
-      banner.hidden = false;
-      banner.className = (banner.className + " visible").trim();
-    }
-  }
-
-  /** Bootstrap the whole simulator once the DOM is ready. */
-  function boot() {
-    var canvas = doc.getElementById("sim-canvas");
-
-    if (!assetSelfCheck(canvas)) {
-      return; // banner already shown
-    }
-
-    // Build UI.
-    var controlRoot = doc.getElementById("control-panel");
-    var readoutRoot = doc.getElementById("readout-panel");
-
-    VCS.ui.buildReadouts(readoutRoot);
-    VCS.ui.buildControls(controlRoot, {
-      onInput: onInput,
-      onDriverValue: onDriverValue,
-      onDriverChange: onDriverChange,
-      onForceToggle: onForceToggle,
-      onPlay: onPlay,
-      onPause: onPause,
-      onReset: onReset
-    }, {
-      r: state.r,
-      m: state.m,
-      driver: state.driver,
-      driverValue: state.driverValue,
-      showForce: viewOptions.showForce
-    });
-
-    // Compute defaults and populate readouts before any interaction (Req 6.5).
-    recompute();
-    refreshReadouts();
-
-    // Initialize the renderer with accessors into our state.
-    controller = VCS.render.init(
-      canvas,
-      function () { return state; },
-      function () { return viewOptions; }
-    );
-    VCS.ui.setPlaying(false);
-
-    // Expose for tests / debugging.
-    VCS.main = {
-      getState: function () { return state; },
-      getViewOptions: function () { return viewOptions; },
-      getController: function () { return controller; },
-      onInput: onInput,
-      onDriverValue: onDriverValue,
-      onDriverChange: onDriverChange,
-      onForceToggle: onForceToggle
-    };
-  }
-
-  // Provide VCS.main early (methods filled in on boot) so tests can detect it.
-  VCS.main = VCS.main || {};
-
-  if (doc) {
-    if (doc.readyState === "loading") {
-      doc.addEventListener("DOMContentLoaded", boot);
-    } else {
-      boot();
-    }
-  }
-})(typeof window !== "undefined" ? window : this);
-  </script>
+  // ---- Init ----
+  refresh();
+})();
+</script>
 
 <script src="../sidebar.js"></script>              <!-- KEEP: shared sidebar -->
 </body>
