@@ -1,0 +1,4 @@
+# PHYlip Simulators — static site, no build step.
+# Publish the repository root so index.html is served at "/".
+[build]
+  publish = "."
