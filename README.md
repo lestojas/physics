@@ -22,10 +22,7 @@ All simulators live in the `sims/` folder, one `.html` file each:
 
 | Simulator | Topic | File |
 | --- | --- | --- |
-| Tangential Speed | Uniform circular motion: v = 2πr / T | `sims/tangential-speed.html` |
-| Period & Frequency | The reciprocal relationship f = 1 / T | `sims/period-frequency.html` |
-| Centripetal Acceleration | a_c = v² / r | `sims/centripetal-acceleration.html` |
-| Centripetal Force | F_c = m v² / r | `sims/centripetal-force.html` |
+| Uniform Circular Motion | 4-in-1: tangential speed, period & frequency, centripetal acceleration, centripetal force | `sims/uniform-circular-motion.html` |
 | Projectile Motion | The common cases of projectile motion | `sims/projectile-motion.html` |
 | Falling Target | Why an aimed projectile always hits a target dropped at launch | `sims/falling-target.html` |
 

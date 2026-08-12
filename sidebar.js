@@ -26,16 +26,16 @@
 
   // Used only when opened via file:// (double-click).
   var FALLBACK = [
-    "falling-target.html",
+    "uniform-circular-motion.html",
     "projectile-motion.html",
-    "circular-motion.html"
+    "falling-target.html"
   ];
 
   // Optional prettier labels. Unlisted files are auto-titled.
   var META = {
-    "falling-target.html":    { title: "Falling Target" },
-    "projectile-motion.html": { title: "Projectile Motion" },
-    "circular-motion.html": { title: "Circular Motion" }
+    "uniform-circular-motion.html": { title: "Uniform Circular Motion" },
+    "projectile-motion.html":       { title: "Projectile Motion" },
+    "falling-target.html":          { title: "Falling Target" }
   };
 
   // Are we currently on a page inside sims/ ?
