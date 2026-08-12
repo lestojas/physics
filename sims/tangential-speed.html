@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tangential Speed — PHYlip Simulators</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body class="sim-page">
+<div class="app">
+  <main class="content">
+    <div class="sim-layout">
+      <div class="sim-main">
+        <div class="sim-canvas-wrap"><canvas id="c" width="1024" height="576"></canvas></div>
+        <div class="sim-legend">
+          <span><i class="swatch" style="background:var(--v)"></i><span class="lg">velocity v (tangent to path)</span></span>
+          <span><i class="swatch" style="background:var(--path)"></i><span class="lg">circular path (circumference 2&pi;r)</span></span>
+          <span><i class="dot" style="background:var(--vx)"></i><span class="lg">object</span></span>
+        </div>
+      </div>
+      <aside class="sim-controls">
+        <a class="back-link" href="../index.html">&#8592; All simulators</a>
+        <h2 class="sim-title">Tangential Speed</h2>
+        <p class="sim-sub">The object travels one circumference (2&pi;r) in one period T, so its tangential speed is v = 2&pi;r / T. Change the radius and period and watch the speed.</p>
+
+        <div class="cb-divider"></div>
+        <p class="cb-title">Inputs</p>
+        <div class="control"><label>Radius <span class="v-c">r</span> <span class="val"><span id="r-val">2.0</span> m</span></label><input type="range" id="r" min="0.1" max="10" step="0.1" value="2"></div>
+        <div class="control"><label>Period <span class="v-c">T</span> <span class="val"><span id="T-val">4.0</span> s</span></label><input type="range" id="T" min="0.5" max="60" step="0.1" value="4"></div>
+
+        <div class="cb-divider"></div>
+        <p class="cb-title">Readings</p>
+        <div class="readouts" id="readouts"></div>
+
+        <div class="cb-divider"></div>
+        <p class="cb-title">Relationship</p>
+        <div class="formula"><b>v</b> = 2&pi;r / T</div>
+
+        <div class="cb-divider"></div>
+        <div class="sim-actions"><button id="playpause" class="btn-primary">Play &#9654;</button><button id="reset" class="secondary">Reset</button></div>
+      </aside>
+    </div>
+  </main>
+</div>
+<div class="dev-credit">Developed by Philip Jayson Lestojas</div>
+<script>
+/* Tangential Speed: v = 2*pi*r / T. Object completes one revolution per T. */
+(function () {
+  "use strict";
+  var TAU = 2 * Math.PI;
+  var state = { r: 2, T: 4 };
+  var theta = 0, playing = false, lastTs = null;
+  var $ = function (id) { return document.getElementById(id); };
+  function cssVar(n, f) { var v = getComputedStyle(document.documentElement).getPropertyValue(n); return (v && v.trim()) || f; }
+  var canvas = $("c"), ctx = canvas.getContext("2d"), W = canvas.width, H = canvas.height, cx = W / 2, cy = H / 2;
+  var COL = { vel: cssVar("--v", "#ffd24a"), path: cssVar("--path", "#7ee787"), obj: cssVar("--vx", "#4aa3ff"), muted: cssVar("--muted", "#a9a9a9"), line: cssVar("--line", "#444") };
+  function radiusPx(r) { var mn = 46, mx = Math.min(cx, cy) - 78; return mn + (r - 0.1) / 9.9 * (mx - mn); }
+  function motion() { var r = state.r, T = state.T, w = TAU / T, v = r * w; return { r: r, T: T, v: v, w: w, f: 1 / T, C: TAU * r }; }
+  function fmt(x) { if (x !== 0 && Math.abs(x) < 0.001) return x.toExponential(2); return (Math.round(x * 1000) / 1000).toString(); }
+  function arrow(x0, y0, dx, dy, len, color, label) {
+    var m = Math.hypot(dx, dy); if (m < 1e-9 || len < 1) return;
+    var ux = dx / m, uy = dy / m, x1 = x0 + ux * len, y1 = y0 + uy * len;
+    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+    var ah = 11, aw = 6, bx = x1 - ux * ah, by = y1 - uy * ah, px = -uy, py = ux;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(bx + px * aw, by + py * aw); ctx.lineTo(bx - px * aw, by - py * aw); ctx.closePath(); ctx.fill();
+    if (label) { ctx.font = "bold 20px Georgia, serif"; ctx.fillText(label, x1 + ux * 12 - 4, y1 + uy * 12 + 6); }
+  }
+  function draw() {
+    var mo = motion(), R = radiusPx(state.r);
+    ctx.clearRect(0, 0, W, H);
+    ctx.strokeStyle = COL.path; ctx.globalAlpha = 0.55; ctx.lineWidth = 2; ctx.setLineDash([6, 7]);
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+    ctx.fillStyle = COL.muted; ctx.beginPath(); ctx.arc(cx, cy, 3.5, 0, TAU); ctx.fill();
+    var x = cx + R * Math.cos(theta), y = cy - R * Math.sin(theta);
+    ctx.strokeStyle = COL.line; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.9; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(x, y); ctx.stroke(); ctx.globalAlpha = 1;
+    arrow(x, y, -Math.sin(theta), -Math.cos(theta), Math.max(26, Math.min(170, mo.v * 14)), COL.vel, "v");
+    ctx.fillStyle = COL.obj; ctx.beginPath(); ctx.arc(x, y, 9, 0, TAU); ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 2; ctx.stroke();
+  }
+  function render() {
+    var mo = motion();
+    $("readouts").innerHTML =
+      '<div class="readout v"><div class="k">Tangential speed v</div><div class="n">' + fmt(mo.v) + ' m/s</div></div>' +
+      '<div class="readout path"><div class="k">Circumference 2&pi;r</div><div class="n">' + fmt(mo.C) + ' m</div></div>' +
+      '<div class="readout"><div class="k">Frequency f</div><div class="n">' + fmt(mo.f) + ' Hz</div></div>';
+    draw();
+  }
+  $("r").addEventListener("input", function () { state.r = +this.value; $("r-val").textContent = state.r.toFixed(1); render(); });
+  $("T").addEventListener("input", function () { state.T = +this.value; $("T-val").textContent = state.T.toFixed(1); render(); });
+  function frame(ts) { if (!playing) return; if (lastTs == null) lastTs = ts; var dt = (ts - lastTs) / 1000; lastTs = ts; theta = (theta + motion().w * dt) % TAU; draw(); requestAnimationFrame(frame); }
+  var pb = $("playpause");
+  pb.addEventListener("click", function () { playing = !playing; pb.innerHTML = playing ? "Pause &#10073;&#10073;" : "Play &#9654;"; if (playing) { lastTs = null; requestAnimationFrame(frame); } });
+  $("reset").addEventListener("click", function () { playing = false; theta = 0; lastTs = null; pb.innerHTML = "Play &#9654;"; draw(); });
+  render();
+})();
+</script>
+</body>
+</html>
