@@ -157,7 +157,7 @@
       ctx.textAlign = "center"; ctx.fillStyle = o.col; ctx.font = "bold 20px Georgia, serif";
       ctx.fillText("Circle " + o.name, o.ox, oy - R - 16);
       ctx.fillStyle = COL.text; ctx.font = "15px Georgia, serif";
-      ctx.fillText("T = " + fmt(o.T) + " s   ·   f = " + fmt(1 / o.T) + " Hz", o.ox, oy + R + 26);
+      ctx.fillText("T = " + fmt(o.T) + " s   ·   f = " + fmt(1 / o.T) + " rev/s", o.ox, oy + R + 26);
       ctx.fillStyle = o.col; ctx.font = "bold 17px Georgia, serif";
       ctx.fillText("revolutions: " + o.rev.toFixed(2), o.ox, oy + R + 50);
     });
@@ -183,10 +183,10 @@
   function readingsHTML() {
     var mo = motion(), R = function (c, k, n) { return '<div class="' + c + '"><div class="k">' + k + '</div><div class="n">' + n + '</div></div>'; };
     if (state.mode === "speed")
-      return R("readout v", "Tangential speed v", fmt(mo.v) + " m/s") + R("readout path", "Circumference 2&pi;r", fmt(mo.C) + " m") + R("readout", "Frequency f", fmt(mo.f) + " Hz");
+      return R("readout v", "Tangential speed v", fmt(mo.v) + " m/s") + R("readout path", "Circumference 2&pi;r", fmt(mo.C) + " m") + R("readout", "Frequency f", fmt(mo.f) + " rev/s");
     if (state.mode === "periodfreq")
-      return R("readout v", "A &mdash; Period T<sub>A</sub>", fmt(state.T) + " s") + R("readout v", "A &mdash; Frequency f<sub>A</sub>", fmt(1 / state.T) + " Hz") +
-             R("readout vx", "B &mdash; Period T<sub>B</sub>", fmt(state.TB) + " s") + R("readout vx", "B &mdash; Frequency f<sub>B</sub>", fmt(1 / state.TB) + " Hz");
+      return R("readout v", "A &mdash; Period T<sub>A</sub>", fmt(state.T) + " s") + R("readout v", "A &mdash; Frequency f<sub>A</sub>", fmt(1 / state.T) + " rev/s") +
+             R("readout vx", "B &mdash; Period T<sub>B</sub>", fmt(state.TB) + " s") + R("readout vx", "B &mdash; Frequency f<sub>B</sub>", fmt(1 / state.TB) + " rev/s");
     if (state.mode === "accel")
       return R("readout vy", "Centripetal accel. a<sub>c</sub>", fmt(mo.ac) + " m/s<sup>2</sup>") + R("readout v", "Tangential speed v", fmt(mo.v) + " m/s") + R("readout", "Period T", fmt(mo.T) + " s");
     return R("readout target", "Centripetal force F<sub>c</sub>", fmt(mo.F) + " N") + R("readout vy", "Centripetal accel. a<sub>c</sub>", fmt(mo.ac) + " m/s<sup>2</sup>") + R("readout", "Period T", fmt(mo.T) + " s");
@@ -215,7 +215,7 @@
   function cfgTime(sliderId, valId, nameId, symId, unitId, periodVal, nameA) {
     var s = $(sliderId), useF = (state.kind === "f");
     if (useF) { s.min = R_F.min; s.max = R_F.max; s.step = R_F.step; s.value = clamp(1 / periodVal, R_F.min, R_F.max);
-      $(nameId).textContent = nameA; $(symId).innerHTML = (nameA === "Circle B" ? "f<sub>B</sub>" : "f"); $(unitId).textContent = "Hz"; $(valId).textContent = (+s.value).toFixed(2); }
+      $(nameId).textContent = nameA; $(symId).innerHTML = (nameA === "Circle B" ? "f<sub>B</sub>" : "f"); $(unitId).textContent = "rev/s"; $(valId).textContent = (+s.value).toFixed(2); }
     else { s.min = R_T.min; s.max = R_T.max; s.step = R_T.step; s.value = clamp(periodVal, R_T.min, R_T.max);
       $(nameId).textContent = nameA; $(symId).innerHTML = (nameA === "Circle B" ? "T<sub>B</sub>" : "T"); $(unitId).textContent = "s"; $(valId).textContent = (+s.value).toFixed(1); }
   }
