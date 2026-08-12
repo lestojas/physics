@@ -135,20 +135,33 @@
   }
 
   function drawTwo() {
-    var RA = Math.min(cx, cy) - 74, RB = RA * 0.6;
+    // Two EQUAL-SIZED circles, side by side (not concentric). Each object orbits
+    // at its own period; the revolution tally is the focus of the demonstration.
+    var R = 168, oy = cy + 6, sep = R + 38, ax = cx - sep, bx = cx + sep;
     ctx.clearRect(0, 0, W, H);
-    ring(RA, COL.a, 0.45); ring(RB, COL.b, 0.45);
-    ctx.fillStyle = COL.muted; ctx.beginPath(); ctx.arc(cx, cy, 3.5, 0, TAU); ctx.fill();
-    // faint start markers (theta = 0, rightmost of each ring)
-    ctx.globalAlpha = 0.5; ctx.fillStyle = COL.a; ctx.beginPath(); ctx.arc(cx + RA, cy, 5, 0, TAU); ctx.fill();
-    ctx.fillStyle = COL.b; ctx.beginPath(); ctx.arc(cx + RB, cy, 5, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
-    ball(RA, thetaA, COL.a); ball(RB, thetaB, COL.b);
-    // live counters
-    var fA = 1 / state.T, fB = 1 / state.TB;
-    ctx.textAlign = "left"; ctx.font = "17px Georgia, serif";
-    ctx.fillStyle = COL.text; ctx.fillText("Elapsed: " + elapsed.toFixed(2) + " s", 24, 32);
-    ctx.fillStyle = COL.a; ctx.fillText("A:  T = " + fmt(state.T) + " s,  f = " + fmt(fA) + " Hz   \u2014   " + revsA.toFixed(2) + " rev", 24, 58);
-    ctx.fillStyle = COL.b; ctx.fillText("B:  T = " + fmt(state.TB) + " s,  f = " + fmt(fB) + " Hz   \u2014   " + revsB.toFixed(2) + " rev", 24, 82);
+    ctx.textAlign = "center"; ctx.fillStyle = COL.text; ctx.font = "18px Georgia, serif";
+    ctx.fillText("Elapsed: " + elapsed.toFixed(2) + " s", cx, 30);
+    var circles = [
+      { ox: ax, col: COL.a, ang: thetaA, T: state.T,  rev: revsA, name: "A" },
+      { ox: bx, col: COL.b, ang: thetaB, T: state.TB, rev: revsB, name: "B" }
+    ];
+    circles.forEach(function (o) {
+      ctx.strokeStyle = o.col; ctx.globalAlpha = 0.5; ctx.lineWidth = 2; ctx.setLineDash([6, 7]);
+      ctx.beginPath(); ctx.arc(o.ox, oy, R, 0, TAU); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+      ctx.fillStyle = COL.muted; ctx.beginPath(); ctx.arc(o.ox, oy, 3.5, 0, TAU); ctx.fill();
+      ctx.globalAlpha = 0.5; ctx.fillStyle = o.col; ctx.beginPath(); ctx.arc(o.ox + R, oy, 5, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
+      var x = o.ox + R * Math.cos(o.ang), y = oy - R * Math.sin(o.ang);
+      ctx.strokeStyle = COL.line; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.85; ctx.beginPath(); ctx.moveTo(o.ox, oy); ctx.lineTo(x, y); ctx.stroke(); ctx.globalAlpha = 1;
+      ctx.fillStyle = o.col; ctx.beginPath(); ctx.arc(x, y, 9, 0, TAU); ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 2; ctx.stroke();
+      ctx.textAlign = "center"; ctx.fillStyle = o.col; ctx.font = "bold 20px Georgia, serif";
+      ctx.fillText("Circle " + o.name, o.ox, oy - R - 16);
+      ctx.fillStyle = COL.text; ctx.font = "15px Georgia, serif";
+      ctx.fillText("T = " + fmt(o.T) + " s   ·   f = " + fmt(1 / o.T) + " Hz", o.ox, oy + R + 26);
+      ctx.fillStyle = o.col; ctx.font = "bold 17px Georgia, serif";
+      ctx.fillText("revolutions: " + o.rev.toFixed(2), o.ox, oy + R + 50);
+    });
+    ctx.textAlign = "left";
   }
 
   function draw() { if (state.mode === "periodfreq") drawTwo(); else drawSingle(); }
