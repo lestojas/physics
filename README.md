@@ -17,22 +17,24 @@ Developed by Philip Jayson Lestojas.
 
 ## Features
 
-- **Built-in per-question timer** — Round 1: 20 s, Round 2: 5 min, Round 3: 50 s —
-  with start / pause / reset and a countdown warning + beep in the final seconds.
+- **Built-in, editable per-question timer** — True / False defaults to 15 s,
+  Identification to 30 s, Round 2 to 5 min, and Round 3 to 60 s. Start,
+  pause, reset, and receive countdown warnings in the final seconds.
 - **Manual answer reveal** — the answer stays hidden until you click *Reveal Answer*.
 - **One-click scoring for 6 groups** — after the reveal, click every group that
   answered correctly. Round 2 uses **Full (+30) / Partial (+15)** buttons plus the
   **Flip-First** star.
 - **Live per-problem points (Round 2)** — each group's row shows the points it
   earned on the current problem, updating instantly as you set Full / Partial /
-  Flip-First and toggle the Mystery Multiplier.
+  Flip-First. Select any Mystery Multiplier in the question browser before play.
 - **No always-on scoreboard** — running totals are intentionally hidden so the
   standings never spoil the excitement. Open the sortable **🏆 Leaderboard**
   overlay only when you want to reveal them (great for the finale). It's a
   **table with a per-round score breakdown** (R1 / R2 / R3 / Total).
 - **Browse Questions** — the **☰ Questions** menu lists every slide (with which
-  ones are revealed / scored) so you can jump straight to a previous question and
-  edit its score; totals recalculate instantly.
+  ones are revealed / scored), lets the host choose Round 2 multipliers and Round
+  3 wildcards before the question is shown, and provides an editor for each
+  question's type, text, answer, scoring note, and timer.
 - **Thrilling, phase-based audio** — distinct, driving game-show beds for the
   **question** (beat-the-clock groove), the **answer reveal** (triumphant
   fanfare), and **scoring** (high-energy tally groove), plus sound effects:
@@ -50,14 +52,14 @@ Developed by Philip Jayson Lestojas.
 | --- | --- | --- |
 | 1 | **Double Trouble** | Two questions are secretly worth **+20**; the value is revealed only *after* boards are up. |
 | 2 | **Flip First** | The first team to finish correctly gets a **+5** bonus (star button). |
-| 2 | **Mystery Multiplier** | A toggle that makes one problem worth **double points**. |
-| 3 | **Wildcard** | One question is worth **3× points (+45)**, revealed only after boards are up. |
+| 2 | **Mystery Multiplier** | Select the ×2 problem from the **Browse Questions** dropdown before play. |
+| 3 | **Wildcard** | Select the ×3 question from the **Browse Questions** dropdown before play. |
 
 ## Rounds
 
-- **Round 1 — Rapid Recall** (10 conceptual questions, 20 s each, +10 each).
-- **Round 2 — Problem Showdown** (3 numerical problems, ~5 min each, +30 full / +15 partial).
-- **Round 3 — Lightning Final** (5 mixed questions, ~50 s each, +15 each).
+- **Round 1 — Rapid Recall** (True / False: 15 s; Identification: 30 s; +10 each).
+- **Round 2 — Problem Showdown** (3 numerical problems, 5 min each, +30 full / +15 partial).
+- **Round 3 — Lightning Final** (5 mixed questions, 60 s each, +15 each).
 
 Max points with no twists triggered: **R1 = 120, R2 = 90, R3 = 105 → 315 total.**
 
