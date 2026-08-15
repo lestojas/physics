@@ -581,8 +581,8 @@
   function r2Points(sc, g){
     var v = sc.g[g];
     var base = v==="full" ? 30 : v==="partial" ? 15 : 0;
-    var p = base * (sc.mult?2:1);
-    if(sc.flip===g) p += 5;
+    var p = base * (sc.mult?(sc.multiplier||2):1);
+    if(sc.flip===g) p += (sc.flipPoints==null?5:sc.flipPoints);
     return p;
   }
   // Per-group score split by round: [{r1,r2,r3,total}, ...]
@@ -601,7 +601,7 @@
         } else if(rd.key==="r2"){
           b[g].r2 += r2Points(sc, g);
         } else if(rd.key==="r3"){
-          if(v==="correct") b[g].r3 += (sc.wild?45:15);
+          if(v==="correct") b[g].r3 += (sc.wild?(15+(sc.wildcardBonus||30)):15);
         }
       }
     });
@@ -1207,7 +1207,7 @@
         var status = (state.revealed[k] ? '<span class="rev">revealed</span>' : "not shown") +
                      ' · '+TYPE_LABEL[q.type]+' · '+getQuestionTime(s.r, s.q)+'s' + (scored ? (" · "+scored+" scored") : "");
         html += '<div class="jump-item'+(idx===state.slide?" current":"")+'">'+
-                  '<button class="jump-main" data-slide="'+idx+'"><span>'+label+'</span><span class="tag2">'+status+'</span></button>'+
+                  '<label class="hint"><input type="checkbox" data-batch-ri="'+s.r+'" data-batch-qi="'+s.q+'"> Batch</label><button class="jump-main" data-slide="'+idx+'"><span>'+label+'</span><span class="tag2">'+status+'</span></button>'+
                   '<div class="jump-tools">'+twistControl(rd, s.r, s.q, sc)+
                     '<button class="sbtn jump-edit" data-move-ri="'+s.r+'" data-move-qi="'+s.q+'" data-move="-1">↑</button><button class="sbtn jump-edit" data-move-ri="'+s.r+'" data-move-qi="'+s.q+'" data-move="1">↓</button><button class="sbtn jump-edit" data-edit-ri="'+s.r+'" data-edit-qi="'+s.q+'">Edit</button></div></div>';
       } else {
@@ -1284,6 +1284,13 @@
   byId("roundForm").onsubmit=function(e){e.preventDefault();if(editingRound===null)return;var rules=byId("editRoundRules").value.split(/\n+/).map(function(rule){return rule.trim();}).filter(Boolean);if(!rules.length)return;var edit={name:byId("editRoundName").value.trim(),tag:byId("editRoundTag").value.trim(),kick:byId("editRoundKick").value.trim(),title:byId("editRoundTitle").value.trim(),rules:rules};state.roundEdits[editingRound]=edit;applyRoundEdit(editingRound,edit);roundOverlay.classList.add("hidden");save();openJump();render();};
   byId("roundCancel").onclick=function(){roundOverlay.classList.add("hidden");};
   byId("questionCancel").onclick = function(){ questionOverlay.classList.add("hidden"); };
+  byId("batchApply").onclick=function(){
+    var mult=Math.max(1,+byId("batchMultValue").value||2),wild=Math.max(0,+byId("batchWildValue").value||30),flip=Math.max(0,+byId("batchFlipValue").value||5);
+    Array.prototype.forEach.call(byId("jumpList").querySelectorAll("[data-batch-ri]:checked"),function(box){
+      var sc=getScoring(+box.getAttribute("data-batch-ri"),+box.getAttribute("data-batch-qi"));
+      sc.mult=true;sc.multiplier=mult;sc.wild=true;sc.wildcardBonus=wild;sc.flipFirst=true;sc.flipPoints=flip;
+    });save();openJump();
+  };
   byId("btnJump").onclick = openJump;
   byId("jumpClose").onclick = function(){ jumpOverlay.classList.add("hidden"); };
 
