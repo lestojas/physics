@@ -23,10 +23,18 @@ Developed by Philip Jayson Lestojas.
 - **One-click scoring for 6 groups** — after the reveal, click every group that
   answered correctly. Round 2 uses **Full (+30) / Partial (+15)** buttons plus the
   **Flip-First** star.
-- **Automatic running totals** — a live scoreboard for all 6 teams sits along the
-  bottom, plus a dramatic sortable **Leaderboard** overlay for the finale.
-- **Editable team names** and **persistent scores** (saved in the browser via
-  localStorage). *Reset scores* clears everything.
+- **No always-on scoreboard** — running totals are intentionally hidden so the
+  standings never spoil the excitement. Open the sortable **🏆 Leaderboard**
+  overlay only when you want to reveal them (great for the finale).
+- **Browse Questions** — the **☰ Questions** menu lists every slide (with which
+  ones are revealed / scored) so you can jump straight to a previous question and
+  edit its score; totals recalculate instantly.
+- **Phase-based background music** — distinct beds for the **question**, the
+  **answer reveal**, and **scoring**, synthesized live with the Web Audio API
+  (no audio files, fully offline). Toggle it with **♪ Music** and adjust volume.
+- **Editable team names** and **persistent scores** — everything is saved in the
+  browser (localStorage) and **survives a page refresh**; it only clears when you
+  press *Reset scores*.
 
 ## Twists (all built in)
 
