@@ -34,10 +34,14 @@ Developed by Philip Jayson Lestojas.
 - **Browse Questions** — the **☰ Questions** menu lists every slide (with which
   ones are revealed / scored), lets the host choose Round 2 multipliers and Round
   3 wildcards before the question is shown, and provides an editor for each
-  question's type, text, answer, scoring note, and timer.
+  question's type, text, answer, scoring note, timer, and basic text formatting
+  (bold, italic, lists, and line breaks).
+- **Editable round mechanics** — edit each round's title, category, label, and
+  rules directly from the Questions browser.
 - **Thrilling, phase-based audio** — distinct, driving game-show beds for the
   **question** (beat-the-clock groove), the **answer reveal** (triumphant
-  fanfare), and **scoring** (high-energy tally groove), plus sound effects:
+  fanfare), and **scoring** (high-energy tally groove), with smooth crossfades
+  between phases plus a special chime for Next, and sound effects:
   rising final-3-seconds countdown ticks, a dramatic time's-up buzzer, a reveal
   flourish, and a reward chime when a group is awarded points. All synthesized
   live with the Web Audio API — no audio files, fully offline. Toggle with
