@@ -33,9 +33,13 @@ Developed by Philip Jayson Lestojas.
 - **Browse Questions** — the **☰ Questions** menu lists every slide (with which
   ones are revealed / scored) so you can jump straight to a previous question and
   edit its score; totals recalculate instantly.
-- **Phase-based background music** — distinct beds for the **question**, the
-  **answer reveal**, and **scoring**, synthesized live with the Web Audio API
-  (no audio files, fully offline). Toggle it with **♪ Music** and adjust volume.
+- **Thrilling, phase-based audio** — distinct, driving game-show beds for the
+  **question** (beat-the-clock groove), the **answer reveal** (triumphant
+  fanfare), and **scoring** (high-energy tally groove), plus sound effects:
+  rising final-3-seconds countdown ticks, a dramatic time's-up buzzer, a reveal
+  flourish, and a reward chime when a group is awarded points. All synthesized
+  live with the Web Audio API — no audio files, fully offline. Toggle with
+  **♪ Music** and set the volume.
 - **Editable team names** and **persistent scores** — everything is saved in the
   browser (localStorage) and **survives a page refresh**; it only clears when you
   press *Reset scores*.
