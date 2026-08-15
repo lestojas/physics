@@ -6,8 +6,9 @@
   works fully offline (open this file directly or serve it).
 
   Features:
-    - Built-in per-question countdown timer (Round 1: 20s, Round 2: 5 min,
-      Round 3: 50s) with start / pause / reset and keyboard shortcuts.
+    - Built-in per-question countdown timer (True/False: 15s,
+      Identification: 30s, Round 2: 5 min, Round 3: 60s), with editable
+      per-question timing plus start / pause / reset and keyboard shortcuts.
     - Manual "Reveal Answer" on click.
     - Click the groups (6) that got the answer correct to award points.
     - On-demand leaderboard overlay ONLY (no always-on scoreboard, so the
@@ -207,8 +208,24 @@
     padding:9px 12px;margin-bottom:6px;font-size:14px;font-weight:600;color:var(--text);}
   .jump-item:hover{border-color:#5a5a6e;}
   .jump-item.current{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;}
+  .jump-main{display:flex;align-items:center;gap:10px;min-width:0;flex:1;padding:0;background:transparent;
+    border:none;text-align:left;font:inherit;color:inherit;}
+  .jump-main:hover{color:#fff;}
   .jump-item .tag2{margin-left:auto;font-size:11px;color:var(--muted);font-weight:700;white-space:nowrap;}
   .jump-item .rev{color:var(--good);}
+  .jump-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end;}
+  .jump-select,.question-field input,.question-field select,.question-field textarea{
+    background:var(--bg2);border:1px solid var(--line);border-radius:7px;color:var(--text);
+    padding:7px 9px;font:inherit;font-size:13px;}
+  .jump-select{max-width:180px;}
+  .jump-edit{padding:7px 10px;}
+  .question-editor{max-width:780px;}
+  .question-field{display:flex;flex-direction:column;gap:6px;margin:11px 0;}
+  .question-field label{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+  .question-field textarea{width:100%;min-height:92px;resize:vertical;line-height:1.4;}
+  .question-field input,.question-field select{width:100%;}
+  .question-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;}
+  @media(max-width:650px){.jump-item{align-items:flex-start;flex-direction:column;}.jump-main{width:100%;}.jump-tools{width:100%;justify-content:flex-start;}.question-grid{grid-template-columns:1fr;}}
 
   /* ---------- Modal / overlay ---------- */
   .overlay{position:fixed;inset:0;background:rgba(8,8,12,.78);backdrop-filter:blur(3px);
@@ -313,15 +330,37 @@
   </div>
 </div>
 
-<!-- Question browser (jump to any question) -->
+<!-- Question browser (jump to, configure, or edit any question) -->
 <div class="overlay hidden" id="jumpOverlay">
-  <div class="modal" style="max-width:640px;">
+  <div class="modal" style="max-width:760px;">
     <h2>Browse Questions</h2>
-    <p class="sub">Jump to any slide to review it or edit its score. Every change is saved automatically and totals recalculate instantly.</p>
+    <p class="sub">Choose each Round 2 multiplier and Round 3 wildcard here before play. You can also edit any question, answer, type, or timer; all changes save automatically.</p>
     <div id="jumpList"></div>
     <div class="modal-actions">
       <button class="btn-ghost" id="jumpClose">Close</button>
     </div>
+  </div>
+</div>
+
+<!-- Question editor -->
+<div class="overlay hidden" id="questionOverlay">
+  <div class="modal question-editor">
+    <h2>Edit Question</h2>
+    <p class="sub">Timing is in seconds. Changes are saved to this browser and update scoring labels immediately.</p>
+    <form id="questionForm">
+      <div class="question-grid">
+        <div class="question-field"><label for="editTitle">Title (optional)</label><input id="editTitle" type="text" maxlength="100"></div>
+        <div class="question-field"><label for="editType">Question type</label><select id="editType"><option value="tf">True / False</option><option value="id">Identification</option><option value="num">Numerical</option><option value="con">Conceptual</option></select></div>
+        <div class="question-field"><label for="editTime">Time (seconds)</label><input id="editTime" type="number" min="1" max="3600" required></div>
+      </div>
+      <div class="question-field"><label for="editText">Question</label><textarea id="editText" required></textarea></div>
+      <div class="question-field"><label for="editAnswer">Answer / explanation</label><textarea id="editAnswer" required></textarea></div>
+      <div class="question-field"><label for="editNote">Scoring note (optional)</label><textarea id="editNote"></textarea></div>
+      <div class="modal-actions">
+        <button class="btn-ghost" type="button" id="questionCancel">Cancel</button>
+        <button class="btn-primary" type="submit">Save Question</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -340,8 +379,8 @@
   var ROUNDS = [
     {
       key:"r1", name:"Round 1 · Rapid Recall", tag:"Conceptual", time:20, base:10,
-      intro:{ kick:"Round 1 · 10 min", title:"Rapid Recall",
-        rules:["~10 quick questions — <b>20 sec</b> each.",
+      intro:{ kick:"Round 1 · Rapid Recall", title:"Rapid Recall",
+        rules:["True / False: <b>15 sec</b>. Identification: <b>30 sec</b>.",
                "<b>+10 pts</b> for a correct answer, 0 for wrong.",
                "<b>Double Trouble:</b> two questions are secretly worth <b>20 pts</b> — revealed only after boards are up!"] },
       questions:[
@@ -379,8 +418,8 @@
     },
     {
       key:"r2", name:"Round 2 · Problem Showdown", tag:"Numerical", time:300, base:30, partial:15,
-      intro:{ kick:"Round 2 · 15 min", title:"Problem Showdown",
-        rules:["3 problems — one per topic, <b>~5 min</b> each.",
+      intro:{ kick:"Round 2 · 5 min", title:"Problem Showdown",
+        rules:["3 problems — one per topic, <b>5 min</b> each.",
                "<b>+30 pts</b> full correct (solution + units), <b>+15 pts</b> partial credit.",
                "<b>Flip First:</b> the first team to finish correctly earns a <b>+5 bonus</b>.",
                "<b>Mystery Multiplier:</b> one problem may be revealed as <b>double points</b>."] },
@@ -400,9 +439,9 @@
       ]
     },
     {
-      key:"r3", name:"Round 3 · Lightning Final", tag:"Mixed", time:50, base:15,
-      intro:{ kick:"Round 3 · 7 min", title:"Lightning Final",
-        rules:["5 fast mixed questions — <b>~50 sec</b> each.",
+      key:"r3", name:"Round 3 · Lightning Final", tag:"Mixed", time:60, base:15,
+      intro:{ kick:"Round 3 · 5 min", title:"Lightning Final",
+        rules:["5 fast mixed questions — <b>60 sec</b> each.",
                "<b>+15 pts</b> for a correct answer.",
                "<b>Wildcard:</b> one question is secretly worth <b>3\u00d7 points (45)</b> \u2014 revealed only after boards are up. The dramatic closer!"] },
       questions:[
@@ -443,7 +482,8 @@
     names:["Group 1","Group 2","Group 3","Group 4","Group 5","Group 6"],
     // scoring keyed by "ri-qi": { g:{gid:val}, mult:bool, flip:gid|null, wild:bool }
     scoring:{},
-    revealed:{}   // "ri-qi": bool
+    revealed:{},   // "ri-qi": bool
+    questionEdits:{} // persistent content + timer overrides keyed by "ri-qi"
   };
 
   function load(){
@@ -454,6 +494,8 @@
         if(d.names && d.names.length===GROUP_COUNT) state.names = d.names;
         if(d.scoring) state.scoring = d.scoring;
         if(d.revealed) state.revealed = d.revealed;
+        if(d.questionEdits) state.questionEdits = d.questionEdits;
+        applySavedQuestionEdits();
         if(typeof d.slide==="number") state.slide = Math.min(d.slide, SLIDES.length-1);
         if(d.music){
           if(typeof d.music.on==="boolean") music.on = d.music.on;
@@ -465,21 +507,41 @@
   function save(){
     try{
       localStorage.setItem(LS_KEY, JSON.stringify({
-        names:state.names, scoring:state.scoring, revealed:state.revealed, slide:state.slide,
+        names:state.names, scoring:state.scoring, revealed:state.revealed, questionEdits:state.questionEdits, slide:state.slide,
         music:{ on:music.on, vol:music.vol }
       }));
     }catch(e){}
   }
 
   function qKey(ri,qi){ return ri+"-"+qi; }
+  function defaultQuestionTime(ri, q){
+    var rd = ROUNDS[ri];
+    if(rd.key==="r2") return 300;
+    if(rd.key==="r3") return 60;
+    if(q.type==="tf") return 15;
+    if(q.type==="id") return 30;
+    return rd.time;
+  }
+  function getQuestionTime(ri, qi){
+    var q = ROUNDS[ri].questions[qi];
+    return (typeof q.time==="number" && q.time>0) ? q.time : defaultQuestionTime(ri, q);
+  }
+  function applyQuestionEdit(ri, qi, edit){
+    var q = ROUNDS[ri] && ROUNDS[ri].questions[qi];
+    if(!q || !edit) return;
+    ["title","type","text","answer","note","time"].forEach(function(key){
+      if(Object.prototype.hasOwnProperty.call(edit, key)) q[key] = edit[key];
+    });
+  }
+  function applySavedQuestionEdits(){
+    Object.keys(state.questionEdits).forEach(function(k){
+      var p = k.split("-");
+      applyQuestionEdit(+p[0], +p[1], state.questionEdits[k]);
+    });
+  }
   function getScoring(ri,qi){
     var k = qKey(ri,qi);
-    if(!state.scoring[k]){
-      var wild = false;
-      var q = ROUNDS[ri].questions[qi];
-      if(q && q.suggestWildcard) wild = true;   // default wildcard suggestion pre-armed
-      state.scoring[k] = { g:{}, mult:false, flip:null, wild:wild };
-    }
+    if(!state.scoring[k]) state.scoring[k] = { g:{}, mult:false, flip:null, wild:false };
     return state.scoring[k];
   }
 
@@ -873,7 +935,8 @@
     roundPill.textContent = rd.name;
     setMusic(!revealed ? "question" : (music.latch ? "scoring" : "reveal"));
 
-    resetTimer(rd.time);
+    var questionTime = getQuestionTime(ri, qi);
+    resetTimer(questionTime);
 
     var displayNum = (rd.key==="r2" && q.title) ? "" : "Question " + (qi+1) + " of " + rd.questions.length;
     var titleLine = q.title ? q.title : "";
@@ -890,18 +953,17 @@
 
     // Timer controls
     html += '<div class="timer-wrap">' +
-              '<div class="timer" id="timerDisplay">'+fmt(rd.time)+'</div>' +
+              '<div class="timer" id="timerDisplay">'+fmt(questionTime)+'</div>' +
               '<button class="tbtn" id="btnTimerToggle" title="Start / pause (Space)">▶</button>' +
               '<button class="tbtn" id="btnTimerReset" title="Reset timer">↺</button>' +
             '</div>';
     html += '</div>';
 
-    // Mystery Multiplier banner for R2 (revealed BEFORE solving — host toggles it)
-    if(rd.key==="r2"){
-      html += '<div class="reveal-row"><button class="toggle-btn'+(sc.mult?" on":"")+'" id="btnMult">✨ Mystery Multiplier ×2 '+(sc.mult?"— DOUBLE POINTS ON":"(off)")+'</button>'+
-              (q.suggestMultiplier?'<span class="score-head" style="display:inline;margin-left:10px;"><span class="hint">suggested pick for max drama</span></span>':'')+'</div>';
-      if(sc.mult) html += '<div class="twist multiplier">✨ MYSTERY MULTIPLIER — this problem is worth DOUBLE points!</div>';
-    }
+    // Twist decisions are made in Browse Questions before play, never at reveal/scoring.
+    if(rd.key==="r2" && sc.mult)
+      html += '<div class="twist multiplier">✨ MYSTERY MULTIPLIER — preselected in Browse Questions: DOUBLE points!</div>';
+    if(rd.key==="r3" && sc.wild)
+      html += '<div class="twist wildcard">⚡ WILDCARD — preselected in Browse Questions: 3× points (+45)!</div>';
 
     html += '<div class="qtext'+(q.text.length>150?" small":"")+'">'+q.text+'</div>';
 
@@ -914,9 +976,6 @@
       // Twist reveals AFTER boards up
       if(rd.key==="r1" && q.double)
         html += '<div class="twist double">🎲 DOUBLE TROUBLE — this question was secretly worth +20 points!</div>';
-      if(rd.key==="r3" && sc.wild)
-        html += '<div class="twist wildcard">⚡ WILDCARD — this question is worth 3× points (+45)! A huge swing!</div>';
-
       html += renderScoringPanel(ri, qi, sc, q, rd);
     }
 
@@ -927,9 +986,8 @@
 
     // wire timer buttons
     byId("btnTimerToggle").onclick = toggleTimer;
-    byId("btnTimerReset").onclick = function(){ resetTimer(rd.time); };
+    byId("btnTimerReset").onclick = function(){ resetTimer(questionTime); };
     if(byId("btnReveal")) byId("btnReveal").onclick = function(){ state.revealed[k]=true; revealSting(); render(); };
-    if(byId("btnMult")) byId("btnMult").onclick = function(){ sc.mult=!sc.mult; save(); render(); };
     wireScoring(ri,qi,sc,rd);
     wireNav();
     updateTimerUI();
@@ -941,9 +999,6 @@
 
     if(rd.key==="r1" || rd.key==="r3"){
       h += '<span class="hint">Click every group that answered correctly.</span>';
-      if(rd.key==="r3"){
-        h += '<div class="r2tools"><button class="toggle-btn wild'+(sc.wild?" on":"")+'" id="btnWild">⚡ Wildcard ×3 '+(sc.wild?"ARMED":"(off)")+'</button></div>';
-      }
       h += '</div>';
       h += '<div class="grp-grid">';
       var val = rd.key==="r1" ? (sc.wild?0:0) : 0;
@@ -1000,7 +1055,6 @@
         save(); render();
       };
     });
-    if(byId("btnWild")) byId("btnWild").onclick = function(){ sc.wild=!sc.wild; save(); render(); };
   }
 
   function renderFinal(){
@@ -1085,33 +1139,84 @@
   };
   byId("boardClose").onclick = function(){ boardOverlay.classList.add("hidden"); };
 
-  // Question browser (jump to any question to review / edit its score)
+  // Question browser: navigation, pre-game twist selection, and question editing.
   var jumpOverlay = byId("jumpOverlay");
+  var questionOverlay = byId("questionOverlay");
+  var editingQuestion = null;
+  function escAttr(v){ return String(v||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
+  function twistControl(rd, ri, qi, sc){
+    if(rd.key==="r2") return '<select class="jump-select" data-twist="mult" data-ri="'+ri+'" data-qi="'+qi+'" title="Choose before the question is shown">'+
+      '<option value="off"'+(!sc.mult?" selected":"")+'>Multiplier: none</option>'+
+      '<option value="on"'+(sc.mult?" selected":"")+'>Multiplier: ×2</option></select>';
+    if(rd.key==="r3") return '<select class="jump-select" data-twist="wild" data-ri="'+ri+'" data-qi="'+qi+'" title="Choose before the question is shown">'+
+      '<option value="off"'+(!sc.wild?" selected":"")+'>Wildcard: none</option>'+
+      '<option value="on"'+(sc.wild?" selected":"")+'>Wildcard: ×3</option></select>';
+    return "";
+  }
   function openJump(){
     var list = byId("jumpList"), html = "";
     SLIDES.forEach(function(s, idx){
       if(s.kind==="intro"){
         html += '<div class="jump-round">'+ROUNDS[s.r].name+'</div>';
       } else if(s.kind==="q"){
-        var rd = ROUNDS[s.r], q = rd.questions[s.q], k = qKey(s.r, s.q);
+        var rd = ROUNDS[s.r], q = rd.questions[s.q], k = qKey(s.r, s.q), sc = getScoring(s.r, s.q);
         var label = q.title ? q.title : ("Question "+(s.q+1));
-        var sc = state.scoring[k];
-        var scored = sc ? Object.keys(sc.g).filter(function(g){ return sc.g[g]; }).length : 0;
+        var scored = Object.keys(sc.g).filter(function(g){ return sc.g[g]; }).length;
         var status = (state.revealed[k] ? '<span class="rev">revealed</span>' : "not shown") +
-                     (scored ? (" · "+scored+" scored") : "");
-        html += '<button class="jump-item'+(idx===state.slide?" current":"")+'" data-slide="'+idx+'">' +
-                  '<span>'+label+'</span><span class="tag2">'+status+'</span></button>';
+                     ' · '+getQuestionTime(s.r, s.q)+'s' + (scored ? (" · "+scored+" scored") : "");
+        html += '<div class="jump-item'+(idx===state.slide?" current":"")+'">'+
+                  '<button class="jump-main" data-slide="'+idx+'"><span>'+label+'</span><span class="tag2">'+status+'</span></button>'+
+                  '<div class="jump-tools">'+twistControl(rd, s.r, s.q, sc)+
+                    '<button class="sbtn jump-edit" data-edit-ri="'+s.r+'" data-edit-qi="'+s.q+'">Edit</button></div></div>';
       } else {
-        html += '<button class="jump-item'+(idx===state.slide?" current":"")+'" data-slide="'+idx+'">' +
-                  '<span>🏆 Final Standings</span></button>';
+        html += '<div class="jump-item'+(idx===state.slide?" current":"")+'"><button class="jump-main" data-slide="'+idx+'"><span>🏆 Final Standings</span></button></div>';
       }
     });
     list.innerHTML = html;
     Array.prototype.forEach.call(list.querySelectorAll("[data-slide]"), function(b){
       b.onclick = function(){ jumpOverlay.classList.add("hidden"); goTo(+b.getAttribute("data-slide")); };
     });
+    Array.prototype.forEach.call(list.querySelectorAll("[data-twist]"), function(sel){
+      sel.onchange = function(){
+        var sc = getScoring(+this.getAttribute("data-ri"), +this.getAttribute("data-qi"));
+        if(this.getAttribute("data-twist")==="mult") sc.mult = this.value==="on";
+        else sc.wild = this.value==="on";
+        save(); openJump();
+      };
+    });
+    Array.prototype.forEach.call(list.querySelectorAll("[data-edit-ri]"), function(b){
+      b.onclick = function(){ openQuestionEditor(+this.getAttribute("data-edit-ri"), +this.getAttribute("data-edit-qi")); };
+    });
     jumpOverlay.classList.remove("hidden");
   }
+  function openQuestionEditor(ri, qi){
+    var q = ROUNDS[ri].questions[qi];
+    editingQuestion = {ri:ri, qi:qi};
+    byId("editTitle").value = q.title || "";
+    byId("editType").value = q.type;
+    byId("editTime").value = getQuestionTime(ri, qi);
+    byId("editText").value = q.text || "";
+    byId("editAnswer").value = q.answer || "";
+    byId("editNote").value = q.note || "";
+    questionOverlay.classList.remove("hidden");
+  }
+  byId("questionForm").onsubmit = function(e){
+    e.preventDefault();
+    if(!editingQuestion) return;
+    var ri = editingQuestion.ri, qi = editingQuestion.qi, key = qKey(ri, qi);
+    var time = Math.round(+byId("editTime").value);
+    if(!isFinite(time) || time<1) return;
+    var edit = {
+      title:byId("editTitle").value.trim(), type:byId("editType").value,
+      time:time, text:byId("editText").value.trim(), answer:byId("editAnswer").value.trim(),
+      note:byId("editNote").value.trim()
+    };
+    state.questionEdits[key] = edit;
+    applyQuestionEdit(ri, qi, edit);
+    questionOverlay.classList.add("hidden");
+    save(); openJump(); render();
+  };
+  byId("questionCancel").onclick = function(){ questionOverlay.classList.add("hidden"); };
   byId("btnJump").onclick = openJump;
   byId("jumpClose").onclick = function(){ jumpOverlay.classList.add("hidden"); };
 
@@ -1134,7 +1239,7 @@
   };
 
   // Close overlays on backdrop click
-  [teamsOverlay, boardOverlay, jumpOverlay].forEach(function(ov){
+  [teamsOverlay, boardOverlay, jumpOverlay, questionOverlay].forEach(function(ov){
     ov.addEventListener("click", function(e){ if(e.target===ov) ov.classList.add("hidden"); });
   });
 
