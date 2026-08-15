@@ -988,7 +988,7 @@
     html += '<span class="badge '+TYPE_CLASS[q.type]+'">'+TYPE_LABEL[q.type]+'</span>';
     // point chip during solving (do NOT tip off Double Trouble / Wildcard)
     if(rd.key==="r1") html += '<span class="chip">+10</span>';
-    else if(rd.key==="r2") html += '<span class="chip">'+(sc.mult?"+60 / +30":"+30 / +15")+'</span>';
+    else if(rd.key==="r2") html += '<span class="chip">'+(sc.mult?("+"+(30*(sc.multiplier||2))+" / +"+(15*(sc.multiplier||2))):"+30 / +15")+'</span>';
     else if(rd.key==="r3") html += '<span class="chip">+15</span>';
 
     // Timer controls
@@ -1042,7 +1042,7 @@
       h += '</div>';
       h += '<div class="grp-grid">';
       var val = rd.key==="r1" ? (sc.wild?0:0) : 0;
-      var per = rd.key==="r1" ? (q.double?20:10) : (sc.wild?45:15);
+      var per = rd.key==="r1" ? (q.double?20:10) : (sc.wild?(15+(sc.wildcardBonus||30)):15);
       for(var g=0; g<GROUP_COUNT; g++){
         var on = sc.g[g]==="correct";
         h += '<button class="grp-btn'+(on?" correct":"")+'" data-g="'+g+'" data-act="correct">' +
