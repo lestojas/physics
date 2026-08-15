@@ -483,7 +483,8 @@
     // scoring keyed by "ri-qi": { g:{gid:val}, mult:bool, flip:gid|null, wild:bool }
     scoring:{},
     revealed:{},   // "ri-qi": bool
-    questionEdits:{} // persistent content + timer overrides keyed by "ri-qi"
+    questionEdits:{}, // persistent content + timer overrides keyed by "ri-qi"
+    twistSettingsVersion:1
   };
 
   function load(){
@@ -495,6 +496,15 @@
         if(d.scoring) state.scoring = d.scoring;
         if(d.revealed) state.revealed = d.revealed;
         if(d.questionEdits) state.questionEdits = d.questionEdits;
+        // Legacy data could carry a wildcard pre-armed by the old UI. Clear it
+        // once so every multiplier/wildcard is explicitly selected in Browse.
+        if(d.twistSettingsVersion!==1){
+          Object.keys(state.scoring).forEach(function(k){
+            var p = k.split("-"), rd = ROUNDS[+p[0]], sc = state.scoring[k];
+            if(rd && rd.key==="r2") sc.mult = false;
+            if(rd && rd.key==="r3") sc.wild = false;
+          });
+        }
         applySavedQuestionEdits();
         if(typeof d.slide==="number") state.slide = Math.min(d.slide, SLIDES.length-1);
         if(d.music){
@@ -507,7 +517,8 @@
   function save(){
     try{
       localStorage.setItem(LS_KEY, JSON.stringify({
-        names:state.names, scoring:state.scoring, revealed:state.revealed, questionEdits:state.questionEdits, slide:state.slide,
+        names:state.names, scoring:state.scoring, revealed:state.revealed, questionEdits:state.questionEdits,
+        twistSettingsVersion:state.twistSettingsVersion, slide:state.slide,
         music:{ on:music.on, vol:music.vol }
       }));
     }catch(e){}
