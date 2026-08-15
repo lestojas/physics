@@ -753,7 +753,7 @@
      Web Audio API (no audio files, works fully offline). Modes:
        lobby (intros/final) · question · reveal · scoring
   ====================================================================== */
-  var music = { ctx:null, master:null, on:true, vol:0.45, mode:"off",
+  var music = { ctx:null, master:null, bus:null, on:true, vol:0.45, mode:"off",
                 step:0, nextTime:0, sched:null, started:false, latch:false };
 
   function getCtx(){
@@ -770,13 +770,14 @@
       music.master.gain.value = music.on ? music.vol : 0;
       music.master.connect(ac.destination);
     }
+    if(!music.bus){ music.bus=ac.createGain(); music.bus.gain.value=1; music.bus.connect(music.master); }
     return music.master;
   }
   function nf(m){ return 440 * Math.pow(2, (m-69)/12); }
 
   function mNote(freq, start, dur, opts){
     opts = opts || {};
-    var ac = music.ctx, out = music.master; if(!ac || !out) return;
+    var ac = music.ctx, out = music.bus || music.master; if(!ac || !out) return;
     var o = ac.createOscillator(); o.type = opts.type || "sine"; o.frequency.value = freq;
     var g = ac.createGain();
     var peak = opts.vol==null ? 0.15 : opts.vol;
@@ -789,14 +790,14 @@
     o.start(start); o.stop(start + dur + 0.03);
   }
   function mKick(start, vol){
-    var ac = music.ctx, out = music.master; if(!ac || !out) return;
+    var ac = music.ctx, out = music.bus || music.master; if(!ac || !out) return;
     var o = ac.createOscillator(), g = ac.createGain();
     o.frequency.setValueAtTime(165, start); o.frequency.exponentialRampToValueAtTime(45, start+0.13);
     g.gain.setValueAtTime(vol||0.55, start); g.gain.exponentialRampToValueAtTime(0.0001, start+0.2);
     o.connect(g); g.connect(out); o.start(start); o.stop(start+0.22);
   }
   function mHat(start, vol){
-    var ac = music.ctx, out = music.master; if(!ac || !out) return;
+    var ac = music.ctx, out = music.bus || music.master; if(!ac || !out) return;
     var n = Math.floor(ac.sampleRate*0.035);
     var buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0);
     for(var i=0;i<n;i++) d[i] = Math.random()*2-1;
@@ -806,7 +807,7 @@
     src.connect(f); f.connect(g); g.connect(out); src.start(start); src.stop(start+0.05);
   }
   function mSnare(start){
-    var ac = music.ctx, out = music.master; if(!ac || !out) return;
+    var ac = music.ctx, out = music.bus || music.master; if(!ac || !out) return;
     var n = Math.floor(ac.sampleRate*0.14);
     var buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0);
     for(var i=0;i<n;i++) d[i] = (Math.random()*2-1)*Math.pow(1-i/n, 1.5);
@@ -890,8 +891,18 @@
   }
   function setMusic(mode){
     if(music.mode===mode) return;
-    music.mode = mode;
-    var ac = music.ctx; if(ac){ music.nextTime = ac.currentTime + 0.03; music.step = 0; }
+    music.mode=mode; var ac=music.ctx;
+    if(ac && music.master){
+      var oldBus=music.bus, nextBus=ac.createGain(), now=ac.currentTime;
+      nextBus.gain.setValueAtTime(0.0001,now); nextBus.gain.exponentialRampToValueAtTime(1,now+0.28); nextBus.connect(music.master); music.bus=nextBus;
+      if(oldBus){ oldBus.gain.cancelScheduledValues(now); oldBus.gain.setValueAtTime(Math.max(0.0001,oldBus.gain.value),now); oldBus.gain.exponentialRampToValueAtTime(0.0001,now+0.28); setTimeout(function(){try{oldBus.disconnect();}catch(e){}},360); }
+      music.nextTime=now+0.04; music.step=0;
+    }
+  }
+  function nextSting(){
+    var ac=getCtx(); if(!ac) return; ensureMaster(); if(ac.state==="suspended"){try{ac.resume();}catch(e){}}
+    var t=ac.currentTime+0.015, out=music.master;
+    [72,76,79].forEach(function(mi,i){var o=ac.createOscillator(),g=ac.createGain();o.type="triangle";o.frequency.value=nf(mi);g.gain.setValueAtTime(0.0001,t+i*0.055);g.gain.exponentialRampToValueAtTime(0.12,t+i*0.055+0.012);g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.055+0.22);o.connect(g);g.connect(out);o.start(t+i*0.055);o.stop(t+i*0.055+0.24);});
   }
   function setMusicVol(v){
     music.vol = v;
@@ -1112,6 +1123,7 @@
   function go(dir){
     var n = state.slide + dir;
     if(n<0 || n>=SLIDES.length) return;
+    if(dir>0) nextSting();
     state.slide = n;
     music.latch = false;   // reset reveal->scoring music latch for the new slide
     render();
