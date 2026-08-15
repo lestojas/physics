@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<!--
+  Physics League: Kinematics Championship — Game-Show Screenshow
+  ---------------------------------------------------------------
+  A self-contained host/presentation screen. No build step, no CDN,
+  works fully offline (open this file directly or serve it).
+
+  Features:
+    - Built-in per-question countdown timer (Round 1: 20s, Round 2: 5 min,
+      Round 3: 50s) with start / pause / reset and keyboard shortcuts.
+    - Manual "Reveal Answer" on click.
+    - Click the groups (6) that got the answer correct to award points.
+    - Live running-total scoreboard + dramatic leaderboard overlay.
+    - All twists wired in: Double Trouble (R1), Flip First +5 &
+      Mystery Multiplier x2 (R2), Wildcard x3 (R3).
+    - Scores + team names persist in the browser (localStorage).
+
+  Round 1 question order per host request:
+    original Q1 -> shown as Q8, original Q8 -> shown as Q9,
+    original Q9 -> shown as Q1. All other R1 questions keep their number.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Physics League: Kinematics Championship</title>
+<style>
+  :root{
+    --bg:#131318; --bg2:#1b1b22; --panel:#22222c; --panel2:#2b2b36;
+    --line:#3a3a48; --text:#f2f2f7; --muted:#9a9aad;
+    --accent:#b98cff; --accent2:#ff8a3d;
+    --good:#37d67a; --good-d:#1f9e56; --bad:#ff5d73;
+    --gold:#ffd24a; --tf:#4aa3ff; --num:#ff8a3d; --id:#7ee787; --con:#b98cff;
+    --grad:linear-gradient(90deg,#ff9a3d,#ff5e1a);
+    --grad-p:linear-gradient(120deg,#b98cff,#7a5cff);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{
+    background:radial-gradient(1200px 700px at 50% -10%,#26263400,#0e0e12) , var(--bg);
+    color:var(--text);
+    font-family:"Segoe UI",system-ui,Arial,sans-serif;
+    line-height:1.4;
+    overflow:hidden;
+  }
+  button{font-family:inherit;cursor:pointer;border:none;color:inherit;}
+  .hidden{display:none !important;}
+
+  /* ---------- App shell ---------- */
+  #app{display:flex;flex-direction:column;height:100vh;}
+
+  /* Top bar */
+  .topbar{
+    display:flex;align-items:center;gap:14px;
+    padding:10px 18px;background:var(--bg2);border-bottom:1px solid var(--line);
+    flex:0 0 auto;
+  }
+  .brand{font-weight:800;font-size:18px;letter-spacing:.3px;white-space:nowrap;}
+  .brand .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .round-pill{
+    font-size:13px;font-weight:700;padding:5px 12px;border-radius:999px;
+    background:var(--panel2);border:1px solid var(--line);color:var(--muted);white-space:nowrap;
+  }
+  .topbar .spacer{flex:1;}
+  .top-btn{
+    background:var(--panel2);border:1px solid var(--line);border-radius:9px;
+    padding:8px 13px;font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;
+  }
+  .top-btn:hover{border-color:#5a5a6e;background:#33333f;}
+  .top-btn.warn:hover{border-color:var(--bad);color:var(--bad);}
+
+  /* Stage */
+  .stage{flex:1 1 auto;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;}
+  .stage-inner{width:100%;max-width:1120px;margin:0 auto;flex:1;display:flex;flex-direction:column;justify-content:center;}
+
+  /* Question meta row */
+  .qmeta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+  .qnum{font-size:15px;font-weight:800;color:var(--muted);letter-spacing:.5px;}
+  .badge{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;
+    padding:4px 10px;border-radius:6px;background:var(--panel2);border:1px solid var(--line);}
+  .badge.tf{color:var(--tf);border-color:#2e567d;}
+  .badge.num{color:var(--num);border-color:#7d4c22;}
+  .badge.id{color:var(--id);border-color:#3c6e45;}
+  .badge.con{color:var(--con);border-color:#5a4b7d;}
+  .chip{font-size:12px;font-weight:800;padding:4px 10px;border-radius:999px;
+    background:rgba(185,140,255,.14);color:var(--accent);border:1px solid rgba(185,140,255,.4);}
+
+  /* Timer */
+  .timer-wrap{margin-left:auto;display:flex;align-items:center;gap:10px;}
+  .timer{
+    font-variant-numeric:tabular-nums;font-weight:800;font-size:40px;
+    min-width:110px;text-align:center;padding:4px 14px;border-radius:12px;
+    background:var(--panel);border:2px solid var(--line);letter-spacing:1px;
+  }
+  .timer.run{border-color:var(--good);color:#dfffec;}
+  .timer.warn{border-color:var(--gold);color:var(--gold);animation:pulse .5s infinite alternate;}
+  .timer.done{border-color:var(--bad);color:var(--bad);}
+  @keyframes pulse{from{transform:scale(1);}to{transform:scale(1.06);}}
+  .tbtn{width:42px;height:42px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);
+    font-size:18px;display:flex;align-items:center;justify-content:center;}
+  .tbtn:hover{border-color:#5a5a6e;}
+  .tbtn.primary{background:var(--grad-p);border:none;color:#12101a;font-weight:800;width:auto;padding:0 16px;}
+
+  /* Question text */
+  .qtext{font-size:34px;font-weight:700;line-height:1.28;margin:8px 0 18px;}
+  .qtext.small{font-size:27px;}
+
+  /* Twist banners */
+  .twist{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;
+    padding:11px 16px;border-radius:11px;margin:6px 0 16px;animation:drop .35s ease;}
+  @keyframes drop{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:none;}}
+  .twist.double{background:rgba(255,210,74,.14);border:1px solid var(--gold);color:var(--gold);}
+  .twist.multiplier{background:rgba(255,138,61,.16);border:1px solid var(--accent2);color:var(--accent2);}
+  .twist.wildcard{background:linear-gradient(90deg,rgba(185,140,255,.2),rgba(255,138,61,.2));
+    border:1px solid var(--accent);color:#fff;font-size:18px;}
+
+  /* Reveal / answer */
+  .reveal-row{margin:6px 0 4px;}
+  .reveal-btn{background:var(--grad);color:#1a1206;font-weight:800;font-size:18px;
+    padding:14px 30px;border-radius:12px;box-shadow:0 6px 20px rgba(255,120,30,.25);}
+  .reveal-btn:hover{filter:brightness(1.07);}
+  .answer{
+    background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--good);
+    border-radius:12px;padding:18px 22px;margin:14px 0;font-size:22px;line-height:1.5;
+    animation:drop .35s ease;
+  }
+  .answer .lbl{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;
+    color:var(--good);display:block;margin-bottom:6px;}
+  .answer .note{font-size:15px;color:var(--muted);margin-top:10px;font-style:italic;}
+  .answer b{color:var(--gold);}
+
+  /* Scoring panel */
+  .score-panel{background:var(--bg2);border:1px solid var(--line);border-radius:14px;
+    padding:16px 18px;margin-top:8px;animation:drop .3s ease;}
+  .score-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+  .score-head h3{margin:0;font-size:15px;font-weight:800;letter-spacing:.4px;}
+  .score-head .hint{font-size:13px;color:var(--muted);}
+  .score-head .r2tools{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;}
+
+  .grp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  @media(max-width:760px){.grp-grid{grid-template-columns:repeat(2,1fr);}}
+  .grp-btn{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    background:var(--panel);border:2px solid var(--line);border-radius:11px;
+    padding:12px 14px;font-size:16px;font-weight:700;color:var(--text);transition:.12s;
+  }
+  .grp-btn:hover{border-color:#5a5a6e;}
+  .grp-btn.correct{border-color:var(--good);background:rgba(55,214,122,.15);}
+  .grp-btn .pts{font-size:13px;font-weight:800;color:var(--muted);}
+  .grp-btn.correct .pts{color:var(--good);}
+
+  /* R2 group rows */
+  .r2-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  @media(max-width:760px){.r2-grid{grid-template-columns:1fr;}}
+  .r2-row{display:flex;align-items:center;gap:8px;background:var(--panel);
+    border:1px solid var(--line);border-radius:11px;padding:9px 11px;}
+  .r2-row .nm{flex:1;font-weight:700;font-size:15px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .r2-row .flip{width:34px;height:34px;border-radius:8px;background:var(--panel2);border:1px solid var(--line);font-size:15px;}
+  .r2-row .flip.on{background:rgba(255,210,74,.2);border-color:var(--gold);color:var(--gold);}
+  .sbtn{border-radius:8px;border:1px solid var(--line);background:var(--panel2);
+    padding:7px 11px;font-size:13px;font-weight:800;color:var(--muted);}
+  .sbtn.partial.on{background:rgba(74,163,255,.2);border-color:var(--tf);color:var(--tf);}
+  .sbtn.full.on{background:rgba(55,214,122,.18);border-color:var(--good);color:var(--good);}
+  .toggle-btn{background:var(--panel2);border:1px solid var(--line);border-radius:9px;
+    padding:7px 12px;font-size:13px;font-weight:800;color:var(--muted);}
+  .toggle-btn.on{background:rgba(255,138,61,.18);border-color:var(--accent2);color:var(--accent2);}
+  .toggle-btn.wild.on{background:linear-gradient(90deg,rgba(185,140,255,.25),rgba(255,138,61,.25));
+    border-color:var(--accent);color:#fff;}
+
+  /* Nav row */
+  .navrow{display:flex;align-items:center;gap:10px;margin-top:18px;}
+  .nav-btn{background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    padding:11px 18px;font-size:15px;font-weight:700;}
+  .nav-btn:hover{border-color:#5a5a6e;}
+  .nav-btn:disabled{opacity:.35;cursor:not-allowed;}
+  .nav-btn.next{background:var(--grad-p);border:none;color:#12101a;}
+  .navrow .prog{flex:1;text-align:center;color:var(--muted);font-size:13px;}
+
+  /* ---------- Intro / round slides ---------- */
+  .intro{text-align:center;padding:20px;}
+  .intro .kick{font-size:15px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--accent2);}
+  .intro h1{font-size:56px;margin:6px 0 4px;font-weight:900;line-height:1.05;}
+  .intro h1 .g{background:var(--grad-p);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .intro .sub{font-size:20px;color:var(--muted);margin-bottom:24px;}
+  .rules{display:inline-flex;flex-direction:column;gap:10px;text-align:left;
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 26px;font-size:17px;max-width:640px;}
+  .rules li{margin:0;}
+  .rules ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;}
+  .rules b{color:var(--gold);}
+
+  /* ---------- Scoreboard strip ---------- */
+  .scorebar{flex:0 0 auto;display:flex;gap:8px;padding:10px 14px;background:var(--bg2);
+    border-top:1px solid var(--line);overflow-x:auto;}
+  .sb-team{flex:1;min-width:120px;background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;padding:8px 12px;display:flex;flex-direction:column;gap:2px;}
+  .sb-team.lead{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset;}
+  .sb-team .nm{font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sb-team .tot{font-size:26px;font-weight:900;font-variant-numeric:tabular-nums;}
+  .sb-team .rk{font-size:11px;color:var(--muted);}
+
+  /* ---------- Modal / overlay ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(8,8,12,.78);backdrop-filter:blur(3px);
+    display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:24px 26px;max-width:520px;width:100%;max-height:90vh;overflow:auto;}
+  .modal h2{margin:0 0 4px;font-size:22px;}
+  .modal p.sub{margin:0 0 18px;color:var(--muted);font-size:14px;}
+  .team-edit{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .team-edit .dot{width:14px;height:14px;border-radius:50%;flex:0 0 auto;}
+  .team-edit input{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+    color:var(--text);padding:10px 12px;font-size:15px;font-family:inherit;}
+  .modal-actions{display:flex;gap:10px;margin-top:18px;}
+  .modal-actions button{flex:1;padding:12px;border-radius:10px;font-size:15px;font-weight:800;}
+  .btn-primary{background:var(--grad-p);color:#12101a;}
+  .btn-ghost{background:var(--panel2);border:1px solid var(--line);color:var(--text);}
+
+  /* Leaderboard overlay */
+  .lb{background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:28px 32px;max-width:680px;width:100%;}
+  .lb h2{text-align:center;font-size:30px;margin:0 0 20px;}
+  .lb h2 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .lb-row{display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:12px;
+    background:var(--panel);border:1px solid var(--line);margin-bottom:9px;animation:drop .3s ease both;}
+  .lb-row .rank{font-size:22px;font-weight:900;width:44px;text-align:center;}
+  .lb-row .nm{flex:1;font-size:20px;font-weight:700;}
+  .lb-row .pts{font-size:26px;font-weight:900;font-variant-numeric:tabular-nums;}
+  .lb-row.p1{border-color:var(--gold);background:linear-gradient(90deg,rgba(255,210,74,.16),transparent);}
+  .lb-row.p2{border-color:#c8c8d4;}
+  .lb-row.p3{border-color:#cd7f32;}
+  .medal{font-size:24px;}
+  .dev-credit{position:fixed;left:0;bottom:0;z-index:1;padding:6px 14px;font-size:11px;
+    color:var(--muted);font-family:Arial,sans-serif;pointer-events:none;background:rgba(19,19,24,.6);border-top-right-radius:8px;}
+  kbd{background:var(--panel2);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;
+    padding:1px 6px;font-size:12px;font-family:"Courier New",monospace;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <span class="brand"><span class="g">Physics League</span> · Kinematics Championship</span>
+    <span class="round-pill" id="roundPill">Ready</span>
+    <span class="spacer"></span>
+    <button class="top-btn" id="btnTeams">✎ Teams</button>
+    <button class="top-btn" id="btnBoard">🏆 Leaderboard</button>
+    <button class="top-btn" id="btnFull">⛶ Fullscreen</button>
+    <button class="top-btn warn" id="btnReset">↺ Reset scores</button>
+  </div>
+
+  <div class="stage"><div class="stage-inner" id="stage"><!-- rendered --></div></div>
+
+  <div class="scorebar" id="scorebar"><!-- rendered --></div>
+</div>
+
+<!-- Teams modal -->
+<div class="overlay hidden" id="teamsOverlay">
+  <div class="modal">
+    <h2>Team Names</h2>
+    <p class="sub">Set the names of the 6 groups. Saved automatically to this browser.</p>
+    <div id="teamEdits"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="teamsCancel">Cancel</button>
+      <button class="btn-primary" id="teamsSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Leaderboard overlay -->
+<div class="overlay hidden" id="boardOverlay">
+  <div class="lb">
+    <h2>🏆 <span class="g">Leaderboard</span></h2>
+    <div id="lbRows"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" id="boardClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="dev-credit">Developed by Philip Jayson Lestojas</div>
+
+<script>
+"use strict";
+(function(){
+  /* ======================================================================
+     DATA — all questions. Round 1 is pre-reordered per the host's request:
+       original Q1 -> position 8, original Q8 -> position 9,
+       original Q9 -> position 1. Every other R1 question keeps its number.
+     Double Trouble stays on shown positions 4 and 8 (worth 20 pts, revealed
+     only after boards are up).
+  ====================================================================== */
+  var ROUNDS = [
+    {
+      key:"r1", name:"Round 1 · Rapid Recall", tag:"Conceptual", time:20, base:10,
+      intro:{ kick:"Round 1 · 10 min", title:"Rapid Recall",
+        rules:["~10 quick questions — <b>20 sec</b> each.",
+               "<b>+10 pts</b> for a correct answer, 0 for wrong.",
+               "<b>Double Trouble:</b> two questions are secretly worth <b>20 pts</b> — revealed only after boards are up!"] },
+      questions:[
+        // pos 1  (was original Q9)
+        { type:"tf", text:"For an object thrown straight up that returns to its launch height, its speed passing back through the launch point equals its initial launch speed.",
+          answer:"<b>True</b> — the mirror symmetry of free fall: same speed magnitude, opposite direction." },
+        // pos 2  (original Q2)
+        { type:"id", text:"What do we call motion where gravity is the only force acting on an object, regardless of whether it's moving up, down, or released from rest?",
+          answer:"<b>Free fall</b>" },
+        // pos 3  (original Q3)
+        { type:"tf", text:"A stone thrown straight down and a stone simply dropped from rest are both considered \u201cfree fall\u201d once released.",
+          answer:"<b>True</b> — free fall means gravity alone is acting; it does <i>not</i> require starting from rest." },
+        // pos 4  (original Q4)  DOUBLE TROUBLE
+        { type:"tf", double:true, text:"On a merry-go-round, a rider near the edge and a rider near the center complete one full rotation in the same time, so they must have the same tangential speed.",
+          answer:"<b>False</b> — both share the same period T, but v = 2\u03c0r/T. The rider farther from the center has a larger radius, so they move at a <b>greater</b> tangential speed." },
+        // pos 5  (original Q5)
+        { type:"tf", text:"For a projectile that lands at the same height it was launched from, the range is greatest at a launch angle of 45\u00b0.",
+          answer:"<b>True</b>" },
+        // pos 6  (original Q6)
+        { type:"id", text:"What is the name for the apparent outward push you feel in a turning car, even though no real outward force is acting on you?",
+          answer:"<b>Centrifugal \u201cforce\u201d</b> — a fictitious/apparent effect. It's really your inertia, while the seat/door pushes you inward." },
+        // pos 7  (original Q7)
+        { type:"tf", text:"In uniform circular motion, velocity is constant because speed never changes.",
+          answer:"<b>False</b> — velocity is a vector; its direction is constantly changing even though speed (magnitude) is constant, so velocity itself is not constant." },
+        // pos 8  (was original Q1)  DOUBLE TROUBLE
+        { type:"tf", double:true, text:"At the peak of a ball tossed straight up, both its velocity and acceleration are zero.",
+          answer:"<b>False</b> — velocity is zero at the peak, but acceleration is still \u2212g at every instant, including the peak. That's exactly why the ball falls back down." },
+        // pos 9  (was original Q8)
+        { type:"tf", text:"A ball moves in a circle of radius 1.0 m at 2.0 m/s. If the speed is increased to 4.0 m/s and the radius to 4.0 m, the centripetal acceleration stays the same.",
+          answer:"<b>True</b> — a\u2081 = (2.0)\u00b2/1.0 = 4.0 m/s\u00b2 and a\u2082 = (4.0)\u00b2/4.0 = 4.0 m/s\u00b2. Quadrupling v\u00b2 is exactly canceled by quadrupling r." },
+        // pos 10 (original Q10)
+        { type:"tf", text:"If a target is released to fall the instant a projectile is fired directly at it, the projectile hits the target \u2014 as long as it has enough speed to cover the horizontal distance before either hits the ground.",
+          answer:"<b>True</b> — both the projectile and the target fall the same vertical distance in the same time under gravity, so the aim stays true." }
+      ]
+    },
+    {
+      key:"r2", name:"Round 2 · Problem Showdown", tag:"Numerical", time:300, base:30, partial:15,
+      intro:{ kick:"Round 2 · 15 min", title:"Problem Showdown",
+        rules:["3 problems — one per topic, <b>~5 min</b> each.",
+               "<b>+30 pts</b> full correct (solution + units), <b>+15 pts</b> partial credit.",
+               "<b>Flip First:</b> the first team to finish correctly earns a <b>+5 bonus</b>.",
+               "<b>Mystery Multiplier:</b> one problem may be revealed as <b>double points</b>."] },
+      questions:[
+        { type:"num", title:"Problem 1 — Free Fall",
+          text:"A mango falls from rest off a tree branch and lands on the ground 1.35 s later. Ignoring air resistance, how tall is the branch above the ground?",
+          answer:"Using \u0394y = \u00bdgt\u00b2 (v\u2080 = 0): h = \u00bd(9.8)(1.35)\u00b2 = <b>8.93 m \u2248 8.9 m</b>",
+          note:"Partial credit: setting up \u0394y = v\u2080t + \u00bdat\u00b2 with v\u2080 = 0 and a = \u2212g, even with an arithmetic slip." },
+        { type:"num", title:"Problem 2 — Projectile Motion", suggestMultiplier:true,
+          text:"At a fiesta booth, a player tosses a small ring at 5.80 m/s at 40\u00b0 above the horizontal, aiming for a peg on a raised post 1.80 m away horizontally. The peg sits above the release point. What is the height of the peg above the point where the ring left the player's hand?",
+          answer:"v\u2080\u2093 = 5.80cos40\u00b0 = 4.44 m/s; v\u2080\u1d67 = 5.80sin40\u00b0 = 3.73 m/s. Time to cover 1.80 m: t = 1.80/4.44 = 0.405 s. Then \u0394y = v\u2080\u1d67t \u2212 \u00bdgt\u00b2 = (3.73)(0.405) \u2212 \u00bd(9.8)(0.405)\u00b2 = <b>0.71 m</b>",
+          note:"Partial credit: correctly setting up t = \u0394x/v\u2080\u2093 and \u0394y = v\u2080\u1d67t \u2212 \u00bdgt\u00b2 (recognizing the shortcut formulas don't apply), even with an arithmetic slip." },
+        { type:"num", title:"Problem 3 — Uniform Circular Motion",
+          text:"A stationary exercise bike's front wheel has a radius of 0.33 m and spins at a constant 180 rev/min. What is the centripetal acceleration of a reflector clipped to the outer rim?",
+          answer:"180 rev/min = 3 rev/s \u2192 v = 2\u03c0rf = 2\u03c0(0.33)(3) = 6.22 m/s. Then a = v\u00b2/r = (6.22)\u00b2/0.33 = <b>117 m/s\u00b2</b>",
+          note:"Partial credit: correctly converting rev/min to rev/s (or T) and setting up v = 2\u03c0r/T then a = v\u00b2/r, even with a final arithmetic error." }
+      ]
+    },
+    {
+      key:"r3", name:"Round 3 · Lightning Final", tag:"Mixed", time:50, base:15,
+      intro:{ kick:"Round 3 · 7 min", title:"Lightning Final",
+        rules:["5 fast mixed questions — <b>~50 sec</b> each.",
+               "<b>+15 pts</b> for a correct answer.",
+               "<b>Wildcard:</b> one question is secretly worth <b>3\u00d7 points (45)</b> \u2014 revealed only after boards are up. The dramatic closer!"] },
+      questions:[
+        { type:"tf", text:"If you throw a ball straight up, its acceleration decreases as it slows down.",
+          answer:"<b>False</b> — acceleration is constant at \u2212g the entire flight, even as the ball slows near the peak." },
+        { type:"num", text:"A ball is dropped from rest and falls for 0.80 s before hitting the floor. What is its speed just before impact?",
+          answer:"v = gt = (9.8)(0.80) = <b>7.84 m/s \u2248 7.8 m/s</b>" },
+        { type:"con", text:"In projectile motion, which velocity component \u2014 horizontal or vertical \u2014 stays constant throughout the flight?",
+          answer:"<b>Horizontal (v\u2093)</b> — because a\u2093 = 0." },
+        { type:"num", text:"A toy car moves in a circle of radius 0.20 m at a constant speed of 1.5 m/s. Find its centripetal acceleration.",
+          answer:"a = v\u00b2/r = (1.5)\u00b2/0.20 = <b>11.25 m/s\u00b2 \u2248 11.3 m/s\u00b2</b>" },
+        { type:"id", suggestWildcard:true, text:"At what launch angle (measured from the horizontal) does projectile motion become identical to pure free fall?",
+          answer:"<b>90\u00b0</b> — at \u03b8 = 90\u00b0, v\u2080\u2093 = v\u2080cos90\u00b0 = 0, so the horizontal component vanishes and only vertical motion remains, exactly matching free fall." }
+      ]
+    }
+  ];
+
+  var TYPE_LABEL = { tf:"True / False", id:"Identification", num:"Numerical", con:"Conceptual" };
+  var TYPE_CLASS = { tf:"tf", id:"id", num:"num", con:"con" };
+  var TEAM_DOTS = ["#ff5d73","#ff8a3d","#ffd24a","#37d67a","#4aa3ff","#b98cff"];
+  var GROUP_COUNT = 6;
+
+  /* ---------- Build linear slide list ---------- */
+  // slide: {kind:'intro', r} or {kind:'q', r, q} or {kind:'final'}
+  var SLIDES = [];
+  ROUNDS.forEach(function(rd, ri){
+    SLIDES.push({kind:"intro", r:ri});
+    rd.questions.forEach(function(_, qi){ SLIDES.push({kind:"q", r:ri, q:qi}); });
+  });
+  SLIDES.push({kind:"final"});
+
+  /* ======================================================================
+     STATE + PERSISTENCE
+  ====================================================================== */
+  var LS_KEY = "physicsLeague.v1";
+  var state = {
+    slide:0,
+    names:["Group 1","Group 2","Group 3","Group 4","Group 5","Group 6"],
+    // scoring keyed by "ri-qi": { g:{gid:val}, mult:bool, flip:gid|null, wild:bool }
+    scoring:{},
+    revealed:{}   // "ri-qi": bool
+  };
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(LS_KEY);
+      if(raw){
+        var d = JSON.parse(raw);
+        if(d.names && d.names.length===GROUP_COUNT) state.names = d.names;
+        if(d.scoring) state.scoring = d.scoring;
+        if(d.revealed) state.revealed = d.revealed;
+        if(typeof d.slide==="number") state.slide = Math.min(d.slide, SLIDES.length-1);
+      }
+    }catch(e){}
+  }
+  function save(){
+    try{
+      localStorage.setItem(LS_KEY, JSON.stringify({
+        names:state.names, scoring:state.scoring, revealed:state.revealed, slide:state.slide
+      }));
+    }catch(e){}
+  }
+
+  function qKey(ri,qi){ return ri+"-"+qi; }
+  function getScoring(ri,qi){
+    var k = qKey(ri,qi);
+    if(!state.scoring[k]){
+      var wild = false;
+      var q = ROUNDS[ri].questions[qi];
+      if(q && q.suggestWildcard) wild = true;   // default wildcard suggestion pre-armed
+      state.scoring[k] = { g:{}, mult:false, flip:null, wild:wild };
+    }
+    return state.scoring[k];
+  }
+
+  /* ======================================================================
+     SCORE COMPUTATION
+  ====================================================================== */
+  function totals(){
+    var t = [0,0,0,0,0,0];
+    Object.keys(state.scoring).forEach(function(k){
+      var parts = k.split("-"); var ri = +parts[0], qi = +parts[1];
+      var rd = ROUNDS[ri]; if(!rd) return;
+      var q = rd.questions[qi]; if(!q) return;
+      var sc = state.scoring[k];
+      for(var g=0; g<GROUP_COUNT; g++){
+        var v = sc.g[g];
+        if(rd.key==="r1"){
+          if(v==="correct") t[g] += (q.double?20:10);
+        } else if(rd.key==="r2"){
+          var base = v==="full"?30 : v==="partial"?15 : 0;
+          if(base) t[g] += base * (sc.mult?2:1);
+          if(sc.flip===g) t[g] += 5;
+        } else if(rd.key==="r3"){
+          if(v==="correct") t[g] += (sc.wild?45:15);
+        }
+      }
+    });
+    return t;
+  }
+
+  /* ======================================================================
+     TIMER  (per slide; not persisted)
+  ====================================================================== */
+  var timer = { duration:20, remaining:20, running:false, endAt:0, iv:null, audioCtx:null, lastBeep:-1 };
+
+  function fmt(sec){
+    sec = Math.max(0, Math.ceil(sec));
+    if(timer.duration >= 60){
+      var m = Math.floor(sec/60), s = sec%60;
+      return m + ":" + (s<10?"0":"") + s;
+    }
+    return String(sec);
+  }
+  function beep(freq, dur){
+    try{
+      if(!timer.audioCtx) timer.audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+      var ac = timer.audioCtx;
+      var o = ac.createOscillator(), g = ac.createGain();
+      o.frequency.value = freq; o.type="sine";
+      o.connect(g); g.connect(ac.destination);
+      g.gain.setValueAtTime(0.001, ac.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.25, ac.currentTime+0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+dur);
+      o.start(); o.stop(ac.currentTime+dur);
+    }catch(e){}
+  }
+  function timerTick(){
+    if(!timer.running) return;
+    timer.remaining = (timer.endAt - Date.now())/1000;
+    var whole = Math.ceil(timer.remaining);
+    if(timer.remaining>0 && whole<=3 && whole!==timer.lastBeep){ timer.lastBeep = whole; beep(760,0.12); }
+    if(timer.remaining<=0){
+      timer.remaining = 0; timer.running=false; clearInterval(timer.iv); timer.iv=null;
+      beep(420,0.5);
+    }
+    updateTimerUI();
+  }
+  function startTimer(){
+    if(timer.running || timer.remaining<=0) return;
+    timer.running = true;
+    timer.endAt = Date.now() + timer.remaining*1000;
+    if(timer.iv) clearInterval(timer.iv);
+    timer.iv = setInterval(timerTick, 200);
+    updateTimerUI();
+  }
+  function pauseTimer(){
+    if(!timer.running) return;
+    timer.running=false;
+    timer.remaining = (timer.endAt - Date.now())/1000;
+    if(timer.iv){ clearInterval(timer.iv); timer.iv=null; }
+    updateTimerUI();
+  }
+  function resetTimer(dur){
+    if(timer.iv){ clearInterval(timer.iv); timer.iv=null; }
+    if(typeof dur==="number") timer.duration = dur;
+    timer.remaining = timer.duration; timer.running=false; timer.lastBeep=-1;
+    updateTimerUI();
+  }
+  function toggleTimer(){ timer.running ? pauseTimer() : startTimer(); }
+  function updateTimerUI(){
+    var el = document.getElementById("timerDisplay");
+    if(!el) return;
+    el.textContent = fmt(timer.remaining);
+    el.className = "timer" + (timer.remaining<=0 ? " done" : timer.running ? (timer.remaining<=5&&timer.duration<60||timer.remaining<=10?" warn":" run") : "");
+    var pb = document.getElementById("btnTimerToggle");
+    if(pb) pb.textContent = timer.running ? "⏸" : "▶";
+  }
+
+  /* ======================================================================
+     RENDERING
+  ====================================================================== */
+  var stage = document.getElementById("stage");
+  var scorebar = document.getElementById("scorebar");
+  var roundPill = document.getElementById("roundPill");
+
+  function esc(s){ return s; } // question strings are trusted, contain intended markup
+
+  function render(){
+    var slide = SLIDES[state.slide];
+    if(slide.kind==="intro") renderIntro(slide);
+    else if(slide.kind==="q") renderQuestion(slide);
+    else renderFinal();
+    renderScorebar();
+    save();
+  }
+
+  function renderIntro(slide){
+    var rd = ROUNDS[slide.r]; var i = rd.intro;
+    roundPill.textContent = rd.name;
+    stage.innerHTML =
+      '<div class="intro">' +
+        '<div class="kick">'+i.kick+'</div>' +
+        '<h1><span class="g">'+i.title+'</span></h1>' +
+        '<div class="sub">'+rd.tag+'</div>' +
+        '<div class="rules"><ul>' + i.rules.map(function(r){return '<li>'+r+'</li>';}).join('') + '</ul></div>' +
+        '<div class="navrow" style="max-width:640px;margin:22px auto 0;">' + navButtons() + '</div>' +
+      '</div>';
+    wireNav();
+  }
+
+  function renderQuestion(slide){
+    var ri = slide.r, qi = slide.q;
+    var rd = ROUNDS[ri], q = rd.questions[qi];
+    var k = qKey(ri,qi);
+    var revealed = !!state.revealed[k];
+    var sc = getScoring(ri,qi);
+    roundPill.textContent = rd.name;
+
+    resetTimer(rd.time);
+
+    var displayNum = (rd.key==="r2" && q.title) ? "" : "Question " + (qi+1) + " of " + rd.questions.length;
+    var titleLine = q.title ? q.title : "";
+
+    var html = "";
+    html += '<div class="qmeta">';
+    if(titleLine) html += '<span class="qnum">'+titleLine+'</span>';
+    else html += '<span class="qnum">'+displayNum+'</span>';
+    html += '<span class="badge '+TYPE_CLASS[q.type]+'">'+TYPE_LABEL[q.type]+'</span>';
+    // point chip during solving (do NOT tip off Double Trouble / Wildcard)
+    if(rd.key==="r1") html += '<span class="chip">+10</span>';
+    else if(rd.key==="r2") html += '<span class="chip">'+(sc.mult?"+60 / +30":"+30 / +15")+'</span>';
+    else if(rd.key==="r3") html += '<span class="chip">+15</span>';
+
+    // Timer controls
+    html += '<div class="timer-wrap">' +
+              '<div class="timer" id="timerDisplay">'+fmt(rd.time)+'</div>' +
+              '<button class="tbtn" id="btnTimerToggle" title="Start / pause (Space)">▶</button>' +
+              '<button class="tbtn" id="btnTimerReset" title="Reset timer">↺</button>' +
+            '</div>';
+    html += '</div>';
+
+    // Mystery Multiplier banner for R2 (revealed BEFORE solving — host toggles it)
+    if(rd.key==="r2"){
+      html += '<div class="reveal-row"><button class="toggle-btn'+(sc.mult?" on":"")+'" id="btnMult">✨ Mystery Multiplier ×2 '+(sc.mult?"— DOUBLE POINTS ON":"(off)")+'</button>'+
+              (q.suggestMultiplier?'<span class="score-head" style="display:inline;margin-left:10px;"><span class="hint">suggested pick for max drama</span></span>':'')+'</div>';
+      if(sc.mult) html += '<div class="twist multiplier">✨ MYSTERY MULTIPLIER — this problem is worth DOUBLE points!</div>';
+    }
+
+    html += '<div class="qtext'+(q.text.length>150?" small":"")+'">'+q.text+'</div>';
+
+    // Reveal / answer
+    if(!revealed){
+      html += '<div class="reveal-row"><button class="reveal-btn" id="btnReveal">Reveal Answer</button></div>';
+    } else {
+      html += '<div class="answer"><span class="lbl">Answer</span>'+q.answer +
+              (q.note?'<div class="note">'+q.note+'</div>':'') + '</div>';
+      // Twist reveals AFTER boards up
+      if(rd.key==="r1" && q.double)
+        html += '<div class="twist double">🎲 DOUBLE TROUBLE — this question was secretly worth +20 points!</div>';
+      if(rd.key==="r3" && sc.wild)
+        html += '<div class="twist wildcard">⚡ WILDCARD — this question is worth 3× points (+45)! A huge swing!</div>';
+
+      html += renderScoringPanel(ri, qi, sc, q, rd);
+    }
+
+    // Nav
+    html += '<div class="navrow">' + navButtons() + '</div>';
+
+    stage.innerHTML = html;
+
+    // wire timer buttons
+    byId("btnTimerToggle").onclick = toggleTimer;
+    byId("btnTimerReset").onclick = function(){ resetTimer(rd.time); };
+    if(byId("btnReveal")) byId("btnReveal").onclick = function(){ state.revealed[k]=true; render(); };
+    if(byId("btnMult")) byId("btnMult").onclick = function(){ sc.mult=!sc.mult; save(); render(); };
+    wireScoring(ri,qi,sc,rd);
+    wireNav();
+    updateTimerUI();
+  }
+
+  function renderScoringPanel(ri, qi, sc, q, rd){
+    var h = '<div class="score-panel">';
+    h += '<div class="score-head"><h3>Score the round</h3>';
+
+    if(rd.key==="r1" || rd.key==="r3"){
+      h += '<span class="hint">Click every group that answered correctly.</span>';
+      if(rd.key==="r3"){
+        h += '<div class="r2tools"><button class="toggle-btn wild'+(sc.wild?" on":"")+'" id="btnWild">⚡ Wildcard ×3 '+(sc.wild?"ARMED":"(off)")+'</button></div>';
+      }
+      h += '</div>';
+      h += '<div class="grp-grid">';
+      var val = rd.key==="r1" ? (sc.wild?0:0) : 0;
+      var per = rd.key==="r1" ? (q.double?20:10) : (sc.wild?45:15);
+      for(var g=0; g<GROUP_COUNT; g++){
+        var on = sc.g[g]==="correct";
+        h += '<button class="grp-btn'+(on?" correct":"")+'" data-g="'+g+'" data-act="correct">' +
+               '<span>'+dot(g)+state.names[g]+'</span>' +
+               '<span class="pts">'+(on?"+"+per:"+0")+'</span>' +
+             '</button>';
+      }
+      h += '</div>';
+    } else if(rd.key==="r2"){
+      h += '<span class="hint">Set Full (+30) or Partial (+15). Star = Flip First (+5).</span></div>';
+      h += '<div class="r2-grid">';
+      for(var g2=0; g2<GROUP_COUNT; g2++){
+        var v = sc.g[g2]||"";
+        h += '<div class="r2-row">' +
+               '<button class="flip'+(sc.flip===g2?" on":"")+'" data-g="'+g2+'" data-act="flip" title="Flip First +5">★</button>' +
+               '<span class="nm">'+dot(g2)+state.names[g2]+'</span>' +
+               '<button class="sbtn partial'+(v==="partial"?" on":"")+'" data-g="'+g2+'" data-act="partial">Partial</button>' +
+               '<button class="sbtn full'+(v==="full"?" on":"")+'" data-g="'+g2+'" data-act="full">Full</button>' +
+             '</div>';
+      }
+      h += '</div>';
+    }
+    h += '</div>';
+    return h;
+  }
+
+  function wireScoring(ri,qi,sc,rd){
+    var btns = stage.querySelectorAll("[data-act]");
+    Array.prototype.forEach.call(btns, function(b){
+      b.onclick = function(){
+        var g = +b.getAttribute("data-g");
+        var act = b.getAttribute("data-act");
+        if(act==="correct"){
+          sc.g[g] = sc.g[g]==="correct" ? "" : "correct";
+        } else if(act==="full"){
+          sc.g[g] = sc.g[g]==="full" ? "" : "full";
+        } else if(act==="partial"){
+          sc.g[g] = sc.g[g]==="partial" ? "" : "partial";
+        } else if(act==="flip"){
+          sc.flip = sc.flip===g ? null : g;
+        }
+        save(); render();
+      };
+    });
+    if(byId("btnWild")) byId("btnWild").onclick = function(){ sc.wild=!sc.wild; save(); render(); };
+  }
+
+  function renderFinal(){
+    roundPill.textContent = "Final Results";
+    var t = totals();
+    var order = rankOrder(t);
+    var medals = ["🥇","🥈","🥉"];
+    var rows = order.map(function(g, idx){
+      var cls = idx===0?"p1":idx===1?"p2":idx===2?"p3":"";
+      return '<div class="lb-row '+cls+'" style="animation-delay:'+(idx*0.08)+'s">' +
+               '<span class="rank">'+(idx<3?'<span class="medal">'+medals[idx]+'</span>':(idx+1))+'</span>' +
+               '<span class="nm">'+dot(g)+state.names[g]+'</span>' +
+               '<span class="pts">'+t[g]+'</span>' +
+             '</div>';
+    }).join('');
+    stage.innerHTML =
+      '<div class="intro">' +
+        '<div class="kick">The Championship</div>' +
+        '<h1><span class="g">Final Standings</span></h1>' +
+        '<div class="lb" style="margin:18px auto 0;max-width:640px;">'+rows+'</div>' +
+        '<div class="navrow" style="max-width:640px;margin:22px auto 0;">' + navButtons() + '</div>' +
+      '</div>';
+    wireNav();
+  }
+
+  function renderScorebar(){
+    var t = totals();
+    var order = rankOrder(t);
+    var rankOf = {}; order.forEach(function(g,i){ rankOf[g]=i; });
+    var maxScore = Math.max.apply(null, t);
+    var html = "";
+    for(var g=0; g<GROUP_COUNT; g++){
+      var lead = (t[g]===maxScore && maxScore>0);
+      html += '<div class="sb-team'+(lead?" lead":"")+'">' +
+                '<span class="nm">'+dot(g)+state.names[g]+'</span>' +
+                '<span class="tot">'+t[g]+'</span>' +
+                '<span class="rk">'+(t[g]>0?ordinal(rankOf[g]+1)+' place':'&nbsp;')+'</span>' +
+              '</div>';
+    }
+    scorebar.innerHTML = html;
+  }
+
+  /* ---------- helpers ---------- */
+  function byId(id){ return document.getElementById(id); }
+  function dot(g){ return '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;background:'+TEAM_DOTS[g]+';"></span>'; }
+  function ordinal(n){ var s=["th","st","nd","rd"], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); }
+  function rankOrder(t){
+    var idx=[0,1,2,3,4,5];
+    idx.sort(function(a,b){ return t[b]-t[a] || a-b; });
+    return idx;
+  }
+  function navButtons(){
+    var atStart = state.slide===0;
+    var atEnd = state.slide===SLIDES.length-1;
+    return '<button class="nav-btn" id="btnPrev"'+(atStart?" disabled":"")+'>← Prev</button>' +
+           '<span class="prog">'+(state.slide+1)+' / '+SLIDES.length+'</span>' +
+           '<button class="nav-btn next" id="btnNext"'+(atEnd?" disabled":"")+'>'+(atEnd?"Done":"Next →")+'</button>';
+  }
+  function wireNav(){
+    if(byId("btnPrev")) byId("btnPrev").onclick = function(){ go(-1); };
+    if(byId("btnNext")) byId("btnNext").onclick = function(){ go(1); };
+  }
+  function go(dir){
+    var n = state.slide + dir;
+    if(n<0 || n>=SLIDES.length) return;
+    state.slide = n;
+    render();
+  }
+
+  /* ======================================================================
+     TOP-BAR ACTIONS
+  ====================================================================== */
+  // Teams modal
+  var teamsOverlay = byId("teamsOverlay");
+  byId("btnTeams").onclick = function(){
+    var wrap = byId("teamEdits"); wrap.innerHTML = "";
+    for(var g=0; g<GROUP_COUNT; g++){
+      var row = document.createElement("div"); row.className="team-edit";
+      row.innerHTML = '<span class="dot" style="background:'+TEAM_DOTS[g]+'"></span>' +
+                      '<input type="text" maxlength="24" value="'+state.names[g].replace(/"/g,'&quot;')+'" data-g="'+g+'">';
+      wrap.appendChild(row);
+    }
+    teamsOverlay.classList.remove("hidden");
+  };
+  byId("teamsCancel").onclick = function(){ teamsOverlay.classList.add("hidden"); };
+  byId("teamsSave").onclick = function(){
+    var inputs = teamsOverlay.querySelectorAll("input[data-g]");
+    Array.prototype.forEach.call(inputs, function(inp){
+      var g = +inp.getAttribute("data-g");
+      var v = inp.value.trim();
+      state.names[g] = v || ("Group "+(g+1));
+    });
+    teamsOverlay.classList.add("hidden");
+    save(); render();
+  };
+
+  // Leaderboard overlay
+  var boardOverlay = byId("boardOverlay");
+  byId("btnBoard").onclick = function(){
+    var t = totals(); var order = rankOrder(t); var medals=["🥇","🥈","🥉"];
+    byId("lbRows").innerHTML = order.map(function(g,idx){
+      var cls = idx===0?"p1":idx===1?"p2":idx===2?"p3":"";
+      return '<div class="lb-row '+cls+'">' +
+               '<span class="rank">'+(idx<3?'<span class="medal">'+medals[idx]+'</span>':(idx+1))+'</span>' +
+               '<span class="nm">'+dot(g)+state.names[g]+'</span>' +
+               '<span class="pts">'+t[g]+'</span></div>';
+    }).join('');
+    boardOverlay.classList.remove("hidden");
+  };
+  byId("boardClose").onclick = function(){ boardOverlay.classList.add("hidden"); };
+
+  // Fullscreen
+  byId("btnFull").onclick = function(){
+    if(!document.fullscreenElement){ (document.documentElement.requestFullscreen||function(){})(); }
+    else if(document.exitFullscreen){ document.exitFullscreen(); }
+  };
+
+  // Reset scores
+  byId("btnReset").onclick = function(){
+    if(confirm("Reset ALL scores and reveals? Team names are kept.")){
+      state.scoring = {}; state.revealed = {};
+      save(); render();
+    }
+  };
+
+  // Close overlays on backdrop click
+  [teamsOverlay, boardOverlay].forEach(function(ov){
+    ov.addEventListener("click", function(e){ if(e.target===ov) ov.classList.add("hidden"); });
+  });
+
+  /* ---------- Keyboard shortcuts ---------- */
+  document.addEventListener("keydown", function(e){
+    if(e.target.tagName==="INPUT") return;
+    if(!teamsOverlay.classList.contains("hidden") || !boardOverlay.classList.contains("hidden")){
+      if(e.key==="Escape"){ teamsOverlay.classList.add("hidden"); boardOverlay.classList.add("hidden"); }
+      return;
+    }
+    var slide = SLIDES[state.slide];
+    if(e.key===" "){ e.preventDefault(); if(slide.kind==="q") toggleTimer(); }
+    else if(e.key==="ArrowRight"){ go(1); }
+    else if(e.key==="ArrowLeft"){ go(-1); }
+    else if((e.key==="r"||e.key==="R") && slide.kind==="q"){
+      var k = qKey(slide.r, slide.q);
+      if(!state.revealed[k]){ state.revealed[k]=true; render(); }
+    }
+  });
+
+  /* ======================================================================
+     INIT
+  ====================================================================== */
+  load();
+  render();
+})();
+</script>
+</body>
+</html>

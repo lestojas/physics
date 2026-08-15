@@ -1,0 +1,4 @@
+# Physics League screenshow — standalone static site, no build step.
+# Publish the branch root so index.html is served at "/".
+[build]
+  publish = "."
