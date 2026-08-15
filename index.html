@@ -226,6 +226,10 @@
   .format-tools{display:flex;gap:5px;flex-wrap:wrap;}
   .format-btn{padding:4px 8px;font-size:12px;line-height:1.1;border-radius:6px;}
   .question-field textarea{width:100%;min-height:92px;resize:vertical;line-height:1.4;}
+  .rich-editor{width:100%;min-height:104px;padding:10px 12px;background:var(--bg2);border:1px solid var(--line);border-radius:7px;color:var(--text);font:inherit;line-height:1.45;outline:none;white-space:pre-wrap;}
+  .rich-editor:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(185,140,255,.18);}
+  .rich-editor .equation{font-family:"Times New Roman",serif;color:var(--gold);font-style:italic;}
+  .format-color{width:28px;height:26px;padding:2px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);}
   .question-field input,.question-field select{width:100%;}
   .question-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;}
   @media(max-width:650px){.jump-item{align-items:flex-start;flex-direction:column;}.jump-main{width:100%;}.jump-tools{width:100%;justify-content:flex-start;}.question-grid{grid-template-columns:1fr;}}
@@ -335,9 +339,10 @@
 
 <!-- Question browser (jump to, configure, or edit any question) -->
 <div class="overlay hidden" id="jumpOverlay">
-  <div class="modal" style="max-width:760px;">
+  <div class="modal" style="max-width:900px;">
     <h2>Browse Questions</h2>
-    <p class="sub">Choose each Round 2 multiplier and Round 3 wildcard here before play. You can also edit any question, answer, type, or timer; all changes save automatically.</p>
+    <p class="sub">Choose and combine gimmicks on any question, then set their values. Use the batch controls to apply a configuration across selected questions.</p>
+    <div class="score-panel" id="batchTools"><div class="score-head"><h3>Batch gimmicks</h3><span class="hint">Check questions below, choose any combination, then apply.</span></div><div class="jump-tools"><label>Multiplier × <input class="jump-select" id="batchMultValue" type="number" min="1" value="2"></label><label>Wildcard + <input class="jump-select" id="batchWildValue" type="number" min="0" value="30"></label><label>Flip First + <input class="jump-select" id="batchFlipValue" type="number" min="0" value="5"></label><button class="sbtn" id="batchApply">Apply selected</button></div></div>
     <div id="jumpList"></div>
     <div class="modal-actions">
       <button class="btn-ghost" id="jumpClose">Close</button>
@@ -356,9 +361,9 @@
         <div class="question-field"><label for="editType">Question type</label><select id="editType"><option value="tf">True / False</option><option value="id">Identification</option><option value="num">Numerical</option><option value="con">Conceptual</option></select></div>
         <div class="question-field"><label for="editTime">Time (seconds)</label><input id="editTime" type="number" min="1" max="3600" required></div>
       </div>
-      <div class="question-field"><div class="field-label-row"><label for="editText">Question</label><div class="format-tools" data-format-for="editText"><button class="sbtn format-btn" type="button" data-format="bold"><b>B</b></button><button class="sbtn format-btn" type="button" data-format="italic"><i>I</i></button><button class="sbtn format-btn" type="button" data-format="bullets">• List</button><button class="sbtn format-btn" type="button" data-format="break">↵ Break</button></div></div><textarea id="editText" required></textarea></div>
-      <div class="question-field"><div class="field-label-row"><label for="editAnswer">Answer / explanation</label><div class="format-tools" data-format-for="editAnswer"><button class="sbtn format-btn" type="button" data-format="bold"><b>B</b></button><button class="sbtn format-btn" type="button" data-format="italic"><i>I</i></button><button class="sbtn format-btn" type="button" data-format="bullets">• List</button><button class="sbtn format-btn" type="button" data-format="break">↵ Break</button></div></div><textarea id="editAnswer" required></textarea></div>
-      <div class="question-field"><div class="field-label-row"><label for="editNote">Scoring note (optional)</label><div class="format-tools" data-format-for="editNote"><button class="sbtn format-btn" type="button" data-format="bold"><b>B</b></button><button class="sbtn format-btn" type="button" data-format="italic"><i>I</i></button><button class="sbtn format-btn" type="button" data-format="bullets">• List</button><button class="sbtn format-btn" type="button" data-format="break">↵ Break</button></div></div><textarea id="editNote"></textarea></div>
+      <div class="question-field"><div class="field-label-row"><label>Question</label><div class="format-tools" data-format-for="editText"><button class="sbtn format-btn" type="button" data-format="bold"><b>B</b></button><button class="sbtn format-btn" type="button" data-format="italic"><i>I</i></button><button class="sbtn format-btn" type="button" data-format="bullets">• List</button><button class="sbtn format-btn" type="button" data-format="equation">ƒx Equation</button><input class="format-color" type="color" value="#f2f2f7" data-color-for="editText"></div></div><div id="editText" class="rich-editor" contenteditable="true"></div></div>
+      <div class="question-field"><div class="field-label-row"><label>Answer / explanation</label><div class="format-tools" data-format-for="editAnswer"><button class="sbtn format-btn" type="button" data-format="bold"><b>B</b></button><button class="sbtn format-btn" type="button" data-format="italic"><i>I</i></button><button class="sbtn format-btn" type="button" data-format="bullets">• List</button><button class="sbtn format-btn" type="button" data-format="equation">ƒx Equation</button><input class="format-color" type="color" value="#f2f2f7" data-color-for="editAnswer"></div></div><div id="editAnswer" class="rich-editor" contenteditable="true"></div></div>
+      <div class="question-field"><div class="field-label-row"><label>Scoring note (optional)</label><div class="format-tools" data-format-for="editNote"><button class="sbtn format-btn" type="button" data-format="bold"><b>B</b></button><button class="sbtn format-btn" type="button" data-format="italic"><i>I</i></button><button class="sbtn format-btn" type="button" data-format="bullets">• List</button><button class="sbtn format-btn" type="button" data-format="equation">ƒx Equation</button><input class="format-color" type="color" value="#f2f2f7" data-color-for="editNote"></div></div><div id="editNote" class="rich-editor" contenteditable="true"></div></div>
       <div class="modal-actions">
         <button class="btn-ghost" type="button" id="questionCancel">Cancel</button>
         <button class="btn-primary" type="submit">Save Question</button>
@@ -470,11 +475,11 @@
   /* ---------- Build linear slide list ---------- */
   // slide: {kind:'intro', r} or {kind:'q', r, q} or {kind:'final'}
   var SLIDES = [];
-  ROUNDS.forEach(function(rd, ri){
-    SLIDES.push({kind:"intro", r:ri});
-    rd.questions.forEach(function(_, qi){ SLIDES.push({kind:"q", r:ri, q:qi}); });
-  });
-  SLIDES.push({kind:"final"});
+  function rebuildSlides(){
+    SLIDES=[]; ROUNDS.forEach(function(rd,ri){SLIDES.push({kind:"intro",r:ri});rd.questions.forEach(function(_,qi){SLIDES.push({kind:"q",r:ri,q:qi});});});SLIDES.push({kind:"final"});
+    state.slide=Math.min(state.slide||0,SLIDES.length-1);
+  }
+  rebuildSlides();
 
   /* ======================================================================
      STATE + PERSISTENCE
@@ -488,6 +493,7 @@
     revealed:{},   // "ri-qi": bool
     questionEdits:{}, // persistent content + timer overrides keyed by "ri-qi"
     roundEdits:{}, // editable round labels and mechanics
+    questionSets:{}, // persisted added/reordered questions
     twistSettingsVersion:1
   };
 
@@ -501,7 +507,10 @@
         if(d.revealed) state.revealed = d.revealed;
         if(d.questionEdits) state.questionEdits = d.questionEdits;
         if(d.roundEdits) state.roundEdits = d.roundEdits;
+        if(d.questionSets) state.questionSets = d.questionSets;
         applySavedRoundEdits();
+        Object.keys(state.questionSets).forEach(function(ri){ if(ROUNDS[+ri]) ROUNDS[+ri].questions=state.questionSets[ri]; });
+        rebuildSlides();
         // Legacy data could carry a wildcard pre-armed by the old UI. Clear it
         // once so every multiplier/wildcard is explicitly selected in Browse.
         if(d.twistSettingsVersion!==1){
@@ -524,7 +533,7 @@
     try{
       localStorage.setItem(LS_KEY, JSON.stringify({
         names:state.names, scoring:state.scoring, revealed:state.revealed, questionEdits:state.questionEdits,
-        roundEdits:state.roundEdits, twistSettingsVersion:state.twistSettingsVersion, slide:state.slide,
+        roundEdits:state.roundEdits, questionSets:state.questionSets, twistSettingsVersion:state.twistSettingsVersion, slide:state.slide,
         music:{ on:music.on, vol:music.vol }
       }));
     }catch(e){}
@@ -558,9 +567,10 @@
       applyQuestionEdit(+p[0], +p[1], state.questionEdits[k]);
     });
   }
+  function saveQuestionSet(ri){ state.questionSets[ri]=ROUNDS[ri].questions; rebuildSlides(); save(); }
   function getScoring(ri,qi){
     var k = qKey(ri,qi);
-    if(!state.scoring[k]) state.scoring[k] = { g:{}, mult:false, flip:null, wild:false };
+    if(!state.scoring[k]) state.scoring[k] = { g:{}, mult:false, multiplier:2, flip:null, flipFirst:false, flipPoints:5, wild:false, wildcardBonus:30 };
     return state.scoring[k];
   }
 
