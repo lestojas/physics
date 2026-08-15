@@ -297,6 +297,15 @@ td .tag { font-weight: 700; }
   transition: transform 0.15s, filter 0.15s;
 }
 .card:hover { transform: translateY(-3px); filter: brightness(1.08); }
+
+/* Featured game-show card spans the full row and uses the purple accent */
+.card.league-card {
+  grid-column: 1 / -1;
+  background:
+    linear-gradient(135deg, #2a2333, #241f2e) padding-box,
+    linear-gradient(135deg, #b98cff, #7a5cff) border-box;
+}
+.card.league-card h3 { font-size: 23px; }
 .card .badge {
   font-family: "Courier New", monospace;
   font-size: 12px;
