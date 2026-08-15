@@ -1199,17 +1199,17 @@
     var list = byId("jumpList"), html = "";
     SLIDES.forEach(function(s, idx){
       if(s.kind==="intro"){
-        html += '<div class="jump-round">'+ROUNDS[s.r].name+' <button class="sbtn jump-edit" data-edit-round="'+s.r+'">Edit mechanics</button></div>';
+        html += '<div class="jump-round">'+ROUNDS[s.r].name+' <button class="sbtn jump-edit" data-edit-round="'+s.r+'">Edit mechanics</button> <button class="sbtn jump-edit" data-add-question="'+s.r+'">+ Add question</button></div>';
       } else if(s.kind==="q"){
         var rd = ROUNDS[s.r], q = rd.questions[s.q], k = qKey(s.r, s.q), sc = getScoring(s.r, s.q);
         var label = q.title ? q.title : ("Question "+(s.q+1));
         var scored = Object.keys(sc.g).filter(function(g){ return sc.g[g]; }).length;
         var status = (state.revealed[k] ? '<span class="rev">revealed</span>' : "not shown") +
-                     ' · '+getQuestionTime(s.r, s.q)+'s' + (scored ? (" · "+scored+" scored") : "");
+                     ' · '+TYPE_LABEL[q.type]+' · '+getQuestionTime(s.r, s.q)+'s' + (scored ? (" · "+scored+" scored") : "");
         html += '<div class="jump-item'+(idx===state.slide?" current":"")+'">'+
                   '<button class="jump-main" data-slide="'+idx+'"><span>'+label+'</span><span class="tag2">'+status+'</span></button>'+
                   '<div class="jump-tools">'+twistControl(rd, s.r, s.q, sc)+
-                    '<button class="sbtn jump-edit" data-edit-ri="'+s.r+'" data-edit-qi="'+s.q+'">Edit</button></div></div>';
+                    '<button class="sbtn jump-edit" data-move-ri="'+s.r+'" data-move-qi="'+s.q+'" data-move="-1">↑</button><button class="sbtn jump-edit" data-move-ri="'+s.r+'" data-move-qi="'+s.q+'" data-move="1">↓</button><button class="sbtn jump-edit" data-edit-ri="'+s.r+'" data-edit-qi="'+s.q+'">Edit</button></div></div>';
       } else {
         html += '<div class="jump-item'+(idx===state.slide?" current":"")+'"><button class="jump-main" data-slide="'+idx+'"><span>🏆 Final Standings</span></button></div>';
       }
@@ -1231,6 +1231,12 @@
     });
     Array.prototype.forEach.call(list.querySelectorAll("[data-edit-round]"), function(b){
       b.onclick = function(){ openRoundEditor(+this.getAttribute("data-edit-round")); };
+    });
+    Array.prototype.forEach.call(list.querySelectorAll("[data-add-question]"),function(button){
+      button.onclick=function(){var ri=+this.getAttribute("data-add-question");ROUNDS[ri].questions.push({type:"tf",text:"New question",answer:"Answer"});saveQuestionSet(ri);openQuestionEditor(ri,ROUNDS[ri].questions.length-1);};
+    });
+    Array.prototype.forEach.call(list.querySelectorAll("[data-move-ri]"),function(button){
+      button.onclick=function(){var ri=+this.getAttribute("data-move-ri"),qi=+this.getAttribute("data-move-qi"),to=qi+(+this.getAttribute("data-move"));if(to<0||to>=ROUNDS[ri].questions.length)return;var question=ROUNDS[ri].questions.splice(qi,1)[0];ROUNDS[ri].questions.splice(to,0,question);saveQuestionSet(ri);openJump();};
     });
     jumpOverlay.classList.remove("hidden");
   }
