@@ -57,12 +57,12 @@
 
   /* Top bar */
   .topbar{
-    display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;
-    padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--line);
-    flex:0 0 auto;
+    display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;gap:10px 18px;
+    padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--line);flex:0 0 auto;
   }
-  .top-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto;}
+  .top-controls{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:nowrap;min-width:0;}
   .brand{font-weight:800;font-size:18px;letter-spacing:.3px;white-space:nowrap;}
+  @media(max-width:1180px){.topbar{grid-template-columns:auto 1fr;}.top-controls{grid-column:1 / -1;justify-content:flex-start;flex-wrap:wrap;}}
   .brand .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
   .round-pill{
     font-size:13px;font-weight:700;padding:5px 12px;border-radius:999px;
@@ -221,7 +221,10 @@
   .jump-edit{padding:7px 10px;}
   .question-editor{max-width:780px;}
   .question-field{display:flex;flex-direction:column;gap:6px;margin:11px 0;}
+  .field-label-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
   .question-field label{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+  .format-tools{display:flex;gap:5px;flex-wrap:wrap;}
+  .format-btn{padding:4px 8px;font-size:12px;line-height:1.1;border-radius:6px;}
   .question-field textarea{width:100%;min-height:92px;resize:vertical;line-height:1.4;}
   .question-field input,.question-field select{width:100%;}
   .question-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;}
@@ -288,7 +291,7 @@
 <body>
 <div id="app">
   <div class="topbar">
-    <span class="brand"><span class="g">Physics League</span> · Kinematics Championship</span>
+    <span class="brand"><span class="g">Physics League</span></span>
     <span class="round-pill" id="roundPill">Ready</span>
     <div class="top-controls">
       <button class="top-btn" id="btnJump">☰ Questions</button>
@@ -353,9 +356,9 @@
         <div class="question-field"><label for="editType">Question type</label><select id="editType"><option value="tf">True / False</option><option value="id">Identification</option><option value="num">Numerical</option><option value="con">Conceptual</option></select></div>
         <div class="question-field"><label for="editTime">Time (seconds)</label><input id="editTime" type="number" min="1" max="3600" required></div>
       </div>
-      <div class="question-field"><label for="editText">Question</label><textarea id="editText" required></textarea></div>
-      <div class="question-field"><label for="editAnswer">Answer / explanation</label><textarea id="editAnswer" required></textarea></div>
-      <div class="question-field"><label for="editNote">Scoring note (optional)</label><textarea id="editNote"></textarea></div>
+      <div class="question-field"><div class="field-label-row"><label for="editText">Question</label><div class="format-tools" data-format-for="editText"><button class="sbtn format-btn" type="button" data-format="bold"><b>B</b></button><button class="sbtn format-btn" type="button" data-format="italic"><i>I</i></button><button class="sbtn format-btn" type="button" data-format="bullets">• List</button><button class="sbtn format-btn" type="button" data-format="break">↵ Break</button></div></div><textarea id="editText" required></textarea></div>
+      <div class="question-field"><div class="field-label-row"><label for="editAnswer">Answer / explanation</label><div class="format-tools" data-format-for="editAnswer"><button class="sbtn format-btn" type="button" data-format="bold"><b>B</b></button><button class="sbtn format-btn" type="button" data-format="italic"><i>I</i></button><button class="sbtn format-btn" type="button" data-format="bullets">• List</button><button class="sbtn format-btn" type="button" data-format="break">↵ Break</button></div></div><textarea id="editAnswer" required></textarea></div>
+      <div class="question-field"><div class="field-label-row"><label for="editNote">Scoring note (optional)</label><div class="format-tools" data-format-for="editNote"><button class="sbtn format-btn" type="button" data-format="bold"><b>B</b></button><button class="sbtn format-btn" type="button" data-format="italic"><i>I</i></button><button class="sbtn format-btn" type="button" data-format="bullets">• List</button><button class="sbtn format-btn" type="button" data-format="break">↵ Break</button></div></div><textarea id="editNote"></textarea></div>
       <div class="modal-actions">
         <button class="btn-ghost" type="button" id="questionCancel">Cancel</button>
         <button class="btn-primary" type="submit">Save Question</button>
@@ -363,7 +366,7 @@
     </form>
   </div>
 </div>
-
+<div class="overlay hidden" id="roundOverlay"><div class="modal question-editor"><h2>Edit Round Mechanics</h2><p class="sub">Use one rule per line. These settings are saved to this browser.</p><form id="roundForm"><div class="question-grid"><div class="question-field"><label for="editRoundName">Round name</label><input id="editRoundName" type="text" maxlength="80" required></div><div class="question-field"><label for="editRoundTag">Category</label><input id="editRoundTag" type="text" maxlength="50"></div><div class="question-field"><label for="editRoundKick">Round label</label><input id="editRoundKick" type="text" maxlength="80"></div></div><div class="question-field"><label for="editRoundTitle">Slide title</label><input id="editRoundTitle" type="text" maxlength="80" required></div><div class="question-field"><label for="editRoundRules">Mechanics (one rule per line)</label><textarea id="editRoundRules" required></textarea></div><div class="modal-actions"><button class="btn-ghost" type="button" id="roundCancel">Cancel</button><button class="btn-primary" type="submit">Save Mechanics</button></div></form></div></div>
 <div class="dev-credit">Developed by Philip Jayson Lestojas</div>
 
 <script>
@@ -484,6 +487,7 @@
     scoring:{},
     revealed:{},   // "ri-qi": bool
     questionEdits:{}, // persistent content + timer overrides keyed by "ri-qi"
+    roundEdits:{}, // editable round labels and mechanics
     twistSettingsVersion:1
   };
 
@@ -496,6 +500,8 @@
         if(d.scoring) state.scoring = d.scoring;
         if(d.revealed) state.revealed = d.revealed;
         if(d.questionEdits) state.questionEdits = d.questionEdits;
+        if(d.roundEdits) state.roundEdits = d.roundEdits;
+        applySavedRoundEdits();
         // Legacy data could carry a wildcard pre-armed by the old UI. Clear it
         // once so every multiplier/wildcard is explicitly selected in Browse.
         if(d.twistSettingsVersion!==1){
@@ -518,12 +524,14 @@
     try{
       localStorage.setItem(LS_KEY, JSON.stringify({
         names:state.names, scoring:state.scoring, revealed:state.revealed, questionEdits:state.questionEdits,
-        twistSettingsVersion:state.twistSettingsVersion, slide:state.slide,
+        roundEdits:state.roundEdits, twistSettingsVersion:state.twistSettingsVersion, slide:state.slide,
         music:{ on:music.on, vol:music.vol }
       }));
     }catch(e){}
   }
 
+  function applyRoundEdit(ri, edit){var rd=ROUNDS[ri];if(!rd||!edit)return;if(Object.prototype.hasOwnProperty.call(edit,"name"))rd.name=edit.name;if(Object.prototype.hasOwnProperty.call(edit,"tag"))rd.tag=edit.tag;if(Object.prototype.hasOwnProperty.call(edit,"kick"))rd.intro.kick=edit.kick;if(Object.prototype.hasOwnProperty.call(edit,"title"))rd.intro.title=edit.title;if(Object.prototype.hasOwnProperty.call(edit,"rules"))rd.intro.rules=edit.rules;}
+  function applySavedRoundEdits(){Object.keys(state.roundEdits).forEach(function(ri){applyRoundEdit(+ri,state.roundEdits[ri]);});}
   function qKey(ri,qi){ return ri+"-"+qi; }
   function defaultQuestionTime(ri, q){
     var rd = ROUNDS[ri];
