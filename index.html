@@ -134,7 +134,7 @@
   .answer .lbl{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;
     color:var(--good);display:block;margin-bottom:6px;}
   .answer .note{font-size:15px;color:var(--muted);margin-top:10px;font-style:italic;}
-  .answer b{color:var(--gold);}
+  .answer strong{color:var(--gold);}
 
   /* Scoring panel */
   .score-panel{background:var(--bg2);border:1px solid var(--line);border-radius:14px;
@@ -193,7 +193,7 @@
     background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 26px;font-size:17px;max-width:640px;}
   .rules li{margin:0;}
   .rules ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;}
-  .rules b{color:var(--gold);}
+  .rules strong{color:var(--gold);}
 
   /* ---------- Music controls (top bar) ---------- */
   .music-ctl{display:flex;align-items:center;gap:8px;}
@@ -214,6 +214,10 @@
   .jump-item .tag2{margin-left:auto;font-size:11px;color:var(--muted);font-weight:700;white-space:nowrap;}
   .jump-item .rev{color:var(--good);}
   .jump-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end;}
+  .gimmick-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end;}
+  .gimmick{display:flex;align-items:center;gap:4px;padding:4px 7px;border:1px solid var(--line);border-radius:7px;background:var(--bg2);font-size:12px;white-space:nowrap;}
+  .gimmick input[type="number"]{width:50px;padding:3px 5px;background:var(--panel2);border:1px solid var(--line);border-radius:5px;color:var(--text);font:inherit;}
+  .flip-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;align-items:center;}
   .jump-select,.question-field input,.question-field select,.question-field textarea{
     background:var(--bg2);border:1px solid var(--line);border-radius:7px;color:var(--text);
     padding:7px 9px;font:inherit;font-size:13px;}
@@ -301,6 +305,7 @@
       <button class="top-btn" id="btnJump">☰ Questions</button>
       <button class="top-btn" id="btnTeams">✎ Teams</button>
       <button class="top-btn" id="btnBoard">🏆 Leaderboard</button>
+      <button class="top-btn" id="btnText">✎ Website text</button>
       <span class="music-ctl">
         <button class="top-btn" id="btnMusic" title="Toggle background music">♪ Music: On</button>
         <input type="range" id="musicVol" min="0" max="100" value="45" title="Music volume">
@@ -337,12 +342,15 @@
   </div>
 </div>
 
+<!-- Reusable website copy editor -->
+<div class="overlay hidden" id="textOverlay"><div class="modal question-editor"><h2>Edit Website Text</h2><p class="sub">Change the reusable labels and headings. Question content, answers, and round mechanics have their own editors.</p><form id="textForm"><div class="question-grid"><div class="question-field"><label for="textBrand">Brand</label><input id="textBrand" maxlength="60"></div><div class="question-field"><label for="textBrowse">Browse button</label><input id="textBrowse" maxlength="40"></div><div class="question-field"><label for="textTeams">Teams button</label><input id="textTeams" maxlength="40"></div><div class="question-field"><label for="textBoard">Leaderboard button</label><input id="textBoard" maxlength="40"></div><div class="question-field"><label for="textReveal">Reveal button</label><input id="textReveal" maxlength="60"></div><div class="question-field"><label for="textScore">Scoring heading</label><input id="textScore" maxlength="60"></div></div><div class="question-grid"><div class="question-field"><label for="textFinalKick">Final label</label><input id="textFinalKick" maxlength="60"></div><div class="question-field"><label for="textFinalTitle">Final title</label><input id="textFinalTitle" maxlength="60"></div><div class="question-field"><label for="textPageTitle">Browser title</label><input id="textPageTitle" maxlength="100"></div></div><div class="modal-actions"><button class="btn-ghost" type="button" id="textCancel">Cancel</button><button class="btn-primary" type="submit">Save Website Text</button></div></form></div></div>
+
 <!-- Question browser (jump to, configure, or edit any question) -->
 <div class="overlay hidden" id="jumpOverlay">
   <div class="modal" style="max-width:900px;">
     <h2>Browse Questions</h2>
     <p class="sub">Choose and combine gimmicks on any question, then set their values. Use the batch controls to apply a configuration across selected questions.</p>
-    <div class="score-panel" id="batchTools"><div class="score-head"><h3>Batch gimmicks</h3><span class="hint">Check questions below, choose any combination, then apply.</span></div><div class="jump-tools"><label>Multiplier × <input class="jump-select" id="batchMultValue" type="number" min="1" value="2"></label><label>Wildcard + <input class="jump-select" id="batchWildValue" type="number" min="0" value="30"></label><label>Flip First + <input class="jump-select" id="batchFlipValue" type="number" min="0" value="5"></label><button class="sbtn" id="batchApply">Apply selected</button></div></div>
+    <div class="score-panel" id="batchTools"><div class="score-head"><h3>Batch gimmicks</h3><span class="hint">Check questions below, select any combination of gimmicks, then apply only those choices.</span></div><div class="gimmick-tools"><label class="gimmick"><input id="batchMultOn" type="checkbox"> Multiplier × <input id="batchMultValue" type="number" min="1" value="2"></label><label class="gimmick"><input id="batchWildOn" type="checkbox"> Wildcard + <input id="batchWildValue" type="number" min="0" value="30"></label><label class="gimmick"><input id="batchFlipOn" type="checkbox"> Flip First + <input id="batchFlipValue" type="number" min="0" value="5"></label><button class="sbtn" id="batchApply">Apply selected</button></div></div>
     <div id="jumpList"></div>
     <div class="modal-actions">
       <button class="btn-ghost" id="jumpClose">Close</button>
@@ -361,9 +369,9 @@
         <div class="question-field"><label for="editType">Question type</label><select id="editType"><option value="tf">True / False</option><option value="id">Identification</option><option value="num">Numerical</option><option value="con">Conceptual</option></select></div>
         <div class="question-field"><label for="editTime">Time (seconds)</label><input id="editTime" type="number" min="1" max="3600" required></div>
       </div>
-      <div class="question-field"><div class="field-label-row"><label>Question</label><div class="format-tools" data-format-for="editText"><button class="sbtn format-btn" type="button" data-format="bold"><b>B</b></button><button class="sbtn format-btn" type="button" data-format="italic"><i>I</i></button><button class="sbtn format-btn" type="button" data-format="bullets">• List</button><button class="sbtn format-btn" type="button" data-format="equation">ƒx Equation</button><input class="format-color" type="color" value="#f2f2f7" data-color-for="editText"></div></div><div id="editText" class="rich-editor" contenteditable="true"></div></div>
-      <div class="question-field"><div class="field-label-row"><label>Answer / explanation</label><div class="format-tools" data-format-for="editAnswer"><button class="sbtn format-btn" type="button" data-format="bold"><b>B</b></button><button class="sbtn format-btn" type="button" data-format="italic"><i>I</i></button><button class="sbtn format-btn" type="button" data-format="bullets">• List</button><button class="sbtn format-btn" type="button" data-format="equation">ƒx Equation</button><input class="format-color" type="color" value="#f2f2f7" data-color-for="editAnswer"></div></div><div id="editAnswer" class="rich-editor" contenteditable="true"></div></div>
-      <div class="question-field"><div class="field-label-row"><label>Scoring note (optional)</label><div class="format-tools" data-format-for="editNote"><button class="sbtn format-btn" type="button" data-format="bold"><b>B</b></button><button class="sbtn format-btn" type="button" data-format="italic"><i>I</i></button><button class="sbtn format-btn" type="button" data-format="bullets">• List</button><button class="sbtn format-btn" type="button" data-format="equation">ƒx Equation</button><input class="format-color" type="color" value="#f2f2f7" data-color-for="editNote"></div></div><div id="editNote" class="rich-editor" contenteditable="true"></div></div>
+      <div class="question-field"><div class="field-label-row"><label>Question</label><div class="format-tools" data-format-for="editText"><button class="sbtn format-btn" type="button" data-format="bold"><strong>B</strong></button><button class="sbtn format-btn" type="button" data-format="italic"><em>I</em></button><button class="sbtn format-btn" type="button" data-format="bullets">• List</button><button class="sbtn format-btn" type="button" data-format="equation">ƒx Equation</button><input class="format-color" type="color" value="#f2f2f7" data-color-for="editText"></div></div><div id="editText" class="rich-editor" contenteditable="true"></div></div>
+      <div class="question-field"><div class="field-label-row"><label>Answer / explanation</label><div class="format-tools" data-format-for="editAnswer"><button class="sbtn format-btn" type="button" data-format="bold"><strong>B</strong></button><button class="sbtn format-btn" type="button" data-format="italic"><em>I</em></button><button class="sbtn format-btn" type="button" data-format="bullets">• List</button><button class="sbtn format-btn" type="button" data-format="equation">ƒx Equation</button><input class="format-color" type="color" value="#f2f2f7" data-color-for="editAnswer"></div></div><div id="editAnswer" class="rich-editor" contenteditable="true"></div></div>
+      <div class="question-field"><div class="field-label-row"><label>Scoring note (optional)</label><div class="format-tools" data-format-for="editNote"><button class="sbtn format-btn" type="button" data-format="bold"><strong>B</strong></button><button class="sbtn format-btn" type="button" data-format="italic"><em>I</em></button><button class="sbtn format-btn" type="button" data-format="bullets">• List</button><button class="sbtn format-btn" type="button" data-format="equation">ƒx Equation</button><input class="format-color" type="color" value="#f2f2f7" data-color-for="editNote"></div></div><div id="editNote" class="rich-editor" contenteditable="true"></div></div>
       <div class="modal-actions">
         <button class="btn-ghost" type="button" id="questionCancel">Cancel</button>
         <button class="btn-primary" type="submit">Save Question</button>
@@ -388,81 +396,81 @@
     {
       key:"r1", name:"Round 1 · Rapid Recall", tag:"Conceptual", time:20, base:10,
       intro:{ kick:"Round 1 · Rapid Recall", title:"Rapid Recall",
-        rules:["True / False: <b>15 sec</b>. Identification: <b>30 sec</b>.",
-               "<b>+10 pts</b> for a correct answer, 0 for wrong.",
-               "<b>Double Trouble:</b> two questions are secretly worth <b>20 pts</b> — revealed only after boards are up!"] },
+        rules:["True / False: <strong>15 sec</strong>. Identification: <strong>30 sec</strong>.",
+               "<strong>+10 pts</strong> for a correct answer, 0 for wrong.",
+               "<strong>Double Trouble:</strong> two questions are secretly worth <strong>20 pts</strong> — revealed only after boards are up!"] },
       questions:[
         // pos 1  (was original Q9)
         { type:"tf", text:"For an object thrown straight up that returns to its launch height, its speed passing back through the launch point equals its initial launch speed.",
-          answer:"<b>True</b> — the mirror symmetry of free fall: same speed magnitude, opposite direction." },
+          answer:"<strong>True</strong> — the mirror symmetry of free fall: same speed magnitude, opposite direction." },
         // pos 2  (original Q2)
         { type:"id", text:"What do we call motion where gravity is the only force acting on an object, regardless of whether it's moving up, down, or released from rest?",
-          answer:"<b>Free fall</b>" },
+          answer:"<strong>Free fall</strong>" },
         // pos 3  (original Q3)
         { type:"tf", text:"A stone thrown straight down and a stone simply dropped from rest are both considered \u201cfree fall\u201d once released.",
-          answer:"<b>True</b> — free fall means gravity alone is acting; it does <i>not</i> require starting from rest." },
+          answer:"<strong>True</strong> — free fall means gravity alone is acting; it does <em>not</em> require starting from rest." },
         // pos 4  (original Q4)  DOUBLE TROUBLE
         { type:"tf", double:true, text:"On a merry-go-round, a rider near the edge and a rider near the center complete one full rotation in the same time, so they must have the same tangential speed.",
-          answer:"<b>False</b> — both share the same period T, but v = 2\u03c0r/T. The rider farther from the center has a larger radius, so they move at a <b>greater</b> tangential speed." },
+          answer:"<strong>False</strong> — both share the same period T, but v = 2\u03c0r/T. The rider farther from the center has a larger radius, so they move at a <strong>greater</strong> tangential speed." },
         // pos 5  (original Q5)
         { type:"tf", text:"For a projectile that lands at the same height it was launched from, the range is greatest at a launch angle of 45\u00b0.",
-          answer:"<b>True</b>" },
+          answer:"<strong>True</strong>" },
         // pos 6  (original Q6)
         { type:"id", text:"What is the name for the apparent outward push you feel in a turning car, even though no real outward force is acting on you?",
-          answer:"<b>Centrifugal \u201cforce\u201d</b> — a fictitious/apparent effect. It's really your inertia, while the seat/door pushes you inward." },
+          answer:"<strong>Centrifugal \u201cforce\u201d</strong> — a fictitious/apparent effect. It's really your inertia, while the seat/door pushes you inward." },
         // pos 7  (original Q7)
         { type:"tf", text:"In uniform circular motion, velocity is constant because speed never changes.",
-          answer:"<b>False</b> — velocity is a vector; its direction is constantly changing even though speed (magnitude) is constant, so velocity itself is not constant." },
+          answer:"<strong>False</strong> — velocity is a vector; its direction is constantly changing even though speed (magnitude) is constant, so velocity itself is not constant." },
         // pos 8  (was original Q1)  DOUBLE TROUBLE
         { type:"tf", double:true, text:"At the peak of a ball tossed straight up, both its velocity and acceleration are zero.",
-          answer:"<b>False</b> — velocity is zero at the peak, but acceleration is still \u2212g at every instant, including the peak. That's exactly why the ball falls back down." },
+          answer:"<strong>False</strong> — velocity is zero at the peak, but acceleration is still \u2212g at every instant, including the peak. That's exactly why the ball falls back down." },
         // pos 9  (was original Q8)
         { type:"tf", text:"A ball moves in a circle of radius 1.0 m at 2.0 m/s. If the speed is increased to 4.0 m/s and the radius to 4.0 m, the centripetal acceleration stays the same.",
-          answer:"<b>True</b> — a\u2081 = (2.0)\u00b2/1.0 = 4.0 m/s\u00b2 and a\u2082 = (4.0)\u00b2/4.0 = 4.0 m/s\u00b2. Quadrupling v\u00b2 is exactly canceled by quadrupling r." },
+          answer:"<strong>True</strong> — a\u2081 = (2.0)\u00b2/1.0 = 4.0 m/s\u00b2 and a\u2082 = (4.0)\u00b2/4.0 = 4.0 m/s\u00b2. Quadrupling v\u00b2 is exactly canceled by quadrupling r." },
         // pos 10 (original Q10)
         { type:"tf", text:"If a target is released to fall the instant a projectile is fired directly at it, the projectile hits the target \u2014 as long as it has enough speed to cover the horizontal distance before either hits the ground.",
-          answer:"<b>True</b> — both the projectile and the target fall the same vertical distance in the same time under gravity, so the aim stays true." }
+          answer:"<strong>True</strong> — both the projectile and the target fall the same vertical distance in the same time under gravity, so the aim stays true." }
       ]
     },
     {
       key:"r2", name:"Round 2 · Problem Showdown", tag:"Numerical", time:300, base:30, partial:15,
       intro:{ kick:"Round 2 · 5 min", title:"Problem Showdown",
-        rules:["3 problems — one per topic, <b>5 min</b> each.",
-               "<b>+30 pts</b> full correct (solution + units), <b>+15 pts</b> partial credit.",
-               "<b>Flip First:</b> the first team to finish correctly earns a <b>+5 bonus</b>.",
-               "<b>Mystery Multiplier:</b> one problem may be revealed as <b>double points</b>."] },
+        rules:["3 problems — one per topic, <strong>5 min</strong> each.",
+               "<strong>+30 pts</strong> full correct (solution + units), <strong>+15 pts</strong> partial credit.",
+               "<strong>Flip First:</strong> the first team to finish correctly earns a <strong>+5 bonus</strong>.",
+               "<strong>Mystery Multiplier:</strong> one problem may be revealed as <strong>double points</strong>."] },
       questions:[
         { type:"num", title:"Problem 1 — Free Fall",
           text:"A mango falls from rest off a tree branch and lands on the ground 1.35 s later. Ignoring air resistance, how tall is the branch above the ground?",
-          answer:"Using \u0394y = \u00bdgt\u00b2 (v\u2080 = 0): h = \u00bd(9.8)(1.35)\u00b2 = <b>8.93 m \u2248 8.9 m</b>",
+          answer:"Using \u0394y = \u00bdgt\u00b2 (v\u2080 = 0): h = \u00bd(9.8)(1.35)\u00b2 = <strong>8.93 m \u2248 8.9 m</strong>",
           note:"Partial credit: setting up \u0394y = v\u2080t + \u00bdat\u00b2 with v\u2080 = 0 and a = \u2212g, even with an arithmetic slip." },
         { type:"num", title:"Problem 2 — Projectile Motion", suggestMultiplier:true,
           text:"At a fiesta booth, a player tosses a small ring at 5.80 m/s at 40\u00b0 above the horizontal, aiming for a peg on a raised post 1.80 m away horizontally. The peg sits above the release point. What is the height of the peg above the point where the ring left the player's hand?",
-          answer:"v\u2080\u2093 = 5.80cos40\u00b0 = 4.44 m/s; v\u2080\u1d67 = 5.80sin40\u00b0 = 3.73 m/s. Time to cover 1.80 m: t = 1.80/4.44 = 0.405 s. Then \u0394y = v\u2080\u1d67t \u2212 \u00bdgt\u00b2 = (3.73)(0.405) \u2212 \u00bd(9.8)(0.405)\u00b2 = <b>0.71 m</b>",
+          answer:"v\u2080\u2093 = 5.80cos40\u00b0 = 4.44 m/s; v\u2080\u1d67 = 5.80sin40\u00b0 = 3.73 m/s. Time to cover 1.80 m: t = 1.80/4.44 = 0.405 s. Then \u0394y = v\u2080\u1d67t \u2212 \u00bdgt\u00b2 = (3.73)(0.405) \u2212 \u00bd(9.8)(0.405)\u00b2 = <strong>0.71 m</strong>",
           note:"Partial credit: correctly setting up t = \u0394x/v\u2080\u2093 and \u0394y = v\u2080\u1d67t \u2212 \u00bdgt\u00b2 (recognizing the shortcut formulas don't apply), even with an arithmetic slip." },
         { type:"num", title:"Problem 3 — Uniform Circular Motion",
           text:"A stationary exercise bike's front wheel has a radius of 0.33 m and spins at a constant 180 rev/min. What is the centripetal acceleration of a reflector clipped to the outer rim?",
-          answer:"180 rev/min = 3 rev/s \u2192 v = 2\u03c0rf = 2\u03c0(0.33)(3) = 6.22 m/s. Then a = v\u00b2/r = (6.22)\u00b2/0.33 = <b>117 m/s\u00b2</b>",
+          answer:"180 rev/min = 3 rev/s \u2192 v = 2\u03c0rf = 2\u03c0(0.33)(3) = 6.22 m/s. Then a = v\u00b2/r = (6.22)\u00b2/0.33 = <strong>117 m/s\u00b2</strong>",
           note:"Partial credit: correctly converting rev/min to rev/s (or T) and setting up v = 2\u03c0r/T then a = v\u00b2/r, even with a final arithmetic error." }
       ]
     },
     {
       key:"r3", name:"Round 3 · Lightning Final", tag:"Mixed", time:60, base:15,
       intro:{ kick:"Round 3 · 5 min", title:"Lightning Final",
-        rules:["5 fast mixed questions — <b>60 sec</b> each.",
-               "<b>+15 pts</b> for a correct answer.",
-               "<b>Wildcard:</b> one question is secretly worth <b>3\u00d7 points (45)</b> \u2014 revealed only after boards are up. The dramatic closer!"] },
+        rules:["5 fast mixed questions — <strong>60 sec</strong> each.",
+               "<strong>+15 pts</strong> for a correct answer.",
+               "<strong>Wildcard:</strong> one question is secretly worth <strong>3\u00d7 points (45)</strong> \u2014 revealed only after boards are up. The dramatic closer!"] },
       questions:[
         { type:"tf", text:"If you throw a ball straight up, its acceleration decreases as it slows down.",
-          answer:"<b>False</b> — acceleration is constant at \u2212g the entire flight, even as the ball slows near the peak." },
+          answer:"<strong>False</strong> — acceleration is constant at \u2212g the entire flight, even as the ball slows near the peak." },
         { type:"num", text:"A ball is dropped from rest and falls for 0.80 s before hitting the floor. What is its speed just before impact?",
-          answer:"v = gt = (9.8)(0.80) = <b>7.84 m/s \u2248 7.8 m/s</b>" },
+          answer:"v = gt = (9.8)(0.80) = <strong>7.84 m/s \u2248 7.8 m/s</strong>" },
         { type:"con", text:"In projectile motion, which velocity component \u2014 horizontal or vertical \u2014 stays constant throughout the flight?",
-          answer:"<b>Horizontal (v\u2093)</b> — because a\u2093 = 0." },
+          answer:"<strong>Horizontal (v\u2093)</strong> — because a\u2093 = 0." },
         { type:"num", text:"A toy car moves in a circle of radius 0.20 m at a constant speed of 1.5 m/s. Find its centripetal acceleration.",
-          answer:"a = v\u00b2/r = (1.5)\u00b2/0.20 = <b>11.25 m/s\u00b2 \u2248 11.3 m/s\u00b2</b>" },
+          answer:"a = v\u00b2/r = (1.5)\u00b2/0.20 = <strong>11.25 m/s\u00b2 \u2248 11.3 m/s\u00b2</strong>" },
         { type:"id", suggestWildcard:true, text:"At what launch angle (measured from the horizontal) does projectile motion become identical to pure free fall?",
-          answer:"<b>90\u00b0</b> — at \u03b8 = 90\u00b0, v\u2080\u2093 = v\u2080cos90\u00b0 = 0, so the horizontal component vanishes and only vertical motion remains, exactly matching free fall." }
+          answer:"<strong>90\u00b0</strong> — at \u03b8 = 90\u00b0, v\u2080\u2093 = v\u2080cos90\u00b0 = 0, so the horizontal component vanishes and only vertical motion remains, exactly matching free fall." }
       ]
     }
   ];
@@ -494,6 +502,7 @@
     questionEdits:{}, // persistent content + timer overrides keyed by "ri-qi"
     roundEdits:{}, // editable round labels and mechanics
     questionSets:{}, // persisted added/reordered questions
+    uiTexts:{}, // editable reusable website copy
     twistSettingsVersion:1
   };
 
@@ -508,6 +517,7 @@
         if(d.questionEdits) state.questionEdits = d.questionEdits;
         if(d.roundEdits) state.roundEdits = d.roundEdits;
         if(d.questionSets) state.questionSets = d.questionSets;
+        if(d.uiTexts) state.uiTexts = d.uiTexts;
         applySavedRoundEdits();
         Object.keys(state.questionSets).forEach(function(ri){ if(ROUNDS[+ri]) ROUNDS[+ri].questions=state.questionSets[ri]; });
         rebuildSlides();
@@ -533,7 +543,7 @@
     try{
       localStorage.setItem(LS_KEY, JSON.stringify({
         names:state.names, scoring:state.scoring, revealed:state.revealed, questionEdits:state.questionEdits,
-        roundEdits:state.roundEdits, questionSets:state.questionSets, twistSettingsVersion:state.twistSettingsVersion, slide:state.slide,
+        roundEdits:state.roundEdits, questionSets:state.questionSets, uiTexts:state.uiTexts, twistSettingsVersion:state.twistSettingsVersion, slide:state.slide,
         music:{ on:music.on, vol:music.vol }
       }));
     }catch(e){}
@@ -542,6 +552,12 @@
   function applyRoundEdit(ri, edit){var rd=ROUNDS[ri];if(!rd||!edit)return;if(Object.prototype.hasOwnProperty.call(edit,"name"))rd.name=edit.name;if(Object.prototype.hasOwnProperty.call(edit,"tag"))rd.tag=edit.tag;if(Object.prototype.hasOwnProperty.call(edit,"kick"))rd.intro.kick=edit.kick;if(Object.prototype.hasOwnProperty.call(edit,"title"))rd.intro.title=edit.title;if(Object.prototype.hasOwnProperty.call(edit,"rules"))rd.intro.rules=edit.rules;}
   function applySavedRoundEdits(){Object.keys(state.roundEdits).forEach(function(ri){applyRoundEdit(+ri,state.roundEdits[ri]);});}
   function qKey(ri,qi){ return ri+"-"+qi; }
+  var DEFAULT_TEXT={brand:"Physics League",browse:"☰ Questions",teams:"✎ Teams",board:"🏆 Leaderboard",reveal:"Reveal Answer",score:"Score the round",finalKick:"The Championship",finalTitle:"Final Standings",pageTitle:"Physics League: Kinematics Championship"};
+  function txt(key){ return state.uiTexts[key] || DEFAULT_TEXT[key]; }
+  function updateUIText(){
+    byId("btnJump").textContent=txt("browse"); byId("btnTeams").textContent=txt("teams"); byId("btnBoard").textContent=txt("board");
+    document.querySelector(".brand .g").textContent=txt("brand"); document.title=txt("pageTitle");
+  }
   function defaultQuestionTime(ri, q){
     var rd = ROUNDS[ri];
     if(rd.key==="r2") return 300;
@@ -571,18 +587,31 @@
   function getScoring(ri,qi){
     var k = qKey(ri,qi);
     if(!state.scoring[k]) state.scoring[k] = { g:{}, mult:false, multiplier:2, flip:null, flipFirst:false, flipPoints:5, wild:false, wildcardBonus:30 };
-    return state.scoring[k];
+    // Normalize saves made before per-question gimmicks were available.
+    var sc=state.scoring[k];
+    if(!isFinite(sc.multiplier) || sc.multiplier<1) sc.multiplier=2;
+    if(!isFinite(sc.wildcardBonus) || sc.wildcardBonus<0) sc.wildcardBonus=30;
+    if(!isFinite(sc.flipPoints) || sc.flipPoints<0) sc.flipPoints=5;
+    return sc;
   }
 
   /* ======================================================================
      SCORE COMPUTATION
   ====================================================================== */
   // Points a group earned on ONE Round 2 problem (base + multiplier + flip bonus).
+  function withGimmicks(sc, points){
+    if(sc.mult) points *= sc.multiplier;
+    if(sc.wild) points += sc.wildcardBonus;
+    return points;
+  }
+  function standardPoints(rd, q, sc){
+    return withGimmicks(sc, rd.key==="r1" ? (q.double?20:10) : (rd.base||15));
+  }
   function r2Points(sc, g){
     var v = sc.g[g];
     var base = v==="full" ? 30 : v==="partial" ? 15 : 0;
-    var p = base * (sc.mult?(sc.multiplier||2):1);
-    if(sc.flip===g) p += (sc.flipPoints==null?5:sc.flipPoints);
+    var p = withGimmicks(sc, base);
+    if(sc.flipFirst && sc.flip===g) p += sc.flipPoints;
     return p;
   }
   // Per-group score split by round: [{r1,r2,r3,total}, ...]
@@ -597,11 +626,11 @@
       for(var g=0; g<GROUP_COUNT; g++){
         var v = sc.g[g];
         if(rd.key==="r1"){
-          if(v==="correct") b[g].r1 += (q.double?20:10);
+          if(v==="correct") b[g].r1 += standardPoints(rd,q,sc) + (sc.flipFirst && sc.flip===g ? sc.flipPoints : 0);
         } else if(rd.key==="r2"){
           b[g].r2 += r2Points(sc, g);
         } else if(rd.key==="r3"){
-          if(v==="correct") b[g].r3 += (sc.wild?(15+(sc.wildcardBonus||30)):15);
+          if(v==="correct") b[g].r3 += standardPoints(rd,q,sc) + (sc.flipFirst && sc.flip===g ? sc.flipPoints : 0);
         }
       }
     });
@@ -987,9 +1016,8 @@
     else html += '<span class="qnum">'+displayNum+'</span>';
     html += '<span class="badge '+TYPE_CLASS[q.type]+'">'+TYPE_LABEL[q.type]+'</span>';
     // point chip during solving (do NOT tip off Double Trouble / Wildcard)
-    if(rd.key==="r1") html += '<span class="chip">+10</span>';
-    else if(rd.key==="r2") html += '<span class="chip">'+(sc.mult?("+"+(30*(sc.multiplier||2))+" / +"+(15*(sc.multiplier||2))):"+30 / +15")+'</span>';
-    else if(rd.key==="r3") html += '<span class="chip">+15</span>';
+    if(rd.key==="r2") html += '<span class="chip">+'+withGimmicks(sc,30)+' / +'+withGimmicks(sc,15)+'</span>';
+    else html += '<span class="chip">+'+standardPoints(rd,q,sc)+'</span>';
 
     // Timer controls
     html += '<div class="timer-wrap">' +
@@ -999,17 +1027,16 @@
             '</div>';
     html += '</div>';
 
-    // Twist decisions are made in Browse Questions before play, never at reveal/scoring.
-    if(rd.key==="r2" && sc.mult)
-      html += '<div class="twist multiplier">✨ MYSTERY MULTIPLIER — preselected in Browse Questions: DOUBLE points!</div>';
-    if(rd.key==="r3" && sc.wild)
-      html += '<div class="twist wildcard">⚡ WILDCARD — preselected in Browse Questions: 3× points (+45)!</div>';
+    // Gimmicks are configured per question in Browse Questions and can be combined.
+    if(sc.mult) html += '<div class="twist multiplier">✨ MULTIPLIER — ×'+sc.multiplier+' points</div>';
+    if(sc.wild) html += '<div class="twist wildcard">⚡ WILDCARD — +'+sc.wildcardBonus+' points</div>';
+    if(sc.flipFirst) html += '<div class="twist double">★ FLIP FIRST — first correct team earns +'+sc.flipPoints+' bonus points</div>';
 
     html += '<div class="qtext'+(q.text.length>150?" small":"")+'">'+q.text+'</div>';
 
     // Reveal / answer
     if(!revealed){
-      html += '<div class="reveal-row"><button class="reveal-btn" id="btnReveal">Reveal Answer</button></div>';
+      html += '<div class="reveal-row"><button class="reveal-btn" id="btnReveal">'+escAttr(txt("reveal"))+'</button></div>';
     } else {
       html += '<div class="answer"><span class="lbl">Answer</span>'+q.answer +
               (q.note?'<div class="note">'+q.note+'</div>':'') + '</div>';
@@ -1035,14 +1062,13 @@
 
   function renderScoringPanel(ri, qi, sc, q, rd){
     var h = '<div class="score-panel">';
-    h += '<div class="score-head"><h3>Score the round</h3>';
+    h += '<div class="score-head"><h3>'+escAttr(txt("score"))+'</h3>';
 
     if(rd.key==="r1" || rd.key==="r3"){
       h += '<span class="hint">Click every group that answered correctly.</span>';
       h += '</div>';
       h += '<div class="grp-grid">';
-      var val = rd.key==="r1" ? (sc.wild?0:0) : 0;
-      var per = rd.key==="r1" ? (q.double?20:10) : (sc.wild?(15+(sc.wildcardBonus||30)):15);
+      var per = standardPoints(rd,q,sc);
       for(var g=0; g<GROUP_COUNT; g++){
         var on = sc.g[g]==="correct";
         h += '<button class="grp-btn'+(on?" correct":"")+'" data-g="'+g+'" data-act="correct">' +
@@ -1051,14 +1077,19 @@
              '</button>';
       }
       h += '</div>';
+      if(sc.flipFirst){
+        h += '<div class="flip-row"><span class="hint">Flip First:</span>';
+        for(var fg=0;fg<GROUP_COUNT;fg++) h += '<button class="sbtn flip'+(sc.flip===fg?' on':'')+'" data-g="'+fg+'" data-act="flip">★ '+state.names[fg]+'</button>';
+        h += '</div>';
+      }
     } else if(rd.key==="r2"){
-      h += '<span class="hint">Set Full (+30) or Partial (+15). Star = Flip First (+5).</span></div>';
+      h += '<span class="hint">Set Full or Partial. Gimmicks configured in Browse Questions are applied automatically.</span></div>';
       h += '<div class="r2-grid">';
       for(var g2=0; g2<GROUP_COUNT; g2++){
         var v = sc.g[g2]||"";
         var pg = r2Points(sc, g2);
         h += '<div class="r2-row">' +
-               '<button class="flip'+(sc.flip===g2?" on":"")+'" data-g="'+g2+'" data-act="flip" title="Flip First +5">★</button>' +
+               (sc.flipFirst?'<button class="flip'+(sc.flip===g2?" on":"")+'" data-g="'+g2+'" data-act="flip" title="Flip First +'+sc.flipPoints+'">★</button>':'') +
                '<span class="nm">'+dot(g2)+state.names[g2]+'</span>' +
                '<button class="sbtn partial'+(v==="partial"?" on":"")+'" data-g="'+g2+'" data-act="partial">Partial</button>' +
                '<button class="sbtn full'+(v==="full"?" on":"")+'" data-g="'+g2+'" data-act="full">Full</button>' +
@@ -1102,8 +1133,8 @@
     setMusic("lobby");
     stage.innerHTML =
       '<div class="intro">' +
-        '<div class="kick">The Championship</div>' +
-        '<h1><span class="g">Final Standings</span></h1>' +
+        '<div class="kick">'+escAttr(txt("finalKick"))+'</div>' +
+        '<h1><span class="g">'+escAttr(txt("finalTitle"))+'</span></h1>' +
         '<div class="lb" style="margin:18px auto 0;max-width:720px;">'+leaderboardTableHTML()+'</div>' +
         '<div class="navrow" style="max-width:720px;margin:22px auto 0;">' + navButtons() + '</div>' +
       '</div>';
@@ -1184,16 +1215,31 @@
   var jumpOverlay = byId("jumpOverlay");
   var questionOverlay = byId("questionOverlay");
   var roundOverlay = byId("roundOverlay");
+  var textOverlay = byId("textOverlay");
   var editingQuestion = null, editingRound = null;
+  byId("btnText").onclick=function(){
+    [["Brand","brand"],["Browse","browse"],["Teams","teams"],["Board","board"],["Reveal","reveal"],["Score","score"],["FinalKick","finalKick"],["FinalTitle","finalTitle"],["PageTitle","pageTitle"]].forEach(function(pair){byId("text"+pair[0]).value=txt(pair[1]);});
+    textOverlay.classList.remove("hidden");
+  };
+  byId("textForm").onsubmit=function(e){
+    e.preventDefault();
+    [["Brand","brand"],["Browse","browse"],["Teams","teams"],["Board","board"],["Reveal","reveal"],["Score","score"],["FinalKick","finalKick"],["FinalTitle","finalTitle"],["PageTitle","pageTitle"]].forEach(function(pair){var value=byId("text"+pair[0]).value.trim();state.uiTexts[pair[1]]=value||DEFAULT_TEXT[pair[1]];});
+    textOverlay.classList.add("hidden"); updateUIText(); save(); render();
+  };
+  byId("textCancel").onclick=function(){textOverlay.classList.add("hidden");};
   function escAttr(v){ return String(v||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
-  function twistControl(rd, ri, qi, sc){
-    if(rd.key==="r2") return '<select class="jump-select" data-twist="mult" data-ri="'+ri+'" data-qi="'+qi+'" title="Choose before the question is shown">'+
-      '<option value="off"'+(!sc.mult?" selected":"")+'>Multiplier: none</option>'+
-      '<option value="on"'+(sc.mult?" selected":"")+'>Multiplier: ×2</option></select>';
-    if(rd.key==="r3") return '<select class="jump-select" data-twist="wild" data-ri="'+ri+'" data-qi="'+qi+'" title="Choose before the question is shown">'+
-      '<option value="off"'+(!sc.wild?" selected":"")+'>Wildcard: none</option>'+
-      '<option value="on"'+(sc.wild?" selected":"")+'>Wildcard: ×3</option></select>';
-    return "";
+  function gimmickControls(ri, qi, sc){
+    var a=' data-ri="'+ri+'" data-qi="'+qi+'"';
+    return '<div class="gimmick-tools">'+
+      '<label class="gimmick"><input type="checkbox" data-gimmick="mult"'+a+(sc.mult?' checked':'')+'> × <input type="number" min="1" value="'+sc.multiplier+'" data-gimmick-value="mult"'+a+'></label>'+
+      '<label class="gimmick"><input type="checkbox" data-gimmick="wild"'+a+(sc.wild?' checked':'')+'> Wild + <input type="number" min="0" value="'+sc.wildcardBonus+'" data-gimmick-value="wild"'+a+'></label>'+
+      '<label class="gimmick"><input type="checkbox" data-gimmick="flip"'+a+(sc.flipFirst?' checked':'')+'> Flip + <input type="number" min="0" value="'+sc.flipPoints+'" data-gimmick-value="flip"'+a+'></label>'+
+    '</div>';
+  }
+  function setGimmick(sc, kind, enabled, value){
+    if(kind==="mult"){ sc.mult=enabled; if(value!=null) sc.multiplier=Math.max(1,Math.round(value)||1); }
+    if(kind==="wild"){ sc.wild=enabled; if(value!=null) sc.wildcardBonus=Math.max(0,Math.round(value)||0); }
+    if(kind==="flip"){ sc.flipFirst=enabled; if(value!=null) sc.flipPoints=Math.max(0,Math.round(value)||0); if(!enabled) sc.flip=null; }
   }
   function openJump(){
     var list = byId("jumpList"), html = "";
@@ -1208,7 +1254,7 @@
                      ' · '+TYPE_LABEL[q.type]+' · '+getQuestionTime(s.r, s.q)+'s' + (scored ? (" · "+scored+" scored") : "");
         html += '<div class="jump-item'+(idx===state.slide?" current":"")+'">'+
                   '<label class="hint"><input type="checkbox" data-batch-ri="'+s.r+'" data-batch-qi="'+s.q+'"> Batch</label><button class="jump-main" data-slide="'+idx+'"><span>'+label+'</span><span class="tag2">'+status+'</span></button>'+
-                  '<div class="jump-tools">'+twistControl(rd, s.r, s.q, sc)+
+                  '<div class="jump-tools">'+gimmickControls(s.r, s.q, sc)+
                     '<button class="sbtn jump-edit" data-move-ri="'+s.r+'" data-move-qi="'+s.q+'" data-move="-1">↑</button><button class="sbtn jump-edit" data-move-ri="'+s.r+'" data-move-qi="'+s.q+'" data-move="1">↓</button><button class="sbtn jump-edit" data-edit-ri="'+s.r+'" data-edit-qi="'+s.q+'">Edit</button></div></div>';
       } else {
         html += '<div class="jump-item'+(idx===state.slide?" current":"")+'"><button class="jump-main" data-slide="'+idx+'"><span>🏆 Final Standings</span></button></div>';
@@ -1218,13 +1264,11 @@
     Array.prototype.forEach.call(list.querySelectorAll("[data-slide]"), function(b){
       b.onclick = function(){ jumpOverlay.classList.add("hidden"); goTo(+b.getAttribute("data-slide")); };
     });
-    Array.prototype.forEach.call(list.querySelectorAll("[data-twist]"), function(sel){
-      sel.onchange = function(){
-        var sc = getScoring(+this.getAttribute("data-ri"), +this.getAttribute("data-qi"));
-        if(this.getAttribute("data-twist")==="mult") sc.mult = this.value==="on";
-        else sc.wild = this.value==="on";
-        save(); openJump();
-      };
+    Array.prototype.forEach.call(list.querySelectorAll("[data-gimmick]"), function(input){
+      input.onchange = function(){ var sc=getScoring(+this.getAttribute("data-ri"),+this.getAttribute("data-qi")); setGimmick(sc,this.getAttribute("data-gimmick"),this.checked); save(); openJump(); };
+    });
+    Array.prototype.forEach.call(list.querySelectorAll("[data-gimmick-value]"), function(input){
+      input.onchange = function(){ var kind=this.getAttribute("data-gimmick-value"),sc=getScoring(+this.getAttribute("data-ri"),+this.getAttribute("data-qi")); setGimmick(sc,kind,sc[kind==="mult"?"mult":kind==="wild"?"wild":"flipFirst"],+this.value); save(); openJump(); };
     });
     Array.prototype.forEach.call(list.querySelectorAll("[data-edit-ri]"), function(b){
       b.onclick = function(){ openQuestionEditor(+this.getAttribute("data-edit-ri"), +this.getAttribute("data-edit-qi")); };
@@ -1236,9 +1280,19 @@
       button.onclick=function(){var ri=+this.getAttribute("data-add-question");ROUNDS[ri].questions.push({type:"tf",text:"New question",answer:"Answer"});saveQuestionSet(ri);openQuestionEditor(ri,ROUNDS[ri].questions.length-1);};
     });
     Array.prototype.forEach.call(list.querySelectorAll("[data-move-ri]"),function(button){
-      button.onclick=function(){var ri=+this.getAttribute("data-move-ri"),qi=+this.getAttribute("data-move-qi"),to=qi+(+this.getAttribute("data-move"));if(to<0||to>=ROUNDS[ri].questions.length)return;var question=ROUNDS[ri].questions.splice(qi,1)[0];ROUNDS[ri].questions.splice(to,0,question);saveQuestionSet(ri);openJump();};
+      button.onclick=function(){moveQuestion(+this.getAttribute("data-move-ri"),+this.getAttribute("data-move-qi"),+this.getAttribute("data-move"));openJump();};
     });
     jumpOverlay.classList.remove("hidden");
+  }
+  function moveQuestion(ri, qi, direction){
+    var to=qi+direction, qs=ROUNDS[ri].questions;
+    if(to<0 || to>=qs.length) return;
+    ["scoring","revealed","questionEdits"].forEach(function(store){
+      var values=[]; for(var i=0;i<qs.length;i++) values.push(state[store][qKey(ri,i)]);
+      var moved=values.splice(qi,1)[0]; values.splice(to,0,moved);
+      for(var j=0;j<qs.length;j++){ var key=qKey(ri,j); if(values[j]===undefined) delete state[store][key]; else state[store][key]=values[j]; }
+    });
+    var question=qs.splice(qi,1)[0]; qs.splice(to,0,question); saveQuestionSet(ri);
   }
   function openQuestionEditor(ri, qi){
     var q = ROUNDS[ri].questions[qi];
@@ -1259,8 +1313,8 @@
     if(!isFinite(time) || time<1) return;
     var edit = {
       title:byId("editTitle").value.trim(), type:byId("editType").value,
-      time:time, text:byId("editText").innerHTML.trim(), answer:byId("editAnswer").innerHTML.trim(),
-      note:byId("editNote").innerHTML.trim()
+      time:time, text:normalizeRichHTML(byId("editText").innerHTML), answer:normalizeRichHTML(byId("editAnswer").innerHTML),
+      note:normalizeRichHTML(byId("editNote").innerHTML)
     };
     state.questionEdits[key] = edit;
     applyQuestionEdit(ri, qi, edit);
@@ -1268,6 +1322,14 @@
     questionOverlay.classList.add("hidden");
     openJump(); render();
   };
+  // Store semantic formatting rather than legacy presentational <b>/<i> markup.
+  function normalizeRichHTML(html){
+    var box=document.createElement("div"); box.innerHTML=html||"";
+    Array.prototype.forEach.call(box.querySelectorAll("b"),function(node){var strong=document.createElement("strong");strong.innerHTML=node.innerHTML;node.parentNode.replaceChild(strong,node);});
+    Array.prototype.forEach.call(box.querySelectorAll("i"),function(node){var em=document.createElement("em");em.innerHTML=node.innerHTML;node.parentNode.replaceChild(em,node);});
+    Array.prototype.forEach.call(box.querySelectorAll("font[color]"),function(node){var span=document.createElement("span");span.style.color=node.getAttribute("color");span.innerHTML=node.innerHTML;node.parentNode.replaceChild(span,node);});
+    return box.innerHTML.trim();
+  }
   function applyFormat(editor,kind){
     editor.focus();
     if(kind==="bold") document.execCommand("bold",false,null);
@@ -1286,9 +1348,13 @@
   byId("questionCancel").onclick = function(){ questionOverlay.classList.add("hidden"); };
   byId("batchApply").onclick=function(){
     var mult=Math.max(1,+byId("batchMultValue").value||2),wild=Math.max(0,+byId("batchWildValue").value||30),flip=Math.max(0,+byId("batchFlipValue").value||5);
+    var useMult=byId("batchMultOn").checked,useWild=byId("batchWildOn").checked,useFlip=byId("batchFlipOn").checked;
+    if(!useMult&&!useWild&&!useFlip){ alert("Choose at least one gimmick to apply."); return; }
     Array.prototype.forEach.call(byId("jumpList").querySelectorAll("[data-batch-ri]:checked"),function(box){
       var sc=getScoring(+box.getAttribute("data-batch-ri"),+box.getAttribute("data-batch-qi"));
-      sc.mult=true;sc.multiplier=mult;sc.wild=true;sc.wildcardBonus=wild;sc.flipFirst=true;sc.flipPoints=flip;
+      if(useMult) setGimmick(sc,"mult",true,mult);
+      if(useWild) setGimmick(sc,"wild",true,wild);
+      if(useFlip) setGimmick(sc,"flip",true,flip);
     });save();openJump();
   };
   byId("btnJump").onclick = openJump;
@@ -1318,7 +1384,7 @@
   };
 
   // Close overlays on backdrop click
-  [teamsOverlay, boardOverlay, jumpOverlay, questionOverlay, roundOverlay].forEach(function(ov){
+  [teamsOverlay, boardOverlay, jumpOverlay, questionOverlay, roundOverlay, textOverlay].forEach(function(ov){
     ov.addEventListener("click", function(e){ if(e.target===ov) ov.classList.add("hidden"); });
   });
 
@@ -1343,6 +1409,7 @@
      INIT
   ====================================================================== */
   load();
+  updateUIText();
   updateMusicUI();
   render();
   // Browsers block audio until a user gesture — start the music engine on the
