@@ -1173,7 +1173,8 @@
   // Question browser: navigation, pre-game twist selection, and question editing.
   var jumpOverlay = byId("jumpOverlay");
   var questionOverlay = byId("questionOverlay");
-  var editingQuestion = null;
+  var roundOverlay = byId("roundOverlay");
+  var editingQuestion = null, editingRound = null;
   function escAttr(v){ return String(v||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
   function twistControl(rd, ri, qi, sc){
     if(rd.key==="r2") return '<select class="jump-select" data-twist="mult" data-ri="'+ri+'" data-qi="'+qi+'" title="Choose before the question is shown">'+
@@ -1188,7 +1189,7 @@
     var list = byId("jumpList"), html = "";
     SLIDES.forEach(function(s, idx){
       if(s.kind==="intro"){
-        html += '<div class="jump-round">'+ROUNDS[s.r].name+'</div>';
+        html += '<div class="jump-round">'+ROUNDS[s.r].name+' <button class="sbtn jump-edit" data-edit-round="'+s.r+'">Edit mechanics</button></div>';
       } else if(s.kind==="q"){
         var rd = ROUNDS[s.r], q = rd.questions[s.q], k = qKey(s.r, s.q), sc = getScoring(s.r, s.q);
         var label = q.title ? q.title : ("Question "+(s.q+1));
@@ -1217,6 +1218,9 @@
     });
     Array.prototype.forEach.call(list.querySelectorAll("[data-edit-ri]"), function(b){
       b.onclick = function(){ openQuestionEditor(+this.getAttribute("data-edit-ri"), +this.getAttribute("data-edit-qi")); };
+    });
+    Array.prototype.forEach.call(list.querySelectorAll("[data-edit-round]"), function(b){
+      b.onclick = function(){ openRoundEditor(+this.getAttribute("data-edit-round")); };
     });
     jumpOverlay.classList.remove("hidden");
   }
@@ -1247,6 +1251,18 @@
     questionOverlay.classList.add("hidden");
     save(); openJump(); render();
   };
+  function applyFormat(textarea,kind){
+    var start=textarea.selectionStart,end=textarea.selectionEnd,selected=textarea.value.slice(start,end),before=textarea.value.slice(0,start),after=textarea.value.slice(end),inserted=selected;
+    if(kind==="bold") inserted="<b>"+(selected||"bold text")+"</b>";
+    else if(kind==="italic") inserted="<i>"+(selected||"italic text")+"</i>";
+    else if(kind==="break") inserted=selected+"<br>";
+    else if(kind==="bullets") inserted="<ul>"+(selected||"List item").split(/\n+/).map(function(line){return "<li>"+line+"</li>";}).join("")+"</ul>";
+    textarea.value=before+inserted+after; textarea.focus(); textarea.selectionStart=start; textarea.selectionEnd=start+inserted.length;
+  }
+  Array.prototype.forEach.call(questionOverlay.querySelectorAll("[data-format-for]"),function(group){var target=group.getAttribute("data-format-for");Array.prototype.forEach.call(group.querySelectorAll("[data-format]"),function(button){button.onclick=function(){applyFormat(byId(target),this.getAttribute("data-format"));};});});
+  function openRoundEditor(ri){var rd=ROUNDS[ri];editingRound=ri;byId("editRoundName").value=rd.name;byId("editRoundTag").value=rd.tag||"";byId("editRoundKick").value=rd.intro.kick||"";byId("editRoundTitle").value=rd.intro.title||"";byId("editRoundRules").value=rd.intro.rules.join("\n");roundOverlay.classList.remove("hidden");}
+  byId("roundForm").onsubmit=function(e){e.preventDefault();if(editingRound===null)return;var rules=byId("editRoundRules").value.split(/\n+/).map(function(rule){return rule.trim();}).filter(Boolean);if(!rules.length)return;var edit={name:byId("editRoundName").value.trim(),tag:byId("editRoundTag").value.trim(),kick:byId("editRoundKick").value.trim(),title:byId("editRoundTitle").value.trim(),rules:rules};state.roundEdits[editingRound]=edit;applyRoundEdit(editingRound,edit);roundOverlay.classList.add("hidden");save();openJump();render();};
+  byId("roundCancel").onclick=function(){roundOverlay.classList.add("hidden");};
   byId("questionCancel").onclick = function(){ questionOverlay.classList.add("hidden"); };
   byId("btnJump").onclick = openJump;
   byId("jumpClose").onclick = function(){ jumpOverlay.classList.add("hidden"); };
@@ -1256,10 +1272,15 @@
   byId("musicVol").addEventListener("input", function(){ setMusicVol(this.value/100); });
 
   // Fullscreen
-  byId("btnFull").onclick = function(){
-    if(!document.fullscreenElement){ (document.documentElement.requestFullscreen||function(){})(); }
-    else if(document.exitFullscreen){ document.exitFullscreen(); }
+  function updateFullscreenUI(){ byId("btnFull").textContent=document.fullscreenElement ? "⛶ Exit fullscreen" : "⛶ Fullscreen"; }
+  byId("btnFull").onclick=async function(){
+    try{
+      if(!document.fullscreenElement){var el=document.documentElement,request=el.requestFullscreen||el.webkitRequestFullscreen||el.msRequestFullscreen;if(request)await request.call(el);}
+      else {var exit=document.exitFullscreen||document.webkitExitFullscreen||document.msExitFullscreen;if(exit)await exit.call(document);}
+    }catch(e){} updateFullscreenUI();
   };
+  document.addEventListener("fullscreenchange",updateFullscreenUI);
+  document.addEventListener("webkitfullscreenchange",updateFullscreenUI);
 
   // Reset scores
   byId("btnReset").onclick = function(){
@@ -1270,7 +1291,7 @@
   };
 
   // Close overlays on backdrop click
-  [teamsOverlay, boardOverlay, jumpOverlay, questionOverlay].forEach(function(ov){
+  [teamsOverlay, boardOverlay, jumpOverlay, questionOverlay, roundOverlay].forEach(function(ov){
     ov.addEventListener("click", function(e){ if(e.target===ov) ov.classList.add("hidden"); });
   });
 
