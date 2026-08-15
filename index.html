@@ -477,7 +477,7 @@
   var SLIDES = [];
   function rebuildSlides(){
     SLIDES=[]; ROUNDS.forEach(function(rd,ri){SLIDES.push({kind:"intro",r:ri});rd.questions.forEach(function(_,qi){SLIDES.push({kind:"q",r:ri,q:qi});});});SLIDES.push({kind:"final"});
-    state.slide=Math.min(state.slide||0,SLIDES.length-1);
+    if(typeof state!=="undefined" && state) state.slide=Math.min(state.slide||0,SLIDES.length-1);
   }
   rebuildSlides();
 
