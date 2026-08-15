@@ -226,7 +226,7 @@
   .btn-ghost{background:var(--panel2);border:1px solid var(--line);color:var(--text);}
 
   /* Leaderboard overlay */
-  .lb{background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:28px 32px;max-width:680px;width:100%;}
+  .lb{background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:28px 32px;max-width:720px;width:100%;}
   .lb h2{text-align:center;font-size:30px;margin:0 0 20px;}
   .lb h2 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
   .lb-row{display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:12px;
@@ -238,6 +238,29 @@
   .lb-row.p2{border-color:#c8c8d4;}
   .lb-row.p3{border-color:#cd7f32;}
   .medal{font-size:24px;}
+
+  /* R2 per-group points earned on the current problem */
+  .r2-row .r2pts{min-width:46px;text-align:right;font-size:15px;font-weight:800;
+    color:var(--muted);font-variant-numeric:tabular-nums;}
+  .r2-row .r2pts.on{color:var(--good);}
+
+  /* Tabular leaderboard with per-round breakdown */
+  .lb-table{width:100%;border-collapse:collapse;font-size:16px;}
+  .lb-table th,.lb-table td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:center;}
+  .lb-table thead th{font-size:11px;text-transform:uppercase;letter-spacing:.7px;
+    color:var(--muted);font-weight:800;border-bottom:2px solid var(--line);}
+  .lb-table th.team,.lb-table td.team{text-align:left;}
+  .lb-table td.team{font-weight:700;font-size:17px;white-space:nowrap;}
+  .lb-table td.rank{font-weight:900;font-size:18px;width:44px;}
+  .lb-table td.rd{color:var(--muted);font-variant-numeric:tabular-nums;}
+  .lb-table td.total{font-weight:900;font-size:21px;font-variant-numeric:tabular-nums;}
+  .lb-table tbody tr{animation:drop .3s ease both;}
+  .lb-table tr.p1 td{background:linear-gradient(90deg,rgba(255,210,74,.14),transparent);}
+  .lb-table tr.p1 td.total{color:var(--gold);}
+  .lb-table tr.p2 td.total{color:#dfe3ea;}
+  .lb-table tr.p3 td.total{color:#e0a06a;}
+  .lb-table tbody tr:last-child td{border-bottom:none;}
+
   .dev-credit{position:fixed;left:0;bottom:0;z-index:1;padding:6px 14px;font-size:11px;
     color:var(--muted);font-family:Arial,sans-serif;pointer-events:none;background:rgba(19,19,24,.6);border-top-right-radius:8px;}
   kbd{background:var(--panel2);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;
@@ -461,8 +484,18 @@
   /* ======================================================================
      SCORE COMPUTATION
   ====================================================================== */
-  function totals(){
-    var t = [0,0,0,0,0,0];
+  // Points a group earned on ONE Round 2 problem (base + multiplier + flip bonus).
+  function r2Points(sc, g){
+    var v = sc.g[g];
+    var base = v==="full" ? 30 : v==="partial" ? 15 : 0;
+    var p = base * (sc.mult?2:1);
+    if(sc.flip===g) p += 5;
+    return p;
+  }
+  // Per-group score split by round: [{r1,r2,r3,total}, ...]
+  function breakdown(){
+    var b = [];
+    for(var i=0;i<GROUP_COUNT;i++) b[i] = {r1:0, r2:0, r3:0, total:0};
     Object.keys(state.scoring).forEach(function(k){
       var parts = k.split("-"); var ri = +parts[0], qi = +parts[1];
       var rd = ROUNDS[ri]; if(!rd) return;
@@ -471,17 +504,39 @@
       for(var g=0; g<GROUP_COUNT; g++){
         var v = sc.g[g];
         if(rd.key==="r1"){
-          if(v==="correct") t[g] += (q.double?20:10);
+          if(v==="correct") b[g].r1 += (q.double?20:10);
         } else if(rd.key==="r2"){
-          var base = v==="full"?30 : v==="partial"?15 : 0;
-          if(base) t[g] += base * (sc.mult?2:1);
-          if(sc.flip===g) t[g] += 5;
+          b[g].r2 += r2Points(sc, g);
         } else if(rd.key==="r3"){
-          if(v==="correct") t[g] += (sc.wild?45:15);
+          if(v==="correct") b[g].r3 += (sc.wild?45:15);
         }
       }
     });
-    return t;
+    for(var g2=0; g2<GROUP_COUNT; g2++) b[g2].total = b[g2].r1 + b[g2].r2 + b[g2].r3;
+    return b;
+  }
+  function totals(){ return breakdown().map(function(x){ return x.total; }); }
+
+  // Sortable leaderboard table with per-round breakdown (shared by the
+  // overlay and the final standings slide).
+  function leaderboardTableHTML(){
+    var b = breakdown();
+    var order = rankOrder(b.map(function(x){ return x.total; }));
+    var medals = ["🥇","🥈","🥉"];
+    var rows = order.map(function(g, idx){
+      var cls = idx===0?"p1":idx===1?"p2":idx===2?"p3":"";
+      return '<tr class="'+cls+'" style="animation-delay:'+(idx*0.06)+'s">' +
+               '<td class="rank">'+(idx<3?medals[idx]:(idx+1))+'</td>' +
+               '<td class="team">'+dot(g)+state.names[g]+'</td>' +
+               '<td class="rd">'+b[g].r1+'</td>' +
+               '<td class="rd">'+b[g].r2+'</td>' +
+               '<td class="rd">'+b[g].r3+'</td>' +
+               '<td class="total">'+b[g].total+'</td>' +
+             '</tr>';
+    }).join('');
+    return '<table class="lb-table"><thead><tr>' +
+             '<th>#</th><th class="team">Team</th><th>R1</th><th>R2</th><th>R3</th><th>Total</th>' +
+           '</tr></thead><tbody>'+rows+'</tbody></table>';
   }
 
   /* ======================================================================
@@ -805,11 +860,13 @@
       h += '<div class="r2-grid">';
       for(var g2=0; g2<GROUP_COUNT; g2++){
         var v = sc.g[g2]||"";
+        var pg = r2Points(sc, g2);
         h += '<div class="r2-row">' +
                '<button class="flip'+(sc.flip===g2?" on":"")+'" data-g="'+g2+'" data-act="flip" title="Flip First +5">★</button>' +
                '<span class="nm">'+dot(g2)+state.names[g2]+'</span>' +
                '<button class="sbtn partial'+(v==="partial"?" on":"")+'" data-g="'+g2+'" data-act="partial">Partial</button>' +
                '<button class="sbtn full'+(v==="full"?" on":"")+'" data-g="'+g2+'" data-act="full">Full</button>' +
+               '<span class="r2pts'+(pg>0?" on":"")+'">+'+pg+'</span>' +
              '</div>';
       }
       h += '</div>';
@@ -843,23 +900,12 @@
   function renderFinal(){
     roundPill.textContent = "Final Results";
     setMusic("lobby");
-    var t = totals();
-    var order = rankOrder(t);
-    var medals = ["🥇","🥈","🥉"];
-    var rows = order.map(function(g, idx){
-      var cls = idx===0?"p1":idx===1?"p2":idx===2?"p3":"";
-      return '<div class="lb-row '+cls+'" style="animation-delay:'+(idx*0.08)+'s">' +
-               '<span class="rank">'+(idx<3?'<span class="medal">'+medals[idx]+'</span>':(idx+1))+'</span>' +
-               '<span class="nm">'+dot(g)+state.names[g]+'</span>' +
-               '<span class="pts">'+t[g]+'</span>' +
-             '</div>';
-    }).join('');
     stage.innerHTML =
       '<div class="intro">' +
         '<div class="kick">The Championship</div>' +
         '<h1><span class="g">Final Standings</span></h1>' +
-        '<div class="lb" style="margin:18px auto 0;max-width:640px;">'+rows+'</div>' +
-        '<div class="navrow" style="max-width:640px;margin:22px auto 0;">' + navButtons() + '</div>' +
+        '<div class="lb" style="margin:18px auto 0;max-width:720px;">'+leaderboardTableHTML()+'</div>' +
+        '<div class="navrow" style="max-width:720px;margin:22px auto 0;">' + navButtons() + '</div>' +
       '</div>';
     wireNav();
   }
@@ -928,14 +974,7 @@
   // Leaderboard overlay
   var boardOverlay = byId("boardOverlay");
   byId("btnBoard").onclick = function(){
-    var t = totals(); var order = rankOrder(t); var medals=["🥇","🥈","🥉"];
-    byId("lbRows").innerHTML = order.map(function(g,idx){
-      var cls = idx===0?"p1":idx===1?"p2":idx===2?"p3":"";
-      return '<div class="lb-row '+cls+'">' +
-               '<span class="rank">'+(idx<3?'<span class="medal">'+medals[idx]+'</span>':(idx+1))+'</span>' +
-               '<span class="nm">'+dot(g)+state.names[g]+'</span>' +
-               '<span class="pts">'+t[g]+'</span></div>';
-    }).join('');
+    byId("lbRows").innerHTML = leaderboardTableHTML();
     boardOverlay.classList.remove("hidden");
   };
   byId("boardClose").onclick = function(){ boardOverlay.classList.add("hidden"); };

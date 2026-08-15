@@ -23,9 +23,13 @@ Developed by Philip Jayson Lestojas.
 - **One-click scoring for 6 groups** — after the reveal, click every group that
   answered correctly. Round 2 uses **Full (+30) / Partial (+15)** buttons plus the
   **Flip-First** star.
+- **Live per-problem points (Round 2)** — each group's row shows the points it
+  earned on the current problem, updating instantly as you set Full / Partial /
+  Flip-First and toggle the Mystery Multiplier.
 - **No always-on scoreboard** — running totals are intentionally hidden so the
   standings never spoil the excitement. Open the sortable **🏆 Leaderboard**
-  overlay only when you want to reveal them (great for the finale).
+  overlay only when you want to reveal them (great for the finale). It's a
+  **table with a per-round score breakdown** (R1 / R2 / R3 / Total).
 - **Browse Questions** — the **☰ Questions** menu lists every slide (with which
   ones are revealed / scored) so you can jump straight to a previous question and
   edit its score; totals recalculate instantly.
