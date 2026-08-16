@@ -216,7 +216,10 @@
   .jump-item .rev{color:var(--good);}
   .jump-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end;min-width:0;}
   .jump-gimmicks{display:flex;align-items:center;gap:5px;padding-right:7px;border-right:1px solid var(--line);}
-  .jump-gimmick{min-width:38px;padding:7px 8px;color:var(--muted);}
+  .jump-gimmick{min-width:30px;padding:7px 8px;color:var(--muted);}
+  .gimmick-wrap{display:flex;align-items:center;gap:2px;}
+  .gimmick-input{width:42px;padding:6px 4px;border:1px solid var(--line);border-radius:6px;background:var(--bg2);color:var(--text);text-align:center;font-size:13px;font-weight:700;}
+  .gimmick-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
   .jump-gimmick.on.mult{background:rgba(255,138,61,.18);border-color:var(--accent2);color:var(--accent2);}
   .jump-gimmick.on.flip{background:rgba(255,210,74,.16);border-color:var(--gold);color:var(--gold);}
   .jump-gimmick.on.wild{background:linear-gradient(90deg,rgba(185,140,255,.25),rgba(255,138,61,.25));border-color:var(--accent);color:#fff;}
@@ -239,7 +242,7 @@
   .format-color{width:28px;height:26px;padding:2px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);}
   .question-field input,.question-field select{width:100%;}
   .question-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;}
-  .question-browser{max-width:1180px;}
+  .modal.question-browser{max-width:1180px;}
   @media(max-width:760px){.jump-item{grid-template-columns:1fr;gap:9px;}.jump-main{grid-template-columns:minmax(120px,.8fr) minmax(150px,1.2fr);width:100%;}.jump-tools{grid-column:1;width:100%;justify-content:flex-start;}.question-grid{grid-template-columns:1fr;}}
   @media(max-width:520px){.jump-main{grid-template-columns:1fr;gap:3px;}.jump-item .tag2{text-align:left;}.jump-gimmicks{padding-right:5px;}.jump-tools{gap:5px;}}
 
@@ -918,8 +921,8 @@
   }
   function mScheduler(){
     var ac = music.ctx; if(!ac || !music.master) return;
-    if(music.nextTime < ac.currentTime) music.nextTime = ac.currentTime + 0.03;  // avoid catch-up bursts
-    while(music.nextTime < ac.currentTime + 0.12){
+    if(music.nextTime < ac.currentTime) music.nextTime = ac.currentTime + 0.005;  // avoid catch-up bursts
+    while(music.nextTime < ac.currentTime + 0.3){
       mSchedStep(music.step, music.nextTime);
       music.nextTime += mStepDur();
       music.step = (music.step+1) % 16;
@@ -1234,9 +1237,9 @@
   function escAttr(v){ return String(v||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
   function gimmickButtons(ri, qi, sc){
     return '<div class="jump-gimmicks" aria-label="Question gimmicks">'+
-      '<button class="sbtn jump-gimmick mult'+(sc.mult?' on':'')+'" data-gimmick="mult" data-ri="'+ri+'" data-qi="'+qi+'" aria-pressed="'+!!sc.mult+'" title="Toggle ×2 multiplier">×2</button>'+
-      '<button class="sbtn jump-gimmick flip'+(sc.flipFirst?' on':'')+'" data-gimmick="flip" data-ri="'+ri+'" data-qi="'+qi+'" aria-pressed="'+!!sc.flipFirst+'" title="Toggle Flip First +5 bonus">+5</button>'+
-      '<button class="sbtn jump-gimmick wild'+(sc.wild?' on':'')+'" data-gimmick="wild" data-ri="'+ri+'" data-qi="'+qi+'" aria-pressed="'+!!sc.wild+'" title="Toggle wildcard +30 points">W</button></div>';
+      '<div class="gimmick-wrap"><button class="sbtn jump-gimmick mult'+(sc.mult?' on':'')+'" data-gimmick="mult" data-ri="'+ri+'" data-qi="'+qi+'" aria-pressed="'+!!sc.mult+'" title="Toggle × multiplier">×</button><input type="number" class="gimmick-input" data-ginput="mult" data-ri="'+ri+'" data-qi="'+qi+'" value="'+(sc.multiplier||2)+'" min="1" max="10" title="Multiplier value"></div>'+
+      '<div class="gimmick-wrap"><button class="sbtn jump-gimmick flip'+(sc.flipFirst?' on':'')+'" data-gimmick="flip" data-ri="'+ri+'" data-qi="'+qi+'" aria-pressed="'+!!sc.flipFirst+'" title="Toggle Flip First bonus">+</button><input type="number" class="gimmick-input" data-ginput="flip" data-ri="'+ri+'" data-qi="'+qi+'" value="'+(sc.flipPoints!==undefined?sc.flipPoints:5)+'" min="0" max="100" title="Flip First bonus points"></div>'+
+      '<div class="gimmick-wrap"><button class="sbtn jump-gimmick wild'+(sc.wild?' on':'')+'" data-gimmick="wild" data-ri="'+ri+'" data-qi="'+qi+'" aria-pressed="'+!!sc.wild+'" title="Toggle wildcard points">W</button><input type="number" class="gimmick-input" data-ginput="wild" data-ri="'+ri+'" data-qi="'+qi+'" value="'+(sc.wildcardBonus!==undefined?sc.wildcardBonus:30)+'" min="0" max="1000" title="Wildcard points"></div></div>';
   }
   function setGimmick(sc, kind, enabled, value){
     if(kind==="mult"){ sc.mult=enabled; if(value!=null) sc.multiplier=Math.max(1,Math.round(value)||1); }
@@ -1275,8 +1278,18 @@
     Array.prototype.forEach.call(list.querySelectorAll("[data-gimmick]"), function(button){
       button.onclick = function(){
         var ri=+this.getAttribute("data-ri"), qi=+this.getAttribute("data-qi"), sc=getScoring(ri,qi), kind=this.getAttribute("data-gimmick");
-        setGimmick(sc,kind,kind==="mult"?!sc.mult:kind==="flip"?!sc.flipFirst:!sc.wild,kind==="mult"?2:kind==="flip"?5:30);
+        setGimmick(sc,kind,kind==="mult"?!sc.mult:kind==="flip"?!sc.flipFirst:!sc.wild,null);
         save(); openJump();
+      };
+    });
+    Array.prototype.forEach.call(list.querySelectorAll("[data-ginput]"), function(input){
+      input.oninput = function(){
+        var ri=+this.getAttribute("data-ri"), qi=+this.getAttribute("data-qi"), sc=getScoring(ri,qi), kind=this.getAttribute("data-ginput");
+        var val = Math.max(0, parseInt(this.value)||0);
+        if(kind==="mult") sc.multiplier = Math.max(1, val);
+        if(kind==="flip") sc.flipPoints = val;
+        if(kind==="wild") sc.wildcardBonus = val;
+        save();
       };
     });
     Array.prototype.forEach.call(list.querySelectorAll("[data-add-question]"),function(button){
