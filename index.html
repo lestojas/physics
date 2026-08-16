@@ -203,6 +203,8 @@
   /* ---------- Question browser (jump menu) ---------- */
   .jump-round{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;
     color:var(--accent2);margin:18px 0 7px;}
+  .jump-round-btn{background:transparent;border:none;padding:0;color:inherit;font:inherit;cursor:pointer;}
+  .jump-round-btn:hover{filter:brightness(1.2);text-decoration:underline;}
   .jump-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px;width:100%;text-align:left;
     background:var(--panel2);border:1px solid var(--line);border-radius:9px;
     padding:11px 12px;margin-bottom:7px;font-size:14px;font-weight:600;color:var(--text);}
@@ -403,62 +405,54 @@
     {
       key:"r1", name:"Round 1 · Rapid Recall", tag:"Conceptual", time:20, base:10,
       intro:{ kick:"Round 1 · Rapid Recall", title:"Rapid Recall",
-        rules:["True / False: <strong>15 sec</strong>. Identification: <strong>30 sec</strong>.",
-               "<strong>+10 pts</strong> for a correct answer, 0 for wrong.",
-               "<strong>Double Trouble:</strong> two questions are secretly worth <strong>20 pts</strong> — revealed only after boards are up!"] },
+        rules:["All questions are True / False: <strong>15 sec</strong>.",
+               "<strong>+10 pts</strong> for a correct answer, 0 for wrong."] },
       questions:[
-        // pos 1  (was original Q9)
-        { type:"tf", text:"For an object thrown straight up that returns to its launch height, its speed passing back through the launch point equals its initial launch speed.",
-          answer:"<strong>True</strong> — the mirror symmetry of free fall: same speed magnitude, opposite direction." },
-        // pos 2  (original Q2)
-        { type:"id", text:"What do we call motion where gravity is the only force acting on an object, regardless of whether it's moving up, down, or released from rest?",
-          answer:"<strong>Free fall</strong>" },
-        // pos 3  (original Q3)
-        { type:"tf", text:"A stone thrown straight down and a stone simply dropped from rest are both considered \u201cfree fall\u201d once released.",
-          answer:"<strong>True</strong> — free fall means gravity alone is acting; it does <em>not</em> require starting from rest." },
-        // pos 4  (original Q4)  DOUBLE TROUBLE
-        { type:"tf", double:true, text:"On a merry-go-round, a rider near the edge and a rider near the center complete one full rotation in the same time, so they must have the same tangential speed.",
-          answer:"<strong>False</strong> — both share the same period T, but v = 2\u03c0r/T. The rider farther from the center has a larger radius, so they move at a <strong>greater</strong> tangential speed." },
-        // pos 5  (original Q5)
-        { type:"tf", text:"For a projectile that lands at the same height it was launched from, the range is greatest at a launch angle of 45\u00b0.",
-          answer:"<strong>True</strong>" },
-        // pos 6  (original Q6)
-        { type:"id", text:"What is the name for the apparent outward push you feel in a turning car, even though no real outward force is acting on you?",
-          answer:"<strong>Centrifugal \u201cforce\u201d</strong> — a fictitious/apparent effect. It's really your inertia, while the seat/door pushes you inward." },
-        // pos 7  (original Q7)
-        { type:"tf", text:"In uniform circular motion, velocity is constant because speed never changes.",
-          answer:"<strong>False</strong> — velocity is a vector; its direction is constantly changing even though speed (magnitude) is constant, so velocity itself is not constant." },
-        // pos 8  (was original Q1)  DOUBLE TROUBLE
-        { type:"tf", double:true, text:"At the peak of a ball tossed straight up, both its velocity and acceleration are zero.",
+        { type:"tf", text:"At the peak of a ball tossed straight up, both its velocity <strong>and</strong> its acceleration are zero.",
           answer:"<strong>False</strong> — velocity is zero at the peak, but acceleration is still \u2212g at every instant, including the peak. That's exactly why the ball falls back down." },
-        // pos 9  (was original Q8)
-        { type:"tf", text:"A ball moves in a circle of radius 1.0 m at 2.0 m/s. If the speed is increased to 4.0 m/s and the radius to 4.0 m, the centripetal acceleration stays the same.",
-          answer:"<strong>True</strong> — a\u2081 = (2.0)\u00b2/1.0 = 4.0 m/s\u00b2 and a\u2082 = (4.0)\u00b2/4.0 = 4.0 m/s\u00b2. Quadrupling v\u00b2 is exactly canceled by quadrupling r." },
-        // pos 10 (original Q10)
-        { type:"tf", text:"If a target is released to fall the instant a projectile is fired directly at it, the projectile hits the target \u2014 as long as it has enough speed to cover the horizontal distance before either hits the ground.",
-          answer:"<strong>True</strong> — both the projectile and the target fall the same vertical distance in the same time under gravity, so the aim stays true." }
+        { type:"tf", text:"When solving vertical motion problems using the standard sign convention (up = positive), the acceleration due to gravity should be written as positive while the object is rising and negative while it is falling.",
+          answer:"<strong>False</strong> — acceleration is always \u2212g (downward), regardless of whether the object is rising, falling, or momentarily at rest at the peak. It never flips sign based on direction of motion." },
+        { type:"tf", text:"A stone thrown straight down and a stone simply dropped from rest are both considered \"free fall\" once released.",
+          answer:"<strong>True</strong> — free fall means gravity alone is acting; it does <em>not</em> require starting from rest." },
+        { type:"tf", text:"In vertical circular motion, such as a Ferris wheel moving at constant speed, the <strong>magnitude</strong> of the centripetal acceleration is the same at the top of the loop as it is at the bottom.",
+          answer:"<strong>True</strong> — since a = v\u00b2/r and speed is constant everywhere on the loop, the magnitude never changes. (Direction, though, always points toward the center: downward at the top, upward at the bottom.)" },
+        { type:"tf", text:"For an object thrown straight up that returns to its launch height, the time it takes to rise equals the time it takes to fall back down.",
+          answer:"<strong>True</strong> — this is the mirror symmetry of free fall: t(up) = t(down) for a symmetric round trip." },
+        { type:"tf", text:"In uniform circular motion, the velocity vector is constant since the object's speed never changes.",
+          answer:"<strong>False</strong> — velocity is a vector; even though speed (magnitude) stays constant, the direction is continuously changing, so the velocity vector itself is not constant." },
+        { type:"tf", text:"The two governing assumptions of projectile motion are that the free-fall acceleration stays constant throughout the flight, and that air resistance is negligible.",
+          answer:"<strong>True</strong> — these are exactly the two core assumptions behind the ideal projectile-motion model." },
+        { type:"tf", text:"A ball moves in a circle of radius <strong>1.0 m</strong> at a speed of <strong>2.0 m/s</strong>. If the speed is increased to <strong>4.0 m/s</strong> and the radius is increased to <strong>4.0 m</strong>, the centripetal acceleration stays the same.",
+          answer:"<strong>True</strong> — a\u2081 = (2.0)\u00b2/1.0 = 4.0 m/s\u00b2. a\u2082 = (4.0)\u00b2/4.0 = 4.0 m/s\u00b2. They match: quadrupling v\u00b2 (from doubling speed) is exactly canceled by quadrupling r." },
+        { type:"tf", text:"If a target is released to fall at the exact instant a projectile is fired directly at it, the projectile will <strong>miss</strong> the target \u2014 even if it has enough speed to reach the target's horizontal position before either one hits the ground \u2014 because gravity pulls both of them down and changes their relative positions.",
+          answer:"<strong>False</strong> — the projectile actually still <strong>hits</strong> the target. Both objects fall the same vertical distance at every instant, so the original aim stays true the whole way down." },
+        { type:"tf", text:"For a projectile launched and landing at the same height, the horizontal range is greatest when the launch angle is exactly 45\u00b0.",
+          answer:"<strong>True</strong> — R = v\u2080\u00b2sin(2\u03b8)/g is maximized when sin(2\u03b8) = 1, i.e., when 2\u03b8 = 90\u00b0, so \u03b8 = 45\u00b0." }
       ]
     },
     {
       key:"r2", name:"Round 2 · Problem Showdown", tag:"Numerical", time:300, base:30, partial:15,
       intro:{ kick:"Round 2 · 5 min", title:"Problem Showdown",
-        rules:["3 problems — one per topic, <strong>5 min</strong> each.",
+        rules:["5 problems — <strong>5 min</strong> each.",
                "<strong>+30 pts</strong> full correct (solution + units), <strong>+15 pts</strong> partial credit.",
                "<strong>Flip First:</strong> the first team to finish correctly earns a <strong>+5 bonus</strong>.",
                "<strong>Mystery Multiplier:</strong> one problem may be revealed as <strong>double points</strong>."] },
       questions:[
-        { type:"num", title:"Problem 1 — Free Fall",
-          text:"A mango falls from rest off a tree branch and lands on the ground 1.35 s later. Ignoring air resistance, how tall is the branch above the ground?",
-          answer:"Using \u0394y = \u00bdgt\u00b2 (v\u2080 = 0): h = \u00bd(9.8)(1.35)\u00b2 = <strong>8.93 m \u2248 8.9 m</strong>",
-          note:"Partial credit: setting up \u0394y = v\u2080t + \u00bdat\u00b2 with v\u2080 = 0 and a = \u2212g, even with an arithmetic slip." },
-        { type:"num", title:"Problem 2 — Projectile Motion", suggestMultiplier:true,
-          text:"At a fiesta booth, a player tosses a small ring at 5.80 m/s at 40\u00b0 above the horizontal, aiming for a peg on a raised post 1.80 m away horizontally. The peg sits above the release point. What is the height of the peg above the point where the ring left the player's hand?",
-          answer:"v\u2080\u2093 = 5.80cos40\u00b0 = 4.44 m/s; v\u2080\u1d67 = 5.80sin40\u00b0 = 3.73 m/s. Time to cover 1.80 m: t = 1.80/4.44 = 0.405 s. Then \u0394y = v\u2080\u1d67t \u2212 \u00bdgt\u00b2 = (3.73)(0.405) \u2212 \u00bd(9.8)(0.405)\u00b2 = <strong>0.71 m</strong>",
-          note:"Partial credit: correctly setting up t = \u0394x/v\u2080\u2093 and \u0394y = v\u2080\u1d67t \u2212 \u00bdgt\u00b2 (recognizing the shortcut formulas don't apply), even with an arithmetic slip." },
-        { type:"num", title:"Problem 3 — Uniform Circular Motion",
-          text:"A stationary exercise bike's front wheel has a radius of 0.33 m and spins at a constant 180 rev/min. What is the centripetal acceleration of a reflector clipped to the outer rim?",
-          answer:"180 rev/min = 3 rev/s \u2192 v = 2\u03c0rf = 2\u03c0(0.33)(3) = 6.22 m/s. Then a = v\u00b2/r = (6.22)\u00b2/0.33 = <strong>117 m/s\u00b2</strong>",
-          note:"Partial credit: correctly converting rev/min to rev/s (or T) and setting up v = 2\u03c0r/T then a = v\u00b2/r, even with a final arithmetic error." }
+        { type:"num", title:"Question 1",
+          text:"A mango falls from rest off a tree branch and lands on the ground <strong>1.35 s</strong> later. Ignoring air resistance, how tall is the branch above the ground?",
+          answer:"Using \u0394y = \u00bdgt\u00b2 (v\u2080 = 0): h = \u00bd(9.8)(1.35)\u00b2 = <strong>8.93 m \u2248 8.9 m</strong>" },
+        { type:"num", title:"Question 2", suggestMultiplier:true,
+          text:"At a fiesta booth, a player tosses a small ring at <strong>5.80 m/s</strong> at an angle of <strong>40\u00b0</strong> above the horizontal, aiming for a peg on a raised post <strong>1.80 m</strong> away horizontally. The peg sits <strong>above</strong> the release point, so this is an angled launch to a <em>different</em> landing height \u2014 the shortcut range/height formulas do <strong>not</strong> apply here; you must derive it. What is the height of the peg above the point where the ring left the player's hand?",
+          answer:"v\u2080\u2093 = v\u2080cos\u03b8 = 5.80cos40\u00b0 = 4.44 m/s. v\u2080\u1d67 = v\u2080sin\u03b8 = 5.80sin40\u00b0 = 3.73 m/s. Time to cover 1.80 m horizontally: t = \u0394x/v\u2080\u2093 = 1.80/4.44 = 0.405 s. Height at that time: \u0394y = v\u2080\u1d67t \u2212 \u00bdgt\u00b2 = (3.73)(0.405) \u2212 \u00bd(9.8)(0.405)\u00b2 = <strong>0.71 m</strong>" },
+        { type:"num", title:"Question 3",
+          text:"A stationary exercise bike's front wheel at the gym has a radius of <strong>0.33 m</strong> and spins at a constant rate of <strong>180 rev/min</strong>. What is the centripetal acceleration of a reflector clipped to the outer rim?",
+          answer:"180 rev/min = 3 rev/s \u2192 v = 2\u03c0rf = 2\u03c0(0.33)(3) = 6.22 m/s. a\u209c = v\u00b2/r = (6.22)\u00b2/0.33 = <strong>117 m/s\u00b2</strong>" },
+        { type:"num", title:"Question 4",
+          text:"A zookeeper tosses a piece of fruit straight down to a waiting animal from an elevated platform, releasing it at <strong>3.20 m/s</strong>. Ignoring air resistance, what is the fruit's speed just before it lands, <strong>1.10 s</strong> later?",
+          answer:"Using v = v\u2080 + gt (both v\u2080 and a point downward): v = 3.20 + (9.8)(1.10) = 13.98 m/s \u2248 <strong>14.0 m/s</strong>" },
+        { type:"num", title:"Question 5",
+          text:"A student swings a <strong>0.250-kg</strong> rubber ball tied to a string in a horizontal circle on a frictionless tabletop. The string is <strong>0.400 m</strong> long, and the ball moves at a constant speed of <strong>3.00 m/s</strong>. What is the tension (centripetal force) in the string?",
+          answer:"F\u209c = mv\u00b2/r = (0.250)(3.00)\u00b2/(0.400) = <strong>5.63 N</strong>" }
       ]
     },
     {
@@ -468,16 +462,16 @@
                "<strong>+15 pts</strong> for a correct answer.",
                "<strong>Wildcard:</strong> one question is secretly worth <strong>3\u00d7 points (45)</strong> \u2014 revealed only after boards are up. The dramatic closer!"] },
       questions:[
-        { type:"tf", text:"If you throw a ball straight up, its acceleration decreases as it slows down.",
-          answer:"<strong>False</strong> — acceleration is constant at \u2212g the entire flight, even as the ball slows near the peak." },
-        { type:"num", text:"A ball is dropped from rest and falls for 0.80 s before hitting the floor. What is its speed just before impact?",
-          answer:"v = gt = (9.8)(0.80) = <strong>7.84 m/s \u2248 7.8 m/s</strong>" },
-        { type:"con", text:"In projectile motion, which velocity component \u2014 horizontal or vertical \u2014 stays constant throughout the flight?",
-          answer:"<strong>Horizontal (v\u2093)</strong> — because a\u2093 = 0." },
-        { type:"num", text:"A toy car moves in a circle of radius 0.20 m at a constant speed of 1.5 m/s. Find its centripetal acceleration.",
-          answer:"a = v\u00b2/r = (1.5)\u00b2/0.20 = <strong>11.25 m/s\u00b2 \u2248 11.3 m/s\u00b2</strong>" },
-        { type:"id", suggestWildcard:true, text:"At what launch angle (measured from the horizontal) does projectile motion become identical to pure free fall?",
-          answer:"<strong>90\u00b0</strong> — at \u03b8 = 90\u00b0, v\u2080\u2093 = v\u2080cos90\u00b0 = 0, so the horizontal component vanishes and only vertical motion remains, exactly matching free fall." }
+        { type:"id", text:"What do we call motion in which gravity is the <em>only</em> force acting on an object, regardless of whether it was dropped, thrown up, or thrown down?",
+          answer:"<strong>Free fall</strong>" },
+        { type:"id", text:"What is the name given to the apparent outward push you feel during a sharp turn, even though the only real force acting on you is directed inward?",
+          answer:"<strong>Centrifugal \"force\"</strong> \u2014 a fictitious/apparent effect. The real force (from the seat or door) is centripetal, pointing inward." },
+        { type:"con", text:"A ball moves in a circle at constant speed. At the instant it is at the <strong>rightmost point</strong> of the circle and moving straight up, which direction is its acceleration pointing?",
+          answer:"<strong>To the left</strong> \u2014 directly toward the center of the circle. Centripetal acceleration always points toward the center, perpendicular to the velocity at that instant." },
+        { type:"con", text:"A ball is thrown horizontally off a cliff at the exact same instant an identical ball is dropped straight down from the same height. Ignoring air resistance, which ball hits the ground first?",
+          answer:"<strong>Neither \u2014 they land at the same time.</strong> Horizontal and vertical motions are independent, so the horizontally-thrown ball's sideways motion doesn't slow its fall; both experience the same vertical acceleration from the same height." },
+        { type:"id", suggestWildcard:true, text:"At what launch angle (measured from the horizontal) does projectile motion become <strong>identical to pure free fall</strong>?",
+          answer:"<strong>90\u00b0</strong> \u2014 At \u03b8 = 90\u00b0, v\u2080\u2093 = v\u2080cos90\u00b0 = <strong>0</strong>, so the horizontal component vanishes entirely and only vertical motion remains, exactly matching free fall.<br><em>(Common wrong answers: 45\u00b0, because students associate it with the \"special\" max-range angle rather than thinking through what removes the horizontal component; or 0\u00b0, which is actually the opposite extreme \u2014 purely horizontal motion.)</em>" }
       ]
     }
   ];
@@ -1250,7 +1244,7 @@
     var list = byId("jumpList"), html = "";
     SLIDES.forEach(function(s, idx){
       if(s.kind==="intro"){
-        html += '<div class="jump-round">'+ROUNDS[s.r].name+' <button class="sbtn jump-edit" data-edit-round="'+s.r+'">Edit mechanics</button> <button class="sbtn jump-edit" data-add-question="'+s.r+'">+ Add question</button></div>';
+        html += '<div class="jump-round"><button class="jump-round-btn" data-slide="'+idx+'" title="Go to round mechanics">'+ROUNDS[s.r].name+'</button> <button class="sbtn jump-edit" data-edit-round="'+s.r+'">Edit mechanics</button> <button class="sbtn jump-edit" data-add-question="'+s.r+'">+ Add question</button></div>';
       } else if(s.kind==="q"){
         var rd = ROUNDS[s.r], q = rd.questions[s.q], k = qKey(s.r, s.q), sc = getScoring(s.r, s.q);
         var label = q.title ? q.title : ("Question "+(s.q+1));
