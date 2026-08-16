@@ -214,6 +214,7 @@
   .jump-item .tag2{margin-left:auto;font-size:11px;color:var(--muted);font-weight:700;white-space:nowrap;}
   .jump-item .rev{color:var(--good);}
   .jump-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end;}
+  .gimmick-summary{font-size:11px;font-weight:800;color:var(--accent);white-space:nowrap;}
   .gimmick-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end;}
   .gimmick{display:flex;align-items:center;gap:4px;padding:4px 7px;border:1px solid var(--line);border-radius:7px;background:var(--bg2);font-size:12px;white-space:nowrap;}
   .gimmick input[type="number"]{width:50px;padding:3px 5px;background:var(--panel2);border:1px solid var(--line);border-radius:5px;color:var(--text);font:inherit;}
@@ -349,7 +350,7 @@
 <div class="overlay hidden" id="jumpOverlay">
   <div class="modal" style="max-width:900px;">
     <h2>Browse Questions</h2>
-    <p class="sub">Choose and combine gimmicks on any question, then set their values. Use the batch controls to apply a configuration across selected questions.</p>
+    <p class="sub">Browse by type, select questions for a batch change, or use Edit to configure that question’s content and gimmicks.</p>
     <div class="score-panel" id="batchTools"><div class="score-head"><h3>Batch gimmicks</h3><span class="hint">Check questions below, select any combination of gimmicks, then apply only those choices.</span></div><div class="gimmick-tools"><label class="gimmick"><input id="batchMultOn" type="checkbox"> Multiplier × <input id="batchMultValue" type="number" min="1" value="2"></label><label class="gimmick"><input id="batchWildOn" type="checkbox"> Wildcard + <input id="batchWildValue" type="number" min="0" value="30"></label><label class="gimmick"><input id="batchFlipOn" type="checkbox"> Flip First + <input id="batchFlipValue" type="number" min="0" value="5"></label><button class="sbtn" id="batchApply">Apply selected</button></div></div>
     <div id="jumpList"></div>
     <div class="modal-actions">
@@ -372,6 +373,7 @@
       <div class="question-field"><div class="field-label-row"><label>Question</label><div class="format-tools" data-format-for="editText"><button class="sbtn format-btn" type="button" data-format="bold"><strong>B</strong></button><button class="sbtn format-btn" type="button" data-format="italic"><em>I</em></button><button class="sbtn format-btn" type="button" data-format="bullets">• List</button><button class="sbtn format-btn" type="button" data-format="equation">ƒx Equation</button><input class="format-color" type="color" value="#f2f2f7" data-color-for="editText"></div></div><div id="editText" class="rich-editor" contenteditable="true"></div></div>
       <div class="question-field"><div class="field-label-row"><label>Answer / explanation</label><div class="format-tools" data-format-for="editAnswer"><button class="sbtn format-btn" type="button" data-format="bold"><strong>B</strong></button><button class="sbtn format-btn" type="button" data-format="italic"><em>I</em></button><button class="sbtn format-btn" type="button" data-format="bullets">• List</button><button class="sbtn format-btn" type="button" data-format="equation">ƒx Equation</button><input class="format-color" type="color" value="#f2f2f7" data-color-for="editAnswer"></div></div><div id="editAnswer" class="rich-editor" contenteditable="true"></div></div>
       <div class="question-field"><div class="field-label-row"><label>Scoring note (optional)</label><div class="format-tools" data-format-for="editNote"><button class="sbtn format-btn" type="button" data-format="bold"><strong>B</strong></button><button class="sbtn format-btn" type="button" data-format="italic"><em>I</em></button><button class="sbtn format-btn" type="button" data-format="bullets">• List</button><button class="sbtn format-btn" type="button" data-format="equation">ƒx Equation</button><input class="format-color" type="color" value="#f2f2f7" data-color-for="editNote"></div></div><div id="editNote" class="rich-editor" contenteditable="true"></div></div>
+      <div class="question-field"><label>Gimmicks (any combination)</label><div class="gimmick-tools"><label class="gimmick"><input id="editMultOn" type="checkbox"> Multiplier × <input id="editMultValue" type="number" min="1" value="2"></label><label class="gimmick"><input id="editWildOn" type="checkbox"> Wildcard + <input id="editWildValue" type="number" min="0" value="30"></label><label class="gimmick"><input id="editFlipOn" type="checkbox"> Flip First + <input id="editFlipValue" type="number" min="0" value="5"></label></div></div>
       <div class="modal-actions">
         <button class="btn-ghost" type="button" id="questionCancel">Cancel</button>
         <button class="btn-primary" type="submit">Save Question</button>
@@ -379,7 +381,7 @@
     </form>
   </div>
 </div>
-<div class="overlay hidden" id="roundOverlay"><div class="modal question-editor"><h2>Edit Round Mechanics</h2><p class="sub">Use one rule per line. These settings are saved to this browser.</p><form id="roundForm"><div class="question-grid"><div class="question-field"><label for="editRoundName">Round name</label><input id="editRoundName" type="text" maxlength="80" required></div><div class="question-field"><label for="editRoundTag">Category</label><input id="editRoundTag" type="text" maxlength="50"></div><div class="question-field"><label for="editRoundKick">Round label</label><input id="editRoundKick" type="text" maxlength="80"></div></div><div class="question-field"><label for="editRoundTitle">Slide title</label><input id="editRoundTitle" type="text" maxlength="80" required></div><div class="question-field"><label for="editRoundRules">Mechanics (one rule per line)</label><textarea id="editRoundRules" required></textarea></div><div class="modal-actions"><button class="btn-ghost" type="button" id="roundCancel">Cancel</button><button class="btn-primary" type="submit">Save Mechanics</button></div></form></div></div>
+<div class="overlay hidden" id="roundOverlay"><div class="modal question-editor"><h2>Edit Round Mechanics</h2><p class="sub">Format mechanics exactly like questions: bold, italic, lists, equations, and color all carry through to the round slide.</p><form id="roundForm"><div class="question-grid"><div class="question-field"><label for="editRoundName">Round name</label><input id="editRoundName" type="text" maxlength="80" required></div><div class="question-field"><label for="editRoundTag">Category</label><input id="editRoundTag" type="text" maxlength="50"></div><div class="question-field"><label for="editRoundKick">Round label</label><input id="editRoundKick" type="text" maxlength="80"></div></div><div class="question-field"><label for="editRoundTitle">Slide title</label><input id="editRoundTitle" type="text" maxlength="80" required></div><div class="question-field"><div class="field-label-row"><label>Mechanics</label><div class="format-tools" data-format-for="editRoundRules"><button class="sbtn format-btn" type="button" data-format="bold"><strong>B</strong></button><button class="sbtn format-btn" type="button" data-format="italic"><em>I</em></button><button class="sbtn format-btn" type="button" data-format="bullets">• List</button><button class="sbtn format-btn" type="button" data-format="equation">ƒx Equation</button><input class="format-color" type="color" value="#f2f2f7" data-color-for="editRoundRules"></div></div><div id="editRoundRules" class="rich-editor" contenteditable="true"></div></div><div class="modal-actions"><button class="btn-ghost" type="button" id="roundCancel">Cancel</button><button class="btn-primary" type="submit">Save Mechanics</button></div></form></div></div>
 <div class="dev-credit">Developed by Philip Jayson Lestojas</div>
 
 <script>
@@ -1228,13 +1230,12 @@
   };
   byId("textCancel").onclick=function(){textOverlay.classList.add("hidden");};
   function escAttr(v){ return String(v||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
-  function gimmickControls(ri, qi, sc){
-    var a=' data-ri="'+ri+'" data-qi="'+qi+'"';
-    return '<div class="gimmick-tools">'+
-      '<label class="gimmick"><input type="checkbox" data-gimmick="mult"'+a+(sc.mult?' checked':'')+'> × <input type="number" min="1" value="'+sc.multiplier+'" data-gimmick-value="mult"'+a+'></label>'+
-      '<label class="gimmick"><input type="checkbox" data-gimmick="wild"'+a+(sc.wild?' checked':'')+'> Wild + <input type="number" min="0" value="'+sc.wildcardBonus+'" data-gimmick-value="wild"'+a+'></label>'+
-      '<label class="gimmick"><input type="checkbox" data-gimmick="flip"'+a+(sc.flipFirst?' checked':'')+'> Flip + <input type="number" min="0" value="'+sc.flipPoints+'" data-gimmick-value="flip"'+a+'></label>'+
-    '</div>';
+  function gimmickSummary(sc){
+    var parts=[];
+    if(sc.mult) parts.push("×"+sc.multiplier);
+    if(sc.wild) parts.push("Wild +"+sc.wildcardBonus);
+    if(sc.flipFirst) parts.push("Flip +"+sc.flipPoints);
+    return parts.length ? '<span class="gimmick-summary">'+parts.join(" · ")+'</span>' : "";
   }
   function setGimmick(sc, kind, enabled, value){
     if(kind==="mult"){ sc.mult=enabled; if(value!=null) sc.multiplier=Math.max(1,Math.round(value)||1); }
@@ -1254,7 +1255,7 @@
                      ' · '+TYPE_LABEL[q.type]+' · '+getQuestionTime(s.r, s.q)+'s' + (scored ? (" · "+scored+" scored") : "");
         html += '<div class="jump-item'+(idx===state.slide?" current":"")+'">'+
                   '<label class="hint"><input type="checkbox" data-batch-ri="'+s.r+'" data-batch-qi="'+s.q+'"> Batch</label><button class="jump-main" data-slide="'+idx+'"><span>'+label+'</span><span class="tag2">'+status+'</span></button>'+
-                  '<div class="jump-tools">'+gimmickControls(s.r, s.q, sc)+
+                  '<div class="jump-tools">'+gimmickSummary(sc)+
                     '<button class="sbtn jump-edit" data-move-ri="'+s.r+'" data-move-qi="'+s.q+'" data-move="-1">↑</button><button class="sbtn jump-edit" data-move-ri="'+s.r+'" data-move-qi="'+s.q+'" data-move="1">↓</button><button class="sbtn jump-edit" data-edit-ri="'+s.r+'" data-edit-qi="'+s.q+'">Edit</button></div></div>';
       } else {
         html += '<div class="jump-item'+(idx===state.slide?" current":"")+'"><button class="jump-main" data-slide="'+idx+'"><span>🏆 Final Standings</span></button></div>';
@@ -1263,12 +1264,6 @@
     list.innerHTML = html;
     Array.prototype.forEach.call(list.querySelectorAll("[data-slide]"), function(b){
       b.onclick = function(){ jumpOverlay.classList.add("hidden"); goTo(+b.getAttribute("data-slide")); };
-    });
-    Array.prototype.forEach.call(list.querySelectorAll("[data-gimmick]"), function(input){
-      input.onchange = function(){ var sc=getScoring(+this.getAttribute("data-ri"),+this.getAttribute("data-qi")); setGimmick(sc,this.getAttribute("data-gimmick"),this.checked); save(); openJump(); };
-    });
-    Array.prototype.forEach.call(list.querySelectorAll("[data-gimmick-value]"), function(input){
-      input.onchange = function(){ var kind=this.getAttribute("data-gimmick-value"),sc=getScoring(+this.getAttribute("data-ri"),+this.getAttribute("data-qi")); setGimmick(sc,kind,sc[kind==="mult"?"mult":kind==="wild"?"wild":"flipFirst"],+this.value); save(); openJump(); };
     });
     Array.prototype.forEach.call(list.querySelectorAll("[data-edit-ri]"), function(b){
       b.onclick = function(){ openQuestionEditor(+this.getAttribute("data-edit-ri"), +this.getAttribute("data-edit-qi")); };
@@ -1303,6 +1298,7 @@
     byId("editText").innerHTML = q.text || "";
     byId("editAnswer").innerHTML = q.answer || "";
     byId("editNote").innerHTML = q.note || "";
+    var sc=getScoring(ri,qi); byId("editMultOn").checked=!!sc.mult; byId("editMultValue").value=sc.multiplier; byId("editWildOn").checked=!!sc.wild; byId("editWildValue").value=sc.wildcardBonus; byId("editFlipOn").checked=!!sc.flipFirst; byId("editFlipValue").value=sc.flipPoints;
     questionOverlay.classList.remove("hidden");
   }
   byId("questionForm").onsubmit = function(e){
@@ -1318,6 +1314,7 @@
     };
     state.questionEdits[key] = edit;
     applyQuestionEdit(ri, qi, edit);
+    var sc=getScoring(ri,qi); setGimmick(sc,"mult",byId("editMultOn").checked,+byId("editMultValue").value); setGimmick(sc,"wild",byId("editWildOn").checked,+byId("editWildValue").value); setGimmick(sc,"flip",byId("editFlipOn").checked,+byId("editFlipValue").value);
     saveQuestionSet(ri);
     questionOverlay.classList.add("hidden");
     openJump(); render();
@@ -1340,10 +1337,11 @@
       if(eq) document.execCommand("insertHTML",false,'<span class="equation">'+eq.replace(/</g,"&lt;")+'</span>');
     }
   }
-  Array.prototype.forEach.call(questionOverlay.querySelectorAll("[data-format-for]"),function(group){var target=group.getAttribute("data-format-for");Array.prototype.forEach.call(group.querySelectorAll("[data-format]"),function(button){button.onclick=function(){applyFormat(byId(target),this.getAttribute("data-format"));};});});
-  Array.prototype.forEach.call(questionOverlay.querySelectorAll("[data-color-for]"),function(input){input.oninput=function(){var editor=byId(this.getAttribute("data-color-for"));editor.focus();document.execCommand("foreColor",false,this.value);};});
-  function openRoundEditor(ri){var rd=ROUNDS[ri];editingRound=ri;byId("editRoundName").value=rd.name;byId("editRoundTag").value=rd.tag||"";byId("editRoundKick").value=rd.intro.kick||"";byId("editRoundTitle").value=rd.intro.title||"";byId("editRoundRules").value=rd.intro.rules.join("\n");roundOverlay.classList.remove("hidden");}
-  byId("roundForm").onsubmit=function(e){e.preventDefault();if(editingRound===null)return;var rules=byId("editRoundRules").value.split(/\n+/).map(function(rule){return rule.trim();}).filter(Boolean);if(!rules.length)return;var edit={name:byId("editRoundName").value.trim(),tag:byId("editRoundTag").value.trim(),kick:byId("editRoundKick").value.trim(),title:byId("editRoundTitle").value.trim(),rules:rules};state.roundEdits[editingRound]=edit;applyRoundEdit(editingRound,edit);roundOverlay.classList.add("hidden");save();openJump();render();};
+  Array.prototype.forEach.call(document.querySelectorAll("[data-format-for]"),function(group){var target=group.getAttribute("data-format-for");Array.prototype.forEach.call(group.querySelectorAll("[data-format]"),function(button){button.onclick=function(){applyFormat(byId(target),this.getAttribute("data-format"));};});});
+  Array.prototype.forEach.call(document.querySelectorAll("[data-color-for]"),function(input){input.oninput=function(){var editor=byId(this.getAttribute("data-color-for"));editor.focus();document.execCommand("foreColor",false,this.value);};});
+  function openRoundEditor(ri){var rd=ROUNDS[ri];editingRound=ri;byId("editRoundName").value=rd.name;byId("editRoundTag").value=rd.tag||"";byId("editRoundKick").value=rd.intro.kick||"";byId("editRoundTitle").value=rd.intro.title||"";byId("editRoundRules").innerHTML=rd.intro.rules.map(function(rule){return "<div>"+rule+"</div>";}).join("");roundOverlay.classList.remove("hidden");}
+  function mechanicsRules(html){var box=document.createElement("div");box.innerHTML=normalizeRichHTML(html);var rules=[];Array.prototype.forEach.call(box.children,function(node){if(node.tagName==="UL"||node.tagName==="OL"){Array.prototype.forEach.call(node.children,function(item){if(item.innerHTML.trim())rules.push(item.innerHTML.trim());});}else if(node.innerHTML.trim())rules.push(node.innerHTML.trim());});return rules;}
+  byId("roundForm").onsubmit=function(e){e.preventDefault();if(editingRound===null)return;var rules=mechanicsRules(byId("editRoundRules").innerHTML);if(!rules.length)return;var edit={name:byId("editRoundName").value.trim(),tag:byId("editRoundTag").value.trim(),kick:byId("editRoundKick").value.trim(),title:byId("editRoundTitle").value.trim(),rules:rules};state.roundEdits[editingRound]=edit;applyRoundEdit(editingRound,edit);roundOverlay.classList.add("hidden");save();openJump();render();};
   byId("roundCancel").onclick=function(){roundOverlay.classList.add("hidden");};
   byId("questionCancel").onclick = function(){ questionOverlay.classList.add("hidden"); };
   byId("batchApply").onclick=function(){
