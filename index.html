@@ -201,19 +201,20 @@
   #musicVol{width:82px;accent-color:var(--accent);cursor:pointer;}
 
   /* ---------- Question browser (jump menu) ---------- */
-  .jump-round{font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;
-    color:var(--accent2);margin:14px 0 6px;}
-  .jump-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  .jump-round{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;
+    color:var(--accent2);margin:18px 0 7px;}
+  .jump-item{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;text-align:left;
     background:var(--panel2);border:1px solid var(--line);border-radius:9px;
-    padding:9px 12px;margin-bottom:6px;font-size:14px;font-weight:600;color:var(--text);}
+    padding:11px 12px;margin-bottom:7px;font-size:14px;font-weight:600;color:var(--text);}
   .jump-item:hover{border-color:#5a5a6e;}
   .jump-item.current{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;}
-  .jump-main{display:flex;align-items:center;gap:10px;min-width:0;flex:1;padding:0;background:transparent;
+  .jump-main{display:grid;grid-template-columns:minmax(130px,.8fr) minmax(220px,1.2fr);align-items:center;gap:14px;min-width:0;padding:0;background:transparent;
     border:none;text-align:left;font:inherit;color:inherit;}
   .jump-main:hover{color:#fff;}
-  .jump-item .tag2{margin-left:auto;font-size:11px;color:var(--muted);font-weight:700;white-space:nowrap;}
+  .jump-main > span:first-child{min-width:0;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .jump-item .tag2{font-size:11px;color:var(--muted);font-weight:700;line-height:1.3;text-align:right;}
   .jump-item .rev{color:var(--good);}
-  .jump-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end;}
+  .jump-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end;min-width:0;}
   .gimmick-summary{font-size:11px;font-weight:800;color:var(--accent);white-space:nowrap;}
   .gimmick-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end;}
   .gimmick{display:flex;align-items:center;gap:4px;padding:4px 7px;border:1px solid var(--line);border-radius:7px;background:var(--bg2);font-size:12px;white-space:nowrap;}
@@ -237,7 +238,9 @@
   .format-color{width:28px;height:26px;padding:2px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);}
   .question-field input,.question-field select{width:100%;}
   .question-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;}
-  @media(max-width:650px){.jump-item{align-items:flex-start;flex-direction:column;}.jump-main{width:100%;}.jump-tools{width:100%;justify-content:flex-start;}.question-grid{grid-template-columns:1fr;}}
+  .question-browser{max-width:1180px;}
+  @media(max-width:1080px){.jump-item{grid-template-columns:auto minmax(0,1fr);align-items:start;}.jump-tools{grid-column:1 / -1;padding-left:84px;justify-content:flex-start;}.jump-main{grid-template-columns:minmax(130px,.8fr) minmax(180px,1.2fr);}}
+  @media(max-width:650px){.jump-item{grid-template-columns:1fr;gap:9px;}.jump-item > .hint{grid-row:1;}.jump-main{grid-row:2;grid-template-columns:1fr;gap:3px;width:100%;}.jump-item .tag2{text-align:left;}.jump-tools{grid-column:auto;grid-row:3;padding-left:0;width:100%;justify-content:flex-start;}.question-grid{grid-template-columns:1fr;}}
 
   /* ---------- Modal / overlay ---------- */
   .overlay{position:fixed;inset:0;background:rgba(8,8,12,.78);backdrop-filter:blur(3px);
@@ -348,7 +351,7 @@
 
 <!-- Question browser (jump to, configure, or edit any question) -->
 <div class="overlay hidden" id="jumpOverlay">
-  <div class="modal" style="max-width:900px;">
+  <div class="modal question-browser">
     <h2>Browse Questions</h2>
     <p class="sub">Browse by type, select questions for a batch change, or use Edit to configure that question’s content and gimmicks.</p>
     <div class="score-panel" id="batchTools"><div class="score-head"><h3>Batch gimmicks</h3><span class="hint">Check questions below, select any combination of gimmicks, then apply only those choices.</span></div><div class="gimmick-tools"><label class="gimmick"><input id="batchMultOn" type="checkbox"> Multiplier × <input id="batchMultValue" type="number" min="1" value="2"></label><label class="gimmick"><input id="batchWildOn" type="checkbox"> Wildcard + <input id="batchWildValue" type="number" min="0" value="30"></label><label class="gimmick"><input id="batchFlipOn" type="checkbox"> Flip First + <input id="batchFlipValue" type="number" min="0" value="5"></label><button class="sbtn" id="batchApply">Apply selected</button></div></div>
