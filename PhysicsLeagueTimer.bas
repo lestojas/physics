@@ -5,15 +5,16 @@ Option Explicit
 '  One-time setup: paste this whole module into the VBA editor,
 '  then run "SetupTimerButtons" once (see the "Host Setup" slide
 '  near the start of the deck for full step-by-step instructions).
+'
+'  This version does NOT use Application.OnTime — that scheduler
+'  is unreliable during an active slideshow on some PowerPoint
+'  builds (especially Mac). Instead it polls Timer() in a tight
+'  loop with DoEvents, which keeps ticking reliably and still lets
+'  PowerPoint respond to other clicks while it runs.
 ' ============================================================
 
-Public gTimerEndTime As Double     ' Timer()-based end time (seconds since midnight)
-Public gTimerSlideIndex As Long
-Public gTimerRunning As Boolean
-Public gTimeUpShown As Boolean
+Public gRunID As Long   ' bumped on each Start click; lets a newer click cancel an older still-running countdown
 
-' Run this ONCE after pasting the module in. It finds every
-' "▶ START" button on every slide and wires it to StartQuestionTimer.
 Sub SetupTimerButtons()
     Dim sld As Slide, shp As Shape, n As Long
     n = 0
@@ -33,14 +34,17 @@ End Sub
 
 ' Fires when the host clicks "▶ START" during the slideshow.
 Sub StartQuestionTimer()
-    On Error Resume Next
     Dim sld As Slide
+    On Error Resume Next
     Set sld = SlideShowWindows(1).View.Slide
+    On Error GoTo 0
     If sld Is Nothing Then Exit Sub
 
     Dim durBox As Shape, dispBox As Shape
+    On Error Resume Next
     Set durBox = sld.Shapes("TimerDuration")
     Set dispBox = sld.Shapes("TimerDisplay")
+    On Error GoTo 0
     If durBox Is Nothing Or dispBox Is Nothing Then Exit Sub
 
     Dim secs As Long
@@ -48,78 +52,56 @@ Sub StartQuestionTimer()
     If secs <= 0 Then Exit Sub
 
     dispBox.TextFrame.TextRange.Font.Color.RGB = RGB(242, 242, 247) ' reset to normal text color
-    gTimerEndTime = Timer + secs
-    gTimerSlideIndex = sld.SlideIndex
-    gTimerRunning = True
-    gTimeUpShown = False
-    UpdateTimerDisplay
-    ScheduleTick
-End Sub
 
-Sub ScheduleTick()
-    Application.OnTime Now + TimeSerial(0, 0, 1), "TimerTick"
-End Sub
+    gRunID = gRunID + 1
+    Dim myRunID As Long
+    myRunID = gRunID
 
-Sub TimerTick()
-    If Not gTimerRunning Then Exit Sub
+    Dim slideIdx As Long
+    slideIdx = sld.SlideIndex
 
-    On Error Resume Next
-    Dim curIdx As Long
-    curIdx = SlideShowWindows(1).View.Slide.SlideIndex
-    On Error GoTo 0
+    Dim endTime As Double
+    endTime = Timer + secs
 
-    ' Stop if the host has moved off the question slide (or show ended).
-    If curIdx = 0 Or curIdx <> gTimerSlideIndex Then
-        gTimerRunning = False
-        Exit Sub
+    Dim remaining As Long
+    Do
+        remaining = CeilSecs(endTime - Timer)
+        If remaining < 0 Then remaining = 0
+
+        On Error Resume Next
+        dispBox.TextFrame.TextRange.Text = FormatSecs(remaining)
+        On Error GoTo 0
+
+        If remaining <= 0 Then Exit Do
+        If myRunID <> gRunID Then Exit Sub   ' a newer Start click superseded this one
+
+        Dim stillHere As Boolean
+        stillHere = True
+        On Error Resume Next
+        stillHere = (SlideShowWindows(1).View.Slide.SlideIndex = slideIdx)
+        On Error GoTo 0
+        If Not stillHere Then Exit Sub       ' host moved to a different slide
+
+        Dim waitUntil As Single
+        waitUntil = Timer + 1
+        Do While Timer < waitUntil
+            DoEvents
+            If myRunID <> gRunID Then Exit Sub
+        Loop
+    Loop
+
+    If myRunID = gRunID Then
+        On Error Resume Next
+        dispBox.TextFrame.TextRange.Text = "TIME UP"
+        dispBox.TextFrame.TextRange.Font.Color.RGB = RGB(255, 93, 115)
+        On Error GoTo 0
     End If
-
-    Dim secsLeft As Long
-    secsLeft = CLng(gTimerEndTime - Timer + 0.999)
-    If secsLeft <= 0 Then
-        secsLeft = 0
-        gTimerRunning = False
-    End If
-
-    UpdateTimerDisplay secsLeft
-
-    If gTimerRunning Then
-        ScheduleTick
-    Else
-        ShowTimeUp
-    End If
 End Sub
 
-Sub UpdateTimerDisplay(Optional secsLeft As Variant)
-    On Error Resume Next
-    Dim sld As Slide, dispBox As Shape
-    Set sld = ActivePresentation.Slides(gTimerSlideIndex)
-    Set dispBox = sld.Shapes("TimerDisplay")
-    If dispBox Is Nothing Then Exit Sub
-
-    Dim s As Long
-    If IsMissing(secsLeft) Then
-        s = CLng(gTimerEndTime - Timer + 0.999)
-    Else
-        s = secsLeft
-    End If
-    If s < 0 Then s = 0
-    dispBox.TextFrame.TextRange.Text = FormatSecs(s)
-End Sub
-
-Sub ShowTimeUp()
-    On Error Resume Next
-    If gTimeUpShown Then Exit Sub
-    gTimeUpShown = True
-
-    Dim sld As Slide, dispBox As Shape
-    Set sld = ActivePresentation.Slides(gTimerSlideIndex)
-    Set dispBox = sld.Shapes("TimerDisplay")
-    If dispBox Is Nothing Then Exit Sub
-
-    dispBox.TextFrame.TextRange.Text = "TIME UP"
-    dispBox.TextFrame.TextRange.Font.Color.RGB = RGB(255, 93, 115)
-End Sub
+' Ceiling for positive Doubles: CeilSecs(14.97) = 15, CeilSecs(15.0) = 15.
+Function CeilSecs(x As Double) As Long
+    CeilSecs = -Int(-x)
+End Function
 
 Function FormatSecs(s As Long) As String
     If s >= 60 Then
