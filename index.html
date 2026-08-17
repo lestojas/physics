@@ -1240,6 +1240,16 @@
   var roundOverlay = byId("roundOverlay");
   var textOverlay = byId("textOverlay");
   var editingQuestion = null, editingRound = null;
+  // Pressing Enter in a plain text/number/select field natively submits its form —
+  // that would save-and-close the editor mid-edit. Only let Enter through from the
+  // rich-text fields (where it inserts a line break) or an actual button press.
+  [byId("questionForm"), byId("roundForm"), byId("textForm")].forEach(function(form){
+    form.addEventListener("keydown", function(e){
+      if(e.key==="Enter" && !e.target.isContentEditable && e.target.tagName!=="TEXTAREA" && e.target.tagName!=="BUTTON"){
+        e.preventDefault();
+      }
+    });
+  });
   byId("btnText").onclick=function(){
     [["Brand","brand"],["Browse","browse"],["Teams","teams"],["Board","board"],["Reveal","reveal"],["Score","score"],["FinalKick","finalKick"],["FinalTitle","finalTitle"],["PageTitle","pageTitle"]].forEach(function(pair){byId("text"+pair[0]).value=txt(pair[1]);});
     textOverlay.classList.remove("hidden");
