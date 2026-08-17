@@ -226,6 +226,7 @@
   .gimmick-wrap{display:flex;align-items:center;gap:2px;}
   .gimmick-input{width:42px;padding:6px 4px;border:1px solid var(--line);border-radius:6px;background:var(--bg2);color:var(--text);text-align:center;font-size:13px;font-weight:700;}
   .gimmick-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  .jump-gimmick.on.double{background:rgba(255,210,74,.16);border-color:var(--gold);color:var(--gold);}
   .jump-gimmick.on.mult{background:rgba(255,138,61,.18);border-color:var(--accent2);color:var(--accent2);}
   .jump-gimmick.on.flip{background:rgba(255,210,74,.16);border-color:var(--gold);color:var(--gold);}
   .jump-gimmick.on.wild{background:linear-gradient(90deg,rgba(185,140,255,.25),rgba(255,138,61,.25));border-color:var(--accent);color:#fff;}
@@ -418,7 +419,7 @@
           answer:"<strong>False</strong> — acceleration is always \u2212g (downward), regardless of whether the object is rising, falling, or momentarily at rest at the peak. It never flips sign based on direction of motion." },
         { type:"tf", text:"A stone thrown straight down and a stone simply dropped from rest are both considered \"free fall\" once released.",
           answer:"<strong>True</strong> — free fall means gravity alone is acting; it does <em>not</em> require starting from rest." },
-        { type:"tf", double:true, text:"In vertical circular motion, such as a Ferris wheel moving at constant speed, the <strong>magnitude</strong> of the centripetal acceleration is the same at the top of the loop as it is at the bottom.",
+        { type:"tf", doubleDefault:true, text:"In vertical circular motion, such as a Ferris wheel moving at constant speed, the <strong>magnitude</strong> of the centripetal acceleration is the same at the top of the loop as it is at the bottom.",
           answer:"<strong>True</strong> — since a = v\u00b2/r and speed is constant everywhere on the loop, the magnitude never changes. (Direction, though, always points toward the center: downward at the top, upward at the bottom.)" },
         { type:"tf", text:"For an object thrown straight up that returns to its launch height, the time it takes to rise equals the time it takes to fall back down.",
           answer:"<strong>True</strong> — this is the mirror symmetry of free fall: t(up) = t(down) for a symmetric round trip." },
@@ -426,7 +427,7 @@
           answer:"<strong>False</strong> — velocity is a vector; even though speed (magnitude) stays constant, the direction is continuously changing, so the velocity vector itself is not constant." },
         { type:"tf", text:"The two governing assumptions of projectile motion are that the free-fall acceleration stays constant throughout the flight, and that air resistance is negligible.",
           answer:"<strong>True</strong> — these are exactly the two core assumptions behind the ideal projectile-motion model." },
-        { type:"tf", double:true, text:"A ball moves in a circle of radius <strong>1.0 m</strong> at a speed of <strong>2.0 m/s</strong>. If the speed is increased to <strong>4.0 m/s</strong> and the radius is increased to <strong>4.0 m</strong>, the centripetal acceleration stays the same.",
+        { type:"tf", doubleDefault:true, text:"A ball moves in a circle of radius <strong>1.0 m</strong> at a speed of <strong>2.0 m/s</strong>. If the speed is increased to <strong>4.0 m/s</strong> and the radius is increased to <strong>4.0 m</strong>, the centripetal acceleration stays the same.",
           answer:"<strong>True</strong> — a\u2081 = (2.0)\u00b2/1.0 = 4.0 m/s\u00b2. a\u2082 = (4.0)\u00b2/4.0 = 4.0 m/s\u00b2. They match: quadrupling v\u00b2 (from doubling speed) is exactly canceled by quadrupling r." },
         { type:"tf", text:"If a target is released to fall at the exact instant a projectile is fired directly at it, the projectile will <strong>miss</strong> the target \u2014 even if it has enough speed to reach the target's horizontal position before either one hits the ground \u2014 because gravity pulls both of them down and changes their relative positions.",
           answer:"<strong>False</strong> — the projectile actually still <strong>hits</strong> the target. Both objects fall the same vertical distance at every instant, so the original aim stays true the whole way down." },
@@ -595,8 +596,8 @@
   function getScoring(ri,qi){
     var k = qKey(ri,qi);
     if(!state.scoring[k]){
-      var rd = ROUNDS[ri];
-      state.scoring[k] = { g:{}, mult:false, multiplier:2, flip:null, flipFirst:!!(rd && rd.flipFirstDefault), flipPoints:5, wild:false, wildcardBonus:30 };
+      var rd = ROUNDS[ri], q = rd && rd.questions[qi];
+      state.scoring[k] = { g:{}, mult:false, multiplier:2, flip:null, flipFirst:!!(rd && rd.flipFirstDefault), flipPoints:5, wild:false, wildcardBonus:30, double:!!(q && q.doubleDefault) };
     }
     // Normalize saves made before per-question gimmicks were available.
     var sc=state.scoring[k];
@@ -616,7 +617,12 @@
     return points;
   }
   function standardPoints(rd, q, sc){
-    return withGimmicks(sc, rd.key==="r1" ? (q.double?20:10) : (rd.base||15));
+    return withGimmicks(sc, rd.key==="r1" ? (sc.double?20:10) : (rd.base||15));
+  }
+  // Base points visible on the on-screen chip while a question is still being solved —
+  // reflects an announced Multiplier, but never the secret Double Trouble / Wildcard bonus.
+  function visiblePoints(rd, sc, base){
+    return sc.mult ? base*sc.multiplier : base;
   }
   function r2Points(sc, g){
     var v = sc.g[g];
@@ -1025,8 +1031,8 @@
     html += '<span class="qnum">'+displayNum+'</span>';
     html += '<span class="badge '+TYPE_CLASS[q.type]+'">'+TYPE_LABEL[q.type]+'</span>';
     // point chip during solving (do NOT tip off Double Trouble / Wildcard)
-    if(rd.key==="r2") html += '<span class="chip">+'+withGimmicks(sc,30)+' / +'+withGimmicks(sc,15)+'</span>';
-    else html += '<span class="chip">+'+standardPoints(rd,q,sc)+'</span>';
+    if(rd.key==="r2") html += '<span class="chip">+'+visiblePoints(rd,sc,30)+' / +'+visiblePoints(rd,sc,15)+'</span>';
+    else html += '<span class="chip">+'+visiblePoints(rd,sc, rd.key==="r1"?10:(rd.base||15))+'</span>';
 
     // Timer controls
     html += '<div class="timer-wrap">' +
@@ -1037,8 +1043,9 @@
     html += '</div>';
 
     // Gimmicks are configured per question in Browse Questions and can be combined.
+    // Multiplier and Flip First are announced up front; Wildcard and Double Trouble stay
+    // secret and only appear once the answer is revealed (see the revealed branch below).
     if(sc.mult) html += '<div class="twist multiplier">✨ MULTIPLIER — ×'+sc.multiplier+' points</div>';
-    if(sc.wild) html += '<div class="twist wildcard">⚡ WILDCARD — +'+sc.wildcardBonus+' points</div>';
     if(sc.flipFirst) html += '<div class="twist double">★ FLIP FIRST — first correct team earns +'+sc.flipPoints+' bonus points</div>';
 
     html += '<div class="qtext'+(q.text.length>150?" small":"")+'">'+q.text+'</div>';
@@ -1051,7 +1058,8 @@
       html += '<div class="answer"><span class="lbl">Answer</span>'+q.answer +
               (q.note?'<div class="note">'+q.note+'</div>':'') + '</div>';
       // Twist reveals AFTER boards up
-      if(rd.key==="r1" && q.double)
+      if(sc.wild) html += '<div class="twist wildcard">⚡ WILDCARD — this question was secretly worth +'+sc.wildcardBonus+' points!</div>';
+      if(rd.key==="r1" && sc.double)
         html += '<div class="twist double">🎲 DOUBLE TROUBLE — this question was secretly worth +20 points!</div>';
       html += renderScoringPanel(ri, qi, sc, q, rd);
     }
@@ -1240,7 +1248,11 @@
   byId("textCancel").onclick=function(){textOverlay.classList.add("hidden");};
   function escAttr(v){ return String(v||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
   function gimmickButtons(ri, qi, sc){
+    var rd = ROUNDS[ri];
+    var doubleBtn = (rd && rd.key==="r1") ?
+      '<div class="gimmick-wrap"><button class="sbtn jump-gimmick double'+(sc.double?' on':'')+'" data-gimmick="double" data-ri="'+ri+'" data-qi="'+qi+'" aria-pressed="'+!!sc.double+'" title="Toggle Double Trouble (20 pts)">🎲</button></div>' : '';
     return '<div class="jump-gimmicks" aria-label="Question gimmicks">'+
+      doubleBtn +
       '<div class="gimmick-wrap"><button class="sbtn jump-gimmick mult'+(sc.mult?' on':'')+'" data-gimmick="mult" data-ri="'+ri+'" data-qi="'+qi+'" aria-pressed="'+!!sc.mult+'" title="Toggle × multiplier">×</button><input type="number" class="gimmick-input" data-ginput="mult" data-ri="'+ri+'" data-qi="'+qi+'" value="'+(sc.multiplier||2)+'" min="1" max="10" title="Multiplier value"></div>'+
       '<div class="gimmick-wrap"><button class="sbtn jump-gimmick flip'+(sc.flipFirst?' on':'')+'" data-gimmick="flip" data-ri="'+ri+'" data-qi="'+qi+'" aria-pressed="'+!!sc.flipFirst+'" title="Toggle Flip First bonus">+</button><input type="number" class="gimmick-input" data-ginput="flip" data-ri="'+ri+'" data-qi="'+qi+'" value="'+(sc.flipPoints!==undefined?sc.flipPoints:5)+'" min="0" max="100" title="Flip First bonus points"></div>'+
       '<div class="gimmick-wrap"><button class="sbtn jump-gimmick wild'+(sc.wild?' on':'')+'" data-gimmick="wild" data-ri="'+ri+'" data-qi="'+qi+'" aria-pressed="'+!!sc.wild+'" title="Toggle wildcard points">W</button><input type="number" class="gimmick-input" data-ginput="wild" data-ri="'+ri+'" data-qi="'+qi+'" value="'+(sc.wildcardBonus!==undefined?sc.wildcardBonus:30)+'" min="0" max="1000" title="Wildcard points"></div></div>';
@@ -1249,6 +1261,7 @@
     if(kind==="mult"){ sc.mult=enabled; if(value!=null) sc.multiplier=Math.max(1,Math.round(value)||1); }
     if(kind==="wild"){ sc.wild=enabled; if(value!=null) sc.wildcardBonus=Math.max(0,Math.round(value)||0); }
     if(kind==="flip"){ sc.flipFirst=enabled; if(value!=null) sc.flipPoints=Math.max(0,Math.round(value)||0); if(!enabled) sc.flip=null; }
+    if(kind==="double"){ sc.double=enabled; }
   }
   function openJump(){
     var list = byId("jumpList"), html = "";
@@ -1283,7 +1296,8 @@
     Array.prototype.forEach.call(list.querySelectorAll("[data-gimmick]"), function(button){
       button.onclick = function(){
         var ri=+this.getAttribute("data-ri"), qi=+this.getAttribute("data-qi"), sc=getScoring(ri,qi), kind=this.getAttribute("data-gimmick");
-        setGimmick(sc,kind,kind==="mult"?!sc.mult:kind==="flip"?!sc.flipFirst:!sc.wild,null);
+        var next = kind==="mult"?!sc.mult : kind==="flip"?!sc.flipFirst : kind==="double"?!sc.double : !sc.wild;
+        setGimmick(sc,kind,next,null);
         save(); openJump();
       };
     });
