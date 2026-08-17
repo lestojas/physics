@@ -11,16 +11,28 @@ Option Explicit
 '  loop with DoEvents, which keeps ticking reliably and still lets
 '  PowerPoint respond to other clicks while it runs.
 '
-'  Companion files:
+'  Companion file:
 '   - PhysicsLeagueTimerEvents.cls (class module) — detects when
 '     you return to a slide whose timer already finished, and
 '     resets it automatically.
-'   - The short snippet for the built-in "ThisPresentation" module
-'     that activates the class module above on file open.
+'
+'  On some PowerPoint-for-Mac builds, the built-in "ThisPresentation"
+'  module doesn't show up in the Project pane, so instead of relying
+'  on it to auto-activate on file open, just run ActivateAutoReset
+'  (below) once each time you open the file — same one-time-per-session
+'  habit as running SetupTimerButtons.
 ' ============================================================
 
 Public gRunID As Long        ' bumped on each Start/Reset click; cancels an older still-running countdown
 Public gTrap As Object       ' holds the PhysicsLeagueTimerEvents instance (declared As Object so this compiles even before that class module is added)
+
+' Run this once per session (each time you open the file) to turn on
+' the "auto-reset a finished timer when you return to its slide" behavior.
+Sub ActivateAutoReset()
+    Set gTrap = New PhysicsLeagueTimerEvents
+    Set gTrap.App = Application
+    MsgBox "Auto-reset watcher is active for this session.", vbInformation, "Ready"
+End Sub
 
 Sub SetupTimerButtons()
     Dim sld As Slide, shp As Shape, n As Long
