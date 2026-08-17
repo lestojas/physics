@@ -1456,9 +1456,12 @@
 
   /* ---------- Keyboard shortcuts ---------- */
   document.addEventListener("keydown", function(e){
-    if(e.target.tagName==="INPUT") return;
-    if(!teamsOverlay.classList.contains("hidden") || !boardOverlay.classList.contains("hidden") || !jumpOverlay.classList.contains("hidden")){
-      if(e.key==="Escape"){ teamsOverlay.classList.add("hidden"); boardOverlay.classList.add("hidden"); jumpOverlay.classList.add("hidden"); }
+    if(e.target.tagName==="INPUT" || e.target.tagName==="TEXTAREA" || e.target.isContentEditable) return;
+    if(!teamsOverlay.classList.contains("hidden") || !boardOverlay.classList.contains("hidden") || !jumpOverlay.classList.contains("hidden") ||
+       !questionOverlay.classList.contains("hidden") || !roundOverlay.classList.contains("hidden") || !textOverlay.classList.contains("hidden")){
+      if(e.key==="Escape"){
+        [teamsOverlay, boardOverlay, jumpOverlay, questionOverlay, roundOverlay, textOverlay].forEach(function(ov){ ov.classList.add("hidden"); });
+      }
       return;
     }
     var slide = SLIDES[state.slide];
