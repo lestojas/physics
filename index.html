@@ -1007,8 +1007,10 @@
         '<h1><span class="g">'+i.title+'</span></h1>' +
         '<div class="sub">'+rd.tag+'</div>' +
         '<div class="rules"><ul>' + i.rules.map(function(r){return '<li>'+r+'</li>';}).join('') + '</ul></div>' +
+        '<div style="margin-top:14px;"><button class="sbtn jump-edit" id="btnEditMechanics">✎ Edit Mechanics</button></div>' +
         '<div class="navrow" style="max-width:640px;margin:22px auto 0;">' + navButtons() + '</div>' +
       '</div>';
+    byId("btnEditMechanics").onclick = function(){ openRoundEditor(slide.r); };
     wireNav();
   }
 
@@ -1033,6 +1035,7 @@
     // point chip during solving (do NOT tip off Double Trouble / Wildcard)
     if(rd.key==="r2") html += '<span class="chip">+'+visiblePoints(rd,sc,30)+' / +'+visiblePoints(rd,sc,15)+'</span>';
     else html += '<span class="chip">+'+visiblePoints(rd,sc, rd.key==="r1"?10:(rd.base||15))+'</span>';
+    html += '<button class="tbtn" id="btnEditQuestion" title="Edit this question">✎</button>';
 
     // Timer controls
     html += '<div class="timer-wrap">' +
@@ -1074,6 +1077,7 @@
     byId("btnTimerReset").onclick = function(){ resetTimer(questionTime); };
     if(byId("btnReveal")) byId("btnReveal").onclick = function(){ state.revealed[k]=true; revealSting(); render(); };
     if(byId("btnUnreveal")) byId("btnUnreveal").onclick = function(){ state.revealed[k]=false; render(); };
+    byId("btnEditQuestion").onclick = function(){ openQuestionEditor(ri, qi); };
     wireScoring(ri,qi,sc,rd);
     wireNav();
     updateTimerUI();
@@ -1391,7 +1395,8 @@
     applyQuestionEdit(ri, qi, edit);
     saveQuestionSet(ri);
     questionOverlay.classList.add("hidden");
-    openJump(); render();
+    if(!jumpOverlay.classList.contains("hidden")) openJump();
+    render();
   };
   // Store semantic formatting rather than legacy presentational <b>/<i> markup.
   function normalizeRichHTML(html){
@@ -1415,7 +1420,7 @@
   Array.prototype.forEach.call(document.querySelectorAll("[data-color-for]"),function(input){input.oninput=function(){var editor=byId(this.getAttribute("data-color-for"));editor.focus();document.execCommand("foreColor",false,this.value);};});
   function openRoundEditor(ri){var rd=ROUNDS[ri];editingRound=ri;byId("editRoundName").value=rd.name;byId("editRoundTag").value=rd.tag||"";byId("editRoundKick").value=rd.intro.kick||"";byId("editRoundTitle").value=rd.intro.title||"";byId("editRoundRules").innerHTML=rd.intro.rules.map(function(rule){return "<div>"+rule+"</div>";}).join("");roundOverlay.classList.remove("hidden");}
   function mechanicsRules(html){var box=document.createElement("div");box.innerHTML=normalizeRichHTML(html);var rules=[];Array.prototype.forEach.call(box.children,function(node){if(node.tagName==="UL"||node.tagName==="OL"){Array.prototype.forEach.call(node.children,function(item){if(item.innerHTML.trim())rules.push(item.innerHTML.trim());});}else if(node.innerHTML.trim())rules.push(node.innerHTML.trim());});return rules;}
-  byId("roundForm").onsubmit=function(e){e.preventDefault();if(editingRound===null)return;var rules=mechanicsRules(byId("editRoundRules").innerHTML);if(!rules.length)return;var edit={name:byId("editRoundName").value.trim(),tag:byId("editRoundTag").value.trim(),kick:byId("editRoundKick").value.trim(),title:byId("editRoundTitle").value.trim(),rules:rules};state.roundEdits[editingRound]=edit;applyRoundEdit(editingRound,edit);roundOverlay.classList.add("hidden");save();openJump();render();};
+  byId("roundForm").onsubmit=function(e){e.preventDefault();if(editingRound===null)return;var rules=mechanicsRules(byId("editRoundRules").innerHTML);if(!rules.length)return;var edit={name:byId("editRoundName").value.trim(),tag:byId("editRoundTag").value.trim(),kick:byId("editRoundKick").value.trim(),title:byId("editRoundTitle").value.trim(),rules:rules};state.roundEdits[editingRound]=edit;applyRoundEdit(editingRound,edit);roundOverlay.classList.add("hidden");save();if(!jumpOverlay.classList.contains("hidden"))openJump();render();};
   byId("roundCancel").onclick=function(){roundOverlay.classList.add("hidden");};
   byId("questionCancel").onclick = function(){ questionOverlay.classList.add("hidden"); };
   byId("btnJump").onclick = openJump;
