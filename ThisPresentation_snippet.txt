@@ -1,0 +1,15 @@
+Paste this into the EXISTING "ThisPresentation" module (do not create a new
+module for this — in the VBA editor's Project pane, under "Microsoft
+PowerPoint Objects", double-click the item already named "ThisPresentation"
+and paste the code below into it):
+
+Private Sub Presentation_Open(ByVal Pres As Presentation)
+    Set gTrap = New PhysicsLeagueTimerEvents
+    Set gTrap.App = Application
+End Sub
+
+This runs automatically every time the file is opened (once macros are
+enabled), and turns on the auto-reset-when-you-return-to-a-finished-timer
+behavior for the rest of that session. Because it only runs on open, close
+and reopen the file once after pasting this in, to activate it for your
+current session too.

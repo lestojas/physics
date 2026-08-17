@@ -2,18 +2,25 @@ Option Explicit
 
 ' ============================================================
 '  Physics League — Click-to-Start Question Timer
-'  One-time setup: paste this whole module into the VBA editor,
-'  then run "SetupTimerButtons" once (see the "Host Setup" slide
-'  near the start of the deck for full step-by-step instructions).
+'  One-time setup: see the "Host Setup" slide near the start of
+'  the deck, or the setup instructions sent alongside this file.
 '
-'  This version does NOT use Application.OnTime — that scheduler
+'  This module does NOT use Application.OnTime — that scheduler
 '  is unreliable during an active slideshow on some PowerPoint
 '  builds (especially Mac). Instead it polls Timer() in a tight
 '  loop with DoEvents, which keeps ticking reliably and still lets
 '  PowerPoint respond to other clicks while it runs.
+'
+'  Companion files:
+'   - PhysicsLeagueTimerEvents.cls (class module) — detects when
+'     you return to a slide whose timer already finished, and
+'     resets it automatically.
+'   - The short snippet for the built-in "ThisPresentation" module
+'     that activates the class module above on file open.
 ' ============================================================
 
-Public gRunID As Long   ' bumped on each Start click; lets a newer click cancel an older still-running countdown
+Public gRunID As Long        ' bumped on each Start/Reset click; cancels an older still-running countdown
+Public gTrap As Object       ' holds the PhysicsLeagueTimerEvents instance (declared As Object so this compiles even before that class module is added)
 
 Sub SetupTimerButtons()
     Dim sld As Slide, shp As Shape, n As Long
@@ -23,6 +30,10 @@ Sub SetupTimerButtons()
             If shp.Name = "TimerStartBtn" Then
                 shp.ActionSettings(ppMouseClick).Action = ppActionRunMacro
                 shp.ActionSettings(ppMouseClick).Run = "StartQuestionTimer"
+                n = n + 1
+            ElseIf shp.Name = "TimerResetBtn" Then
+                shp.ActionSettings(ppMouseClick).Action = ppActionRunMacro
+                shp.ActionSettings(ppMouseClick).Run = "ResetQuestionTimer"
                 n = n + 1
             End If
         Next shp
@@ -73,14 +84,14 @@ Sub StartQuestionTimer()
         On Error GoTo 0
 
         If remaining <= 0 Then Exit Do
-        If myRunID <> gRunID Then Exit Sub   ' a newer Start click superseded this one
+        If myRunID <> gRunID Then Exit Sub   ' a newer Start/Reset click superseded this one
 
         Dim stillHere As Boolean
         stillHere = True
         On Error Resume Next
         stillHere = (SlideShowWindows(1).View.Slide.SlideIndex = slideIdx)
         On Error GoTo 0
-        If Not stillHere Then Exit Sub       ' host moved to a different slide
+        If Not stillHere Then Exit Sub       ' host moved to a different slide — leave the frozen value as-is
 
         Dim waitUntil As Single
         waitUntil = Timer + 1
@@ -96,6 +107,46 @@ Sub StartQuestionTimer()
         dispBox.TextFrame.TextRange.Font.Color.RGB = RGB(255, 93, 115)
         On Error GoTo 0
     End If
+End Sub
+
+' Fires when the host clicks "RESET" during the slideshow.
+Sub ResetQuestionTimer()
+    On Error Resume Next
+    Dim sld As Slide
+    Set sld = SlideShowWindows(1).View.Slide
+    If sld Is Nothing Then Exit Sub
+    gRunID = gRunID + 1   ' cancels any countdown currently in progress
+    ResetTimerDisplay sld
+    On Error GoTo 0
+End Sub
+
+' Sets a slide's TimerDisplay back to its TimerDuration value. Used by both
+' the manual RESET button and the auto-reset-on-return logic below.
+Sub ResetTimerDisplay(sld As Slide)
+    On Error Resume Next
+    Dim durBox As Shape, dispBox As Shape
+    Set durBox = sld.Shapes("TimerDuration")
+    Set dispBox = sld.Shapes("TimerDisplay")
+    If durBox Is Nothing Or dispBox Is Nothing Then Exit Sub
+    dispBox.TextFrame.TextRange.Text = durBox.TextFrame.TextRange.Text
+    dispBox.TextFrame.TextRange.Font.Color.RGB = RGB(242, 242, 247)
+    On Error GoTo 0
+End Sub
+
+' Called (via PhysicsLeagueTimerEvents.cls) every time the visible slide
+' changes during the slideshow. If this slide's timer already finished,
+' auto-reset it to the original duration so it's ready to run again.
+' If the timer was left mid-countdown, this does nothing — that frozen
+' value stays until the host clicks RESET or START again.
+Sub AutoResetIfFinished(sld As Slide)
+    On Error Resume Next
+    Dim dispBox As Shape
+    Set dispBox = sld.Shapes("TimerDisplay")
+    If dispBox Is Nothing Then Exit Sub
+    If dispBox.TextFrame.TextRange.Text = "TIME UP" Then
+        ResetTimerDisplay sld
+    End If
+    On Error GoTo 0
 End Sub
 
 ' Ceiling for positive Doubles: CeilSecs(14.97) = 15, CeilSecs(15.0) = 15.
