@@ -6,8 +6,8 @@
   works fully offline (open this file directly or serve it).
 
   Features:
-    - Built-in per-question countdown timer (True/False: 15s,
-      Identification: 30s, Round 2: 5 min, Round 3: 60s), with editable
+    - Built-in per-question countdown timer (True/False: 20s,
+      Round 2: 3 min, Round 3: 50s), with editable
       per-question timing plus start / pause / reset and keyboard shortcuts.
     - Manual "Reveal Answer" on click.
     - Click the groups (6) that got the answer correct to award points.
@@ -404,9 +404,10 @@
   var ROUNDS = [
     {
       key:"r1", name:"Round 1 · Rapid Recall", tag:"Conceptual", time:20, base:10,
-      intro:{ kick:"Round 1 · Rapid Recall", title:"Rapid Recall",
-        rules:["All questions are True / False: <strong>15 sec</strong>.",
-               "<strong>+10 pts</strong> for a correct answer, 0 for wrong."] },
+      intro:{ kick:"Round 1 · 10 min", title:"Rapid Recall",
+        rules:["All questions are True / False: <strong>20 sec</strong>.",
+               "<strong>+10 pts</strong> for a correct answer, 0 for wrong.",
+               "🎲 <strong>Double Trouble:</strong> Questions 4 and 8 are secretly worth <strong>20 pts</strong>. Don't tell teams — reveal the point value only after boards are up."] },
       questions:[
         { type:"tf", text:"At the peak of a ball tossed straight up, both its velocity <strong>and</strong> its acceleration are zero.",
           answer:"<strong>False</strong> — velocity is zero at the peak, but acceleration is still \u2212g at every instant, including the peak. That's exactly why the ball falls back down." },
@@ -414,7 +415,7 @@
           answer:"<strong>False</strong> — acceleration is always \u2212g (downward), regardless of whether the object is rising, falling, or momentarily at rest at the peak. It never flips sign based on direction of motion." },
         { type:"tf", text:"A stone thrown straight down and a stone simply dropped from rest are both considered \"free fall\" once released.",
           answer:"<strong>True</strong> — free fall means gravity alone is acting; it does <em>not</em> require starting from rest." },
-        { type:"tf", text:"In vertical circular motion, such as a Ferris wheel moving at constant speed, the <strong>magnitude</strong> of the centripetal acceleration is the same at the top of the loop as it is at the bottom.",
+        { type:"tf", double:true, text:"In vertical circular motion, such as a Ferris wheel moving at constant speed, the <strong>magnitude</strong> of the centripetal acceleration is the same at the top of the loop as it is at the bottom.",
           answer:"<strong>True</strong> — since a = v\u00b2/r and speed is constant everywhere on the loop, the magnitude never changes. (Direction, though, always points toward the center: downward at the top, upward at the bottom.)" },
         { type:"tf", text:"For an object thrown straight up that returns to its launch height, the time it takes to rise equals the time it takes to fall back down.",
           answer:"<strong>True</strong> — this is the mirror symmetry of free fall: t(up) = t(down) for a symmetric round trip." },
@@ -422,7 +423,7 @@
           answer:"<strong>False</strong> — velocity is a vector; even though speed (magnitude) stays constant, the direction is continuously changing, so the velocity vector itself is not constant." },
         { type:"tf", text:"The two governing assumptions of projectile motion are that the free-fall acceleration stays constant throughout the flight, and that air resistance is negligible.",
           answer:"<strong>True</strong> — these are exactly the two core assumptions behind the ideal projectile-motion model." },
-        { type:"tf", text:"A ball moves in a circle of radius <strong>1.0 m</strong> at a speed of <strong>2.0 m/s</strong>. If the speed is increased to <strong>4.0 m/s</strong> and the radius is increased to <strong>4.0 m</strong>, the centripetal acceleration stays the same.",
+        { type:"tf", double:true, text:"A ball moves in a circle of radius <strong>1.0 m</strong> at a speed of <strong>2.0 m/s</strong>. If the speed is increased to <strong>4.0 m/s</strong> and the radius is increased to <strong>4.0 m</strong>, the centripetal acceleration stays the same.",
           answer:"<strong>True</strong> — a\u2081 = (2.0)\u00b2/1.0 = 4.0 m/s\u00b2. a\u2082 = (4.0)\u00b2/4.0 = 4.0 m/s\u00b2. They match: quadrupling v\u00b2 (from doubling speed) is exactly canceled by quadrupling r." },
         { type:"tf", text:"If a target is released to fall at the exact instant a projectile is fired directly at it, the projectile will <strong>miss</strong> the target \u2014 even if it has enough speed to reach the target's horizontal position before either one hits the ground \u2014 because gravity pulls both of them down and changes their relative positions.",
           answer:"<strong>False</strong> — the projectile actually still <strong>hits</strong> the target. Both objects fall the same vertical distance at every instant, so the original aim stays true the whole way down." },
@@ -431,34 +432,39 @@
       ]
     },
     {
-      key:"r2", name:"Round 2 · Problem Showdown", tag:"Numerical", time:300, base:30, partial:15,
-      intro:{ kick:"Round 2 · 5 min", title:"Problem Showdown",
-        rules:["5 problems — <strong>5 min</strong> each.",
+      key:"r2", name:"Round 2 · Problem Showdown", tag:"Numerical", time:180, base:30, partial:15,
+      intro:{ kick:"Round 2 · 15 min", title:"Problem Showdown",
+        rules:["5 problems spanning all three topics — <strong>3 min</strong> each including reveal.",
                "<strong>+30 pts</strong> full correct (solution + units), <strong>+15 pts</strong> partial credit.",
                "<strong>Flip First:</strong> the first team to finish correctly earns a <strong>+5 bonus</strong>.",
                "<strong>Mystery Multiplier:</strong> one problem may be revealed as <strong>double points</strong>."] },
       questions:[
         { type:"num", title:"Question 1",
           text:"A mango falls from rest off a tree branch and lands on the ground <strong>1.35 s</strong> later. Ignoring air resistance, how tall is the branch above the ground?",
-          answer:"Using \u0394y = \u00bdgt\u00b2 (v\u2080 = 0): h = \u00bd(9.8)(1.35)\u00b2 = <strong>8.93 m \u2248 8.9 m</strong>" },
+          answer:"Using \u0394y = \u00bdgt\u00b2 (v\u2080 = 0): h = \u00bd(9.8)(1.35)\u00b2 = <strong>8.93 m \u2248 8.9 m</strong>",
+          note:"Partial credit: setting up \u0394y = v\u2080t + \u00bdat\u00b2 with v\u2080 = 0 and a = \u2212g, even with an arithmetic slip." },
         { type:"num", title:"Question 2", suggestMultiplier:true,
           text:"At a fiesta booth, a player tosses a small ring at <strong>5.80 m/s</strong> at an angle of <strong>40\u00b0</strong> above the horizontal, aiming for a peg on a raised post <strong>1.80 m</strong> away horizontally. The peg sits <strong>above</strong> the release point, so this is an angled launch to a <em>different</em> landing height \u2014 the shortcut range/height formulas do <strong>not</strong> apply here; you must derive it. What is the height of the peg above the point where the ring left the player's hand?",
-          answer:"v\u2080\u2093 = v\u2080cos\u03b8 = 5.80cos40\u00b0 = 4.44 m/s. v\u2080\u1d67 = v\u2080sin\u03b8 = 5.80sin40\u00b0 = 3.73 m/s. Time to cover 1.80 m horizontally: t = \u0394x/v\u2080\u2093 = 1.80/4.44 = 0.405 s. Height at that time: \u0394y = v\u2080\u1d67t \u2212 \u00bdgt\u00b2 = (3.73)(0.405) \u2212 \u00bd(9.8)(0.405)\u00b2 = <strong>0.71 m</strong>" },
+          answer:"v\u2080\u2093 = v\u2080cos\u03b8 = 5.80cos40\u00b0 = 4.44 m/s. v\u2080\u1d67 = v\u2080sin\u03b8 = 5.80sin40\u00b0 = 3.73 m/s. Time to cover 1.80 m horizontally: t = \u0394x/v\u2080\u2093 = 1.80/4.44 = 0.405 s. Height at that time: \u0394y = v\u2080\u1d67t \u2212 \u00bdgt\u00b2 = (3.73)(0.405) \u2212 \u00bd(9.8)(0.405)\u00b2 = <strong>0.71 m</strong>",
+          note:"Partial credit: correctly setting up t = \u0394x/v\u2080\u2093 and \u0394y = v\u2080\u1d67t \u2212 \u00bdgt\u00b2 (recognizing shortcut formulas don't apply), even with an arithmetic slip." },
         { type:"num", title:"Question 3",
           text:"A stationary exercise bike's front wheel at the gym has a radius of <strong>0.33 m</strong> and spins at a constant rate of <strong>180 rev/min</strong>. What is the centripetal acceleration of a reflector clipped to the outer rim?",
-          answer:"180 rev/min = 3 rev/s \u2192 v = 2\u03c0rf = 2\u03c0(0.33)(3) = 6.22 m/s. a\u209c = v\u00b2/r = (6.22)\u00b2/0.33 = <strong>117 m/s\u00b2</strong>" },
+          answer:"180 rev/min = 3 rev/s \u2192 v = 2\u03c0rf = 2\u03c0(0.33)(3) = 6.22 m/s. a\u209c = v\u00b2/r = (6.22)\u00b2/0.33 = <strong>117 m/s\u00b2</strong>",
+          note:"Partial credit: correctly converting rev/min to rev/s (or T), and setting up v = 2\u03c0r/T followed by a\u209c = v\u00b2/r, even with a final arithmetic error." },
         { type:"num", title:"Question 4",
           text:"A zookeeper tosses a piece of fruit straight down to a waiting animal from an elevated platform, releasing it at <strong>3.20 m/s</strong>. Ignoring air resistance, what is the fruit's speed just before it lands, <strong>1.10 s</strong> later?",
-          answer:"Using v = v\u2080 + gt (both v\u2080 and a point downward): v = 3.20 + (9.8)(1.10) = 13.98 m/s \u2248 <strong>14.0 m/s</strong>" },
+          answer:"Using v = v\u2080 + gt (both v\u2080 and a point downward): v = 3.20 + (9.8)(1.10) = 13.98 m/s \u2248 <strong>14.0 m/s</strong>",
+          note:"Partial credit: correctly setting up v = v\u2080 + at with v\u2080 \u2260 0 and a = g (same direction as v\u2080), even with an arithmetic slip." },
         { type:"num", title:"Question 5",
           text:"A student swings a <strong>0.250-kg</strong> rubber ball tied to a string in a horizontal circle on a frictionless tabletop. The string is <strong>0.400 m</strong> long, and the ball moves at a constant speed of <strong>3.00 m/s</strong>. What is the tension (centripetal force) in the string?",
-          answer:"F\u209c = mv\u00b2/r = (0.250)(3.00)\u00b2/(0.400) = <strong>5.63 N</strong>" }
+          answer:"F\u209c = mv\u00b2/r = (0.250)(3.00)\u00b2/(0.400) = <strong>5.63 N</strong>",
+          note:"Partial credit: correctly setting up F\u209c = mv\u00b2/r, even with a final arithmetic error." }
       ]
     },
     {
-      key:"r3", name:"Round 3 · Lightning Final", tag:"Mixed", time:60, base:15,
-      intro:{ kick:"Round 3 · 5 min", title:"Lightning Final",
-        rules:["5 fast mixed questions — <strong>60 sec</strong> each.",
+      key:"r3", name:"Round 3 · Lightning Final", tag:"Mixed", time:50, base:15,
+      intro:{ kick:"Round 3 · 7 min", title:"Lightning Final",
+        rules:["5 fast conceptual/identification questions — <strong>~50 sec</strong> each.",
                "<strong>+15 pts</strong> for a correct answer.",
                "<strong>Wildcard:</strong> one question is secretly worth <strong>3\u00d7 points (45)</strong> \u2014 revealed only after boards are up. The dramatic closer!"] },
       questions:[
@@ -560,12 +566,7 @@
     document.querySelector(".brand .g").textContent=txt("brand"); document.title=txt("pageTitle");
   }
   function defaultQuestionTime(ri, q){
-    var rd = ROUNDS[ri];
-    if(rd.key==="r2") return 300;
-    if(rd.key==="r3") return 60;
-    if(q.type==="tf") return 15;
-    if(q.type==="id") return 30;
-    return rd.time;
+    return ROUNDS[ri].time;
   }
   function getQuestionTime(ri, qi){
     var q = ROUNDS[ri].questions[qi];
