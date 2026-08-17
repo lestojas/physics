@@ -435,7 +435,7 @@
       ]
     },
     {
-      key:"r2", name:"Round 2 · Problem Showdown", tag:"Numerical", time:300, base:30, partial:15,
+      key:"r2", name:"Round 2 · Problem Showdown", tag:"Numerical", time:300, base:30, partial:15, flipFirstDefault:true,
       intro:{ kick:"Round 2 · 25 min", title:"Problem Showdown",
         rules:["5 problems spanning all three topics — <strong>5 min</strong> each including reveal.",
                "<strong>+30 pts</strong> full correct (solution + units), <strong>+15 pts</strong> partial credit.",
@@ -465,7 +465,7 @@
       ]
     },
     {
-      key:"r3", name:"Round 3 · Lightning Final", tag:"Mixed", time:30, base:15,
+      key:"r3", name:"Round 3 · Lightning Final", tag:"Mixed", time:30, base:15, flipFirstDefault:true,
       intro:{ kick:"Round 3 · ~3 min", title:"Lightning Final",
         rules:["5 fast conceptual/identification questions — <strong>30 sec</strong> each.",
                "<strong>+15 pts</strong> for a correct answer.",
@@ -596,8 +596,7 @@
     var k = qKey(ri,qi);
     if(!state.scoring[k]){
       var rd = ROUNDS[ri];
-      var defaultFlip = !!rd && (rd.key==="r2" || rd.key==="r3");
-      state.scoring[k] = { g:{}, mult:false, multiplier:2, flip:null, flipFirst:defaultFlip, flipPoints:5, wild:false, wildcardBonus:30 };
+      state.scoring[k] = { g:{}, mult:false, multiplier:2, flip:null, flipFirst:!!(rd && rd.flipFirstDefault), flipPoints:5, wild:false, wildcardBonus:30 };
     }
     // Normalize saves made before per-question gimmicks were available.
     var sc=state.scoring[k];
