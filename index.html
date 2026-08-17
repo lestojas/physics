@@ -205,11 +205,15 @@
     color:var(--accent2);margin:18px 0 7px;}
   .jump-round-btn{background:transparent;border:none;padding:0;color:inherit;font:inherit;cursor:pointer;}
   .jump-round-btn:hover{filter:brightness(1.2);text-decoration:underline;}
-  .jump-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px;width:100%;text-align:left;
+  .jump-item{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px;width:100%;text-align:left;
     background:var(--panel2);border:1px solid var(--line);border-radius:9px;
     padding:11px 12px;margin-bottom:7px;font-size:14px;font-weight:600;color:var(--text);}
   .jump-item:hover{border-color:#5a5a6e;}
   .jump-item.current{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;}
+  .jump-item.dragging{opacity:.4;}
+  .jump-item.drag-over{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset;}
+  .drag-handle{cursor:grab;color:var(--muted);font-size:16px;line-height:1;padding:0 2px;user-select:none;touch-action:none;}
+  .drag-handle:active{cursor:grabbing;}
   .jump-main{display:grid;grid-template-columns:minmax(130px,.8fr) minmax(220px,1.2fr);align-items:center;gap:14px;min-width:0;padding:0;background:transparent;
     border:none;text-align:left;font:inherit;color:inherit;}
   .jump-main:hover{color:#fff;}
@@ -373,8 +377,7 @@
     <h2>Edit Question</h2>
     <p class="sub">Timing is in seconds. Changes are saved to this browser and update scoring labels immediately.</p>
     <form id="questionForm">
-      <div class="question-grid">
-        <div class="question-field"><label for="editTitle">Title (optional)</label><input id="editTitle" type="text" maxlength="100"></div>
+      <div class="question-grid" style="grid-template-columns:1fr 1fr;">
         <div class="question-field"><label for="editType">Question type</label><select id="editType"><option value="tf">True / False</option><option value="id">Identification</option><option value="num">Numerical</option><option value="con">Conceptual</option></select></div>
         <div class="question-field"><label for="editTime">Time (seconds)</label><input id="editTime" type="number" min="1" max="3600" required></div>
       </div>
@@ -403,9 +406,9 @@
   ====================================================================== */
   var ROUNDS = [
     {
-      key:"r1", name:"Round 1 · Rapid Recall", tag:"Conceptual", time:20, base:10,
-      intro:{ kick:"Round 1 · 10 min", title:"Rapid Recall",
-        rules:["All questions are True / False: <strong>20 sec</strong>.",
+      key:"r1", name:"Round 1 · Rapid Recall", tag:"Conceptual", time:15, base:10,
+      intro:{ kick:"Round 1 · ~3 min", title:"Rapid Recall",
+        rules:["All questions are True / False: <strong>15 sec</strong>.",
                "<strong>+10 pts</strong> for a correct answer, 0 for wrong.",
                "🎲 <strong>Double Trouble:</strong> Questions 4 and 8 are secretly worth <strong>20 pts</strong>. Don't tell teams — reveal the point value only after boards are up."] },
       questions:[
@@ -432,39 +435,39 @@
       ]
     },
     {
-      key:"r2", name:"Round 2 · Problem Showdown", tag:"Numerical", time:180, base:30, partial:15,
-      intro:{ kick:"Round 2 · 15 min", title:"Problem Showdown",
-        rules:["5 problems spanning all three topics — <strong>3 min</strong> each including reveal.",
+      key:"r2", name:"Round 2 · Problem Showdown", tag:"Numerical", time:300, base:30, partial:15,
+      intro:{ kick:"Round 2 · 25 min", title:"Problem Showdown",
+        rules:["5 problems spanning all three topics — <strong>5 min</strong> each including reveal.",
                "<strong>+30 pts</strong> full correct (solution + units), <strong>+15 pts</strong> partial credit.",
                "<strong>Flip First:</strong> the first team to finish correctly earns a <strong>+5 bonus</strong>.",
                "<strong>Mystery Multiplier:</strong> one problem may be revealed as <strong>double points</strong>."] },
       questions:[
-        { type:"num", title:"Question 1",
+        { type:"num",
           text:"A mango falls from rest off a tree branch and lands on the ground <strong>1.35 s</strong> later. Ignoring air resistance, how tall is the branch above the ground?",
           answer:"Using \u0394y = \u00bdgt\u00b2 (v\u2080 = 0): h = \u00bd(9.8)(1.35)\u00b2 = <strong>8.93 m \u2248 8.9 m</strong>",
           note:"Partial credit: setting up \u0394y = v\u2080t + \u00bdat\u00b2 with v\u2080 = 0 and a = \u2212g, even with an arithmetic slip." },
-        { type:"num", title:"Question 2", suggestMultiplier:true,
+        { type:"num", suggestMultiplier:true,
           text:"At a fiesta booth, a player tosses a small ring at <strong>5.80 m/s</strong> at an angle of <strong>40\u00b0</strong> above the horizontal, aiming for a peg on a raised post <strong>1.80 m</strong> away horizontally. The peg sits <strong>above</strong> the release point, so this is an angled launch to a <em>different</em> landing height \u2014 the shortcut range/height formulas do <strong>not</strong> apply here; you must derive it. What is the height of the peg above the point where the ring left the player's hand?",
           answer:"v\u2080\u2093 = v\u2080cos\u03b8 = 5.80cos40\u00b0 = 4.44 m/s. v\u2080\u1d67 = v\u2080sin\u03b8 = 5.80sin40\u00b0 = 3.73 m/s. Time to cover 1.80 m horizontally: t = \u0394x/v\u2080\u2093 = 1.80/4.44 = 0.405 s. Height at that time: \u0394y = v\u2080\u1d67t \u2212 \u00bdgt\u00b2 = (3.73)(0.405) \u2212 \u00bd(9.8)(0.405)\u00b2 = <strong>0.71 m</strong>",
           note:"Partial credit: correctly setting up t = \u0394x/v\u2080\u2093 and \u0394y = v\u2080\u1d67t \u2212 \u00bdgt\u00b2 (recognizing shortcut formulas don't apply), even with an arithmetic slip." },
-        { type:"num", title:"Question 3",
+        { type:"num",
           text:"A stationary exercise bike's front wheel at the gym has a radius of <strong>0.33 m</strong> and spins at a constant rate of <strong>180 rev/min</strong>. What is the centripetal acceleration of a reflector clipped to the outer rim?",
           answer:"180 rev/min = 3 rev/s \u2192 v = 2\u03c0rf = 2\u03c0(0.33)(3) = 6.22 m/s. a\u209c = v\u00b2/r = (6.22)\u00b2/0.33 = <strong>117 m/s\u00b2</strong>",
           note:"Partial credit: correctly converting rev/min to rev/s (or T), and setting up v = 2\u03c0r/T followed by a\u209c = v\u00b2/r, even with a final arithmetic error." },
-        { type:"num", title:"Question 4",
+        { type:"num",
           text:"A zookeeper tosses a piece of fruit straight down to a waiting animal from an elevated platform, releasing it at <strong>3.20 m/s</strong>. Ignoring air resistance, what is the fruit's speed just before it lands, <strong>1.10 s</strong> later?",
           answer:"Using v = v\u2080 + gt (both v\u2080 and a point downward): v = 3.20 + (9.8)(1.10) = 13.98 m/s \u2248 <strong>14.0 m/s</strong>",
           note:"Partial credit: correctly setting up v = v\u2080 + at with v\u2080 \u2260 0 and a = g (same direction as v\u2080), even with an arithmetic slip." },
-        { type:"num", title:"Question 5",
+        { type:"num",
           text:"A student swings a <strong>0.250-kg</strong> rubber ball tied to a string in a horizontal circle on a frictionless tabletop. The string is <strong>0.400 m</strong> long, and the ball moves at a constant speed of <strong>3.00 m/s</strong>. What is the tension (centripetal force) in the string?",
           answer:"F\u209c = mv\u00b2/r = (0.250)(3.00)\u00b2/(0.400) = <strong>5.63 N</strong>",
           note:"Partial credit: correctly setting up F\u209c = mv\u00b2/r, even with a final arithmetic error." }
       ]
     },
     {
-      key:"r3", name:"Round 3 · Lightning Final", tag:"Mixed", time:50, base:15,
-      intro:{ kick:"Round 3 · 7 min", title:"Lightning Final",
-        rules:["5 fast conceptual/identification questions — <strong>~50 sec</strong> each.",
+      key:"r3", name:"Round 3 · Lightning Final", tag:"Mixed", time:30, base:15,
+      intro:{ kick:"Round 3 · ~3 min", title:"Lightning Final",
+        rules:["5 fast conceptual/identification questions — <strong>30 sec</strong> each.",
                "<strong>+15 pts</strong> for a correct answer.",
                "<strong>Wildcard:</strong> one question is secretly worth <strong>3\u00d7 points (45)</strong> \u2014 revealed only after boards are up. The dramatic closer!"] },
       questions:[
@@ -566,6 +569,9 @@
     document.querySelector(".brand .g").textContent=txt("brand"); document.title=txt("pageTitle");
   }
   function defaultQuestionTime(ri, q){
+    if(q.type==="tf") return 15;
+    if(q.type==="num") return 300;
+    if(q.type==="id" || q.type==="con") return 30;
     return ROUNDS[ri].time;
   }
   function getQuestionTime(ri, qi){
@@ -575,7 +581,7 @@
   function applyQuestionEdit(ri, qi, edit){
     var q = ROUNDS[ri] && ROUNDS[ri].questions[qi];
     if(!q || !edit) return;
-    ["title","type","text","answer","note","time"].forEach(function(key){
+    ["type","text","answer","note","time"].forEach(function(key){
       if(Object.prototype.hasOwnProperty.call(edit, key)) q[key] = edit[key];
     });
   }
@@ -588,7 +594,11 @@
   function saveQuestionSet(ri){ state.questionSets[ri]=ROUNDS[ri].questions; rebuildSlides(); save(); }
   function getScoring(ri,qi){
     var k = qKey(ri,qi);
-    if(!state.scoring[k]) state.scoring[k] = { g:{}, mult:false, multiplier:2, flip:null, flipFirst:false, flipPoints:5, wild:false, wildcardBonus:30 };
+    if(!state.scoring[k]){
+      var rd = ROUNDS[ri];
+      var defaultFlip = !!rd && (rd.key==="r2" || rd.key==="r3");
+      state.scoring[k] = { g:{}, mult:false, multiplier:2, flip:null, flipFirst:defaultFlip, flipPoints:5, wild:false, wildcardBonus:30 };
+    }
     // Normalize saves made before per-question gimmicks were available.
     var sc=state.scoring[k];
     if(!isFinite(sc.multiplier) || sc.multiplier<1) sc.multiplier=2;
@@ -1009,13 +1019,11 @@
     var questionTime = getQuestionTime(ri, qi);
     resetTimer(questionTime);
 
-    var displayNum = (rd.key==="r2" && q.title) ? "" : "Question " + (qi+1) + " of " + rd.questions.length;
-    var titleLine = q.title ? q.title : "";
+    var displayNum = "Question " + (qi+1) + " of " + rd.questions.length;
 
     var html = "";
     html += '<div class="qmeta">';
-    if(titleLine) html += '<span class="qnum">'+titleLine+'</span>';
-    else html += '<span class="qnum">'+displayNum+'</span>';
+    html += '<span class="qnum">'+displayNum+'</span>';
     html += '<span class="badge '+TYPE_CLASS[q.type]+'">'+TYPE_LABEL[q.type]+'</span>';
     // point chip during solving (do NOT tip off Double Trouble / Wildcard)
     if(rd.key==="r2") html += '<span class="chip">+'+withGimmicks(sc,30)+' / +'+withGimmicks(sc,15)+'</span>';
@@ -1040,6 +1048,7 @@
     if(!revealed){
       html += '<div class="reveal-row"><button class="reveal-btn" id="btnReveal">'+escAttr(txt("reveal"))+'</button></div>';
     } else {
+      html += '<div class="reveal-row"><button class="nav-btn" id="btnUnreveal">‹ Hide Answer</button></div>';
       html += '<div class="answer"><span class="lbl">Answer</span>'+q.answer +
               (q.note?'<div class="note">'+q.note+'</div>':'') + '</div>';
       // Twist reveals AFTER boards up
@@ -1057,6 +1066,7 @@
     byId("btnTimerToggle").onclick = toggleTimer;
     byId("btnTimerReset").onclick = function(){ resetTimer(questionTime); };
     if(byId("btnReveal")) byId("btnReveal").onclick = function(){ state.revealed[k]=true; revealSting(); render(); };
+    if(byId("btnUnreveal")) byId("btnUnreveal").onclick = function(){ state.revealed[k]=false; render(); };
     wireScoring(ri,qi,sc,rd);
     wireNav();
     updateTimerUI();
@@ -1248,11 +1258,12 @@
         html += '<div class="jump-round"><button class="jump-round-btn" data-slide="'+idx+'" title="Go to round mechanics">'+ROUNDS[s.r].name+'</button> <button class="sbtn jump-edit" data-edit-round="'+s.r+'">Edit mechanics</button> <button class="sbtn jump-edit" data-add-question="'+s.r+'">+ Add question</button></div>';
       } else if(s.kind==="q"){
         var rd = ROUNDS[s.r], q = rd.questions[s.q], k = qKey(s.r, s.q), sc = getScoring(s.r, s.q);
-        var label = q.title ? q.title : ("Question "+(s.q+1));
+        var label = "Question "+(s.q+1);
         var scored = Object.keys(sc.g).filter(function(g){ return sc.g[g]; }).length;
         var status = (state.revealed[k] ? '<span class="rev">revealed</span>' : "not shown") +
                      ' · '+TYPE_LABEL[q.type]+' · '+getQuestionTime(s.r, s.q)+'s' + (scored ? (" · "+scored+" scored") : "");
-        html += '<div class="jump-item'+(idx===state.slide?" current":"")+'">'+
+        html += '<div class="jump-item'+(idx===state.slide?" current":"")+'" data-drag-ri="'+s.r+'" data-drag-qi="'+s.q+'">'+
+                  '<span class="drag-handle" draggable="true" title="Drag to reorder">⠿</span>'+
                   '<button class="jump-main" data-slide="'+idx+'"><span>'+label+'</span><span class="tag2">'+status+'</span></button>'+
                   '<div class="jump-tools">'+gimmickButtons(s.r,s.q,sc)+
                     '<button class="sbtn jump-edit" data-move-ri="'+s.r+'" data-move-qi="'+s.q+'" data-move="-1">↑</button><button class="sbtn jump-edit" data-move-ri="'+s.r+'" data-move-qi="'+s.q+'" data-move="1">↓</button><button class="sbtn jump-edit" data-edit-ri="'+s.r+'" data-edit-qi="'+s.q+'">Edit</button></div></div>';
@@ -1293,22 +1304,56 @@
     Array.prototype.forEach.call(list.querySelectorAll("[data-move-ri]"),function(button){
       button.onclick=function(){moveQuestion(+this.getAttribute("data-move-ri"),+this.getAttribute("data-move-qi"),+this.getAttribute("data-move"));openJump();};
     });
+    // Drag-and-drop reordering: drag the handle, drop on another row within the same round.
+    var dragSrc = null;
+    Array.prototype.forEach.call(list.querySelectorAll("[data-drag-ri]"), function(item){
+      var handle = item.querySelector(".drag-handle");
+      if(handle){
+        handle.addEventListener("dragstart", function(e){
+          dragSrc = {ri:+item.getAttribute("data-drag-ri"), qi:+item.getAttribute("data-drag-qi")};
+          item.classList.add("dragging");
+          if(e.dataTransfer){ e.dataTransfer.effectAllowed = "move"; try{ e.dataTransfer.setData("text/plain",""); }catch(err){} }
+        });
+        handle.addEventListener("dragend", function(){ item.classList.remove("dragging"); dragSrc = null; });
+      }
+      item.addEventListener("dragover", function(e){
+        if(!dragSrc || +item.getAttribute("data-drag-ri")!==dragSrc.ri) return;
+        e.preventDefault();
+        item.classList.add("drag-over");
+      });
+      item.addEventListener("dragleave", function(){ item.classList.remove("drag-over"); });
+      item.addEventListener("drop", function(e){
+        e.preventDefault();
+        item.classList.remove("drag-over");
+        if(!dragSrc) return;
+        var targetRi = +item.getAttribute("data-drag-ri"), targetQi = +item.getAttribute("data-drag-qi");
+        if(targetRi===dragSrc.ri && targetQi!==dragSrc.qi) reorderQuestion(targetRi, dragSrc.qi, targetQi);
+        dragSrc = null;
+        openJump();
+      });
+    });
     jumpOverlay.classList.remove("hidden");
   }
-  function moveQuestion(ri, qi, direction){
-    var to=qi+direction, qs=ROUNDS[ri].questions;
-    if(to<0 || to>=qs.length) return;
+  function reorderQuestion(ri, fromQi, toQi){
+    var qs = ROUNDS[ri].questions;
+    if(toQi<0 || toQi>=qs.length || fromQi===toQi) return;
+    var order = qs.map(function(_,i){ return i; });
+    var moved = order.splice(fromQi,1)[0];
+    order.splice(toQi,0,moved);
     ["scoring","revealed","questionEdits"].forEach(function(store){
       var values=[]; for(var i=0;i<qs.length;i++) values.push(state[store][qKey(ri,i)]);
-      var moved=values.splice(qi,1)[0]; values.splice(to,0,moved);
-      for(var j=0;j<qs.length;j++){ var key=qKey(ri,j); if(values[j]===undefined) delete state[store][key]; else state[store][key]=values[j]; }
+      var newValues = order.map(function(oldIdx){ return values[oldIdx]; });
+      for(var j=0;j<qs.length;j++){ var key=qKey(ri,j); if(newValues[j]===undefined) delete state[store][key]; else state[store][key]=newValues[j]; }
     });
-    var question=qs.splice(qi,1)[0]; qs.splice(to,0,question); saveQuestionSet(ri);
+    ROUNDS[ri].questions = order.map(function(oldIdx){ return qs[oldIdx]; });
+    saveQuestionSet(ri);
+  }
+  function moveQuestion(ri, qi, direction){
+    reorderQuestion(ri, qi, qi+direction);
   }
   function openQuestionEditor(ri, qi){
     var q = ROUNDS[ri].questions[qi];
     editingQuestion = {ri:ri, qi:qi};
-    byId("editTitle").value = q.title || "";
     byId("editType").value = q.type;
     byId("editTime").value = getQuestionTime(ri, qi);
     byId("editText").innerHTML = q.text || "";
@@ -1323,7 +1368,7 @@
     var time = Math.round(+byId("editTime").value);
     if(!isFinite(time) || time<1) return;
     var edit = {
-      title:byId("editTitle").value.trim(), type:byId("editType").value,
+      type:byId("editType").value,
       time:time, text:normalizeRichHTML(byId("editText").innerHTML), answer:normalizeRichHTML(byId("editAnswer").innerHTML),
       note:normalizeRichHTML(byId("editNote").innerHTML)
     };
