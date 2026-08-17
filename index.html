@@ -1249,11 +1249,13 @@
   function escAttr(v){ return String(v||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
   function gimmickButtons(ri, qi, sc){
     var rd = ROUNDS[ri];
-    var doubleBtn = (rd && rd.key==="r1") ?
-      '<div class="gimmick-wrap"><button class="sbtn jump-gimmick double'+(sc.double?' on':'')+'" data-gimmick="double" data-ri="'+ri+'" data-qi="'+qi+'" aria-pressed="'+!!sc.double+'" title="Toggle Double Trouble (20 pts)">🎲</button></div>' : '';
+    // Round 1 has no Mystery Multiplier, so its × button doubles as the
+    // Double Trouble toggle instead — fixed at 20 pts, no numeric input.
+    var firstBtn = (rd && rd.key==="r1")
+      ? '<div class="gimmick-wrap"><button class="sbtn jump-gimmick double'+(sc.double?' on':'')+'" data-gimmick="double" data-ri="'+ri+'" data-qi="'+qi+'" aria-pressed="'+!!sc.double+'" title="Toggle Double Trouble (20 pts)">×</button></div>'
+      : '<div class="gimmick-wrap"><button class="sbtn jump-gimmick mult'+(sc.mult?' on':'')+'" data-gimmick="mult" data-ri="'+ri+'" data-qi="'+qi+'" aria-pressed="'+!!sc.mult+'" title="Toggle × multiplier">×</button><input type="number" class="gimmick-input" data-ginput="mult" data-ri="'+ri+'" data-qi="'+qi+'" value="'+(sc.multiplier||2)+'" min="1" max="10" title="Multiplier value"></div>';
     return '<div class="jump-gimmicks" aria-label="Question gimmicks">'+
-      doubleBtn +
-      '<div class="gimmick-wrap"><button class="sbtn jump-gimmick mult'+(sc.mult?' on':'')+'" data-gimmick="mult" data-ri="'+ri+'" data-qi="'+qi+'" aria-pressed="'+!!sc.mult+'" title="Toggle × multiplier">×</button><input type="number" class="gimmick-input" data-ginput="mult" data-ri="'+ri+'" data-qi="'+qi+'" value="'+(sc.multiplier||2)+'" min="1" max="10" title="Multiplier value"></div>'+
+      firstBtn +
       '<div class="gimmick-wrap"><button class="sbtn jump-gimmick flip'+(sc.flipFirst?' on':'')+'" data-gimmick="flip" data-ri="'+ri+'" data-qi="'+qi+'" aria-pressed="'+!!sc.flipFirst+'" title="Toggle Flip First bonus">+</button><input type="number" class="gimmick-input" data-ginput="flip" data-ri="'+ri+'" data-qi="'+qi+'" value="'+(sc.flipPoints!==undefined?sc.flipPoints:5)+'" min="0" max="100" title="Flip First bonus points"></div>'+
       '<div class="gimmick-wrap"><button class="sbtn jump-gimmick wild'+(sc.wild?' on':'')+'" data-gimmick="wild" data-ri="'+ri+'" data-qi="'+qi+'" aria-pressed="'+!!sc.wild+'" title="Toggle wildcard points">W</button><input type="number" class="gimmick-input" data-ginput="wild" data-ri="'+ri+'" data-qi="'+qi+'" value="'+(sc.wildcardBonus!==undefined?sc.wildcardBonus:30)+'" min="0" max="1000" title="Wildcard points"></div></div>';
   }
