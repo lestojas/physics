@@ -230,6 +230,8 @@
   .jump-gimmick.on.mult{background:rgba(255,138,61,.18);border-color:var(--accent2);color:var(--accent2);}
   .jump-gimmick.on.flip{background:rgba(255,210,74,.16);border-color:var(--gold);color:var(--gold);}
   .jump-gimmick.on.wild{background:linear-gradient(90deg,rgba(185,140,255,.25),rgba(255,138,61,.25));border-color:var(--accent);color:#fff;}
+  .pts-editor .gimmick-input{width:48px;}
+  .pts-label{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.3px;text-transform:uppercase;padding:0 1px;}
   .flip-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;align-items:center;}
   .jump-select,.question-field input,.question-field select,.question-field textarea{
     background:var(--bg2);border:1px solid var(--line);border-radius:7px;color:var(--text);
@@ -597,13 +599,16 @@
     var k = qKey(ri,qi);
     if(!state.scoring[k]){
       var rd = ROUNDS[ri], q = rd && rd.questions[qi];
-      state.scoring[k] = { g:{}, mult:false, multiplier:2, flip:null, flipFirst:!!(rd && rd.flipFirstDefault), flipPoints:5, wild:false, wildcardBonus:30, double:!!(q && q.doubleDefault) };
+      state.scoring[k] = { g:{}, mult:false, multiplier:2, flip:[], flipFirst:!!(rd && rd.flipFirstDefault), flipPoints:5, wild:false, wildcardBonus:30, double:!!(q && q.doubleDefault), points:null, fullPoints:null, partialPoints:null };
     }
     // Normalize saves made before per-question gimmicks were available.
     var sc=state.scoring[k];
     if(!isFinite(sc.multiplier) || sc.multiplier<1) sc.multiplier=2;
     if(!isFinite(sc.wildcardBonus) || sc.wildcardBonus<0) sc.wildcardBonus=30;
     if(!isFinite(sc.flipPoints) || sc.flipPoints<0) sc.flipPoints=5;
+    // Flip First used to hold a single group index (or null) — now it's an array
+    // so more than one team can be first.
+    if(!Array.isArray(sc.flip)) sc.flip = (typeof sc.flip==="number") ? [sc.flip] : [];
     return sc;
   }
 
@@ -616,19 +621,29 @@
     if(sc.wild) points += sc.wildcardBonus;
     return points;
   }
+  function isFlipped(sc, g){ return sc.flip.indexOf(g)!==-1; }
+  // Standard (non-R2) correct-answer points, honoring a per-question override
+  // if the host set one in Browse Questions.
+  function standardBase(rd, sc){
+    var def = rd.key==="r1" ? 10 : (rd.base||15);
+    return (typeof sc.points==="number") ? sc.points : def;
+  }
+  function r2FullBase(rd, sc){ return (typeof sc.fullPoints==="number") ? sc.fullPoints : (rd.base||30); }
+  function r2PartialBase(rd, sc){ return (typeof sc.partialPoints==="number") ? sc.partialPoints : (rd.partial!=null ? rd.partial : 15); }
   function standardPoints(rd, q, sc){
-    return withGimmicks(sc, rd.key==="r1" ? (sc.double?20:10) : (rd.base||15));
+    var base = standardBase(rd, sc);
+    return withGimmicks(sc, rd.key==="r1" ? (sc.double?base*2:base) : base);
   }
   // Base points visible on the on-screen chip while a question is still being solved —
   // reflects an announced Multiplier, but never the secret Double Trouble / Wildcard bonus.
   function visiblePoints(rd, sc, base){
     return sc.mult ? base*sc.multiplier : base;
   }
-  function r2Points(sc, g){
+  function r2Points(rd, sc, g){
     var v = sc.g[g];
-    var base = v==="full" ? 30 : v==="partial" ? 15 : 0;
+    var base = v==="full" ? r2FullBase(rd,sc) : v==="partial" ? r2PartialBase(rd,sc) : 0;
     var p = withGimmicks(sc, base);
-    if(sc.flipFirst && sc.flip===g) p += sc.flipPoints;
+    if(sc.flipFirst && isFlipped(sc,g)) p += sc.flipPoints;
     return p;
   }
   // Per-group score split by round: [{r1,r2,r3,total}, ...]
@@ -643,11 +658,11 @@
       for(var g=0; g<GROUP_COUNT; g++){
         var v = sc.g[g];
         if(rd.key==="r1"){
-          if(v==="correct") b[g].r1 += standardPoints(rd,q,sc) + (sc.flipFirst && sc.flip===g ? sc.flipPoints : 0);
+          if(v==="correct") b[g].r1 += standardPoints(rd,q,sc) + (sc.flipFirst && isFlipped(sc,g) ? sc.flipPoints : 0);
         } else if(rd.key==="r2"){
-          b[g].r2 += r2Points(sc, g);
+          b[g].r2 += r2Points(rd, sc, g);
         } else if(rd.key==="r3"){
-          if(v==="correct") b[g].r3 += standardPoints(rd,q,sc) + (sc.flipFirst && sc.flip===g ? sc.flipPoints : 0);
+          if(v==="correct") b[g].r3 += standardPoints(rd,q,sc) + (sc.flipFirst && isFlipped(sc,g) ? sc.flipPoints : 0);
         }
       }
     });
@@ -1033,8 +1048,8 @@
     html += '<span class="qnum">'+displayNum+'</span>';
     html += '<span class="badge '+TYPE_CLASS[q.type]+'">'+TYPE_LABEL[q.type]+'</span>';
     // point chip during solving (do NOT tip off Double Trouble / Wildcard)
-    if(rd.key==="r2") html += '<span class="chip">+'+visiblePoints(rd,sc,30)+' / +'+visiblePoints(rd,sc,15)+'</span>';
-    else html += '<span class="chip">+'+visiblePoints(rd,sc, rd.key==="r1"?10:(rd.base||15))+'</span>';
+    if(rd.key==="r2") html += '<span class="chip">+'+visiblePoints(rd,sc,r2FullBase(rd,sc))+' / +'+visiblePoints(rd,sc,r2PartialBase(rd,sc))+'</span>';
+    else html += '<span class="chip">+'+visiblePoints(rd,sc, standardBase(rd,sc))+'</span>';
     html += '<button class="tbtn" id="btnEditQuestion" title="Edit this question">✎</button>';
 
     // Timer controls
@@ -1101,8 +1116,8 @@
       }
       h += '</div>';
       if(sc.flipFirst){
-        h += '<div class="flip-row"><span class="hint">Flip First:</span>';
-        for(var fg=0;fg<GROUP_COUNT;fg++) h += '<button class="sbtn flip'+(sc.flip===fg?' on':'')+'" data-g="'+fg+'" data-act="flip">★ '+state.names[fg]+'</button>';
+        h += '<div class="flip-row"><span class="hint">Flip First (pick one or more):</span>';
+        for(var fg=0;fg<GROUP_COUNT;fg++) h += '<button class="sbtn flip'+(isFlipped(sc,fg)?' on':'')+'" data-g="'+fg+'" data-act="flip">★ '+state.names[fg]+'</button>';
         h += '</div>';
       }
     } else if(rd.key==="r2"){
@@ -1110,9 +1125,9 @@
       h += '<div class="r2-grid">';
       for(var g2=0; g2<GROUP_COUNT; g2++){
         var v = sc.g[g2]||"";
-        var pg = r2Points(sc, g2);
+        var pg = r2Points(rd, sc, g2);
         h += '<div class="r2-row">' +
-               (sc.flipFirst?'<button class="flip'+(sc.flip===g2?" on":"")+'" data-g="'+g2+'" data-act="flip" title="Flip First +'+sc.flipPoints+'">★</button>':'') +
+               (sc.flipFirst?'<button class="flip'+(isFlipped(sc,g2)?" on":"")+'" data-g="'+g2+'" data-act="flip" title="Flip First +'+sc.flipPoints+'">★</button>':'') +
                '<span class="nm">'+dot(g2)+state.names[g2]+'</span>' +
                '<button class="sbtn partial'+(v==="partial"?" on":"")+'" data-g="'+g2+'" data-act="partial">Partial</button>' +
                '<button class="sbtn full'+(v==="full"?" on":"")+'" data-g="'+g2+'" data-act="full">Full</button>' +
@@ -1139,12 +1154,13 @@
         } else if(act==="partial"){
           sc.g[g] = sc.g[g]==="partial" ? "" : "partial";
         } else if(act==="flip"){
-          sc.flip = sc.flip===g ? null : g;
+          var flipIdx = sc.flip.indexOf(g);
+          if(flipIdx===-1) sc.flip.push(g); else sc.flip.splice(flipIdx,1);
         }
         var awarded = (act==="correct" && sc.g[g]==="correct") ||
                       (act==="full" && sc.g[g]==="full") ||
                       (act==="partial" && sc.g[g]==="partial") ||
-                      (act==="flip" && sc.flip===g);
+                      (act==="flip" && isFlipped(sc,g));
         if(awarded) scoreDing();
         save(); render();
       };
@@ -1261,12 +1277,24 @@
   };
   byId("textCancel").onclick=function(){textOverlay.classList.add("hidden");};
   function escAttr(v){ return String(v||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
+  // Editable standard point value(s) for a question — separate from the gimmicks,
+  // which only ever multiply/add on top of whatever this is set to.
+  function pointsEditor(ri, qi, sc){
+    var rd = ROUNDS[ri];
+    if(rd.key==="r2"){
+      return '<div class="jump-gimmicks pts-editor" aria-label="Standard points">'+
+        '<div class="gimmick-wrap"><span class="pts-label" title="Full-credit points">Full</span><input type="number" class="gimmick-input" data-ptsinput="full" data-ri="'+ri+'" data-qi="'+qi+'" value="'+r2FullBase(rd,sc)+'" min="0" max="1000"></div>'+
+        '<div class="gimmick-wrap"><span class="pts-label" title="Partial-credit points">Part</span><input type="number" class="gimmick-input" data-ptsinput="partial" data-ri="'+ri+'" data-qi="'+qi+'" value="'+r2PartialBase(rd,sc)+'" min="0" max="1000"></div></div>';
+    }
+    return '<div class="jump-gimmicks pts-editor" aria-label="Standard points">'+
+      '<div class="gimmick-wrap"><span class="pts-label" title="Points for a correct answer">Pts</span><input type="number" class="gimmick-input" data-ptsinput="standard" data-ri="'+ri+'" data-qi="'+qi+'" value="'+standardBase(rd,sc)+'" min="0" max="1000"></div></div>';
+  }
   function gimmickButtons(ri, qi, sc){
     var rd = ROUNDS[ri];
     // Round 1 has no Mystery Multiplier, so its × button doubles as the
-    // Double Trouble toggle instead — fixed at 20 pts, no numeric input.
+    // Double Trouble toggle instead — worth double the standard points, no numeric input.
     var firstBtn = (rd && rd.key==="r1")
-      ? '<div class="gimmick-wrap"><button class="sbtn jump-gimmick double'+(sc.double?' on':'')+'" data-gimmick="double" data-ri="'+ri+'" data-qi="'+qi+'" aria-pressed="'+!!sc.double+'" title="Toggle Double Trouble (20 pts)">×</button></div>'
+      ? '<div class="gimmick-wrap"><button class="sbtn jump-gimmick double'+(sc.double?' on':'')+'" data-gimmick="double" data-ri="'+ri+'" data-qi="'+qi+'" aria-pressed="'+!!sc.double+'" title="Toggle Double Trouble (worth double)">×</button></div>'
       : '<div class="gimmick-wrap"><button class="sbtn jump-gimmick mult'+(sc.mult?' on':'')+'" data-gimmick="mult" data-ri="'+ri+'" data-qi="'+qi+'" aria-pressed="'+!!sc.mult+'" title="Toggle × multiplier">×</button><input type="number" class="gimmick-input" data-ginput="mult" data-ri="'+ri+'" data-qi="'+qi+'" value="'+(sc.multiplier||2)+'" min="1" max="10" title="Multiplier value"></div>';
     return '<div class="jump-gimmicks" aria-label="Question gimmicks">'+
       firstBtn +
@@ -1276,7 +1304,7 @@
   function setGimmick(sc, kind, enabled, value){
     if(kind==="mult"){ sc.mult=enabled; if(value!=null) sc.multiplier=Math.max(1,Math.round(value)||1); }
     if(kind==="wild"){ sc.wild=enabled; if(value!=null) sc.wildcardBonus=Math.max(0,Math.round(value)||0); }
-    if(kind==="flip"){ sc.flipFirst=enabled; if(value!=null) sc.flipPoints=Math.max(0,Math.round(value)||0); if(!enabled) sc.flip=null; }
+    if(kind==="flip"){ sc.flipFirst=enabled; if(value!=null) sc.flipPoints=Math.max(0,Math.round(value)||0); if(!enabled) sc.flip=[]; }
     if(kind==="double"){ sc.double=enabled; }
   }
   function openJump(){
@@ -1293,7 +1321,7 @@
         html += '<div class="jump-item'+(idx===state.slide?" current":"")+'" data-drag-ri="'+s.r+'" data-drag-qi="'+s.q+'">'+
                   '<span class="drag-handle" draggable="true" title="Drag to reorder">⠿</span>'+
                   '<button class="jump-main" data-slide="'+idx+'"><span>'+label+'</span><span class="tag2">'+status+'</span></button>'+
-                  '<div class="jump-tools">'+gimmickButtons(s.r,s.q,sc)+
+                  '<div class="jump-tools">'+pointsEditor(s.r,s.q,sc)+gimmickButtons(s.r,s.q,sc)+
                     '<button class="sbtn jump-edit" data-move-ri="'+s.r+'" data-move-qi="'+s.q+'" data-move="-1">↑</button><button class="sbtn jump-edit" data-move-ri="'+s.r+'" data-move-qi="'+s.q+'" data-move="1">↓</button><button class="sbtn jump-edit" data-edit-ri="'+s.r+'" data-edit-qi="'+s.q+'">Edit</button></div></div>';
       } else {
         html += '<div class="jump-item'+(idx===state.slide?" current":"")+'"><button class="jump-main" data-slide="'+idx+'"><span>🏆 Final Standings</span></button></div>';
@@ -1314,7 +1342,7 @@
         var ri=+this.getAttribute("data-ri"), qi=+this.getAttribute("data-qi"), sc=getScoring(ri,qi), kind=this.getAttribute("data-gimmick");
         var next = kind==="mult"?!sc.mult : kind==="flip"?!sc.flipFirst : kind==="double"?!sc.double : !sc.wild;
         setGimmick(sc,kind,next,null);
-        save(); openJump();
+        save(); render(); openJump();
       };
     });
     Array.prototype.forEach.call(list.querySelectorAll("[data-ginput]"), function(input){
@@ -1324,7 +1352,17 @@
         if(kind==="mult") sc.multiplier = Math.max(1, val);
         if(kind==="flip") sc.flipPoints = val;
         if(kind==="wild") sc.wildcardBonus = val;
-        save();
+        save(); render();
+      };
+    });
+    Array.prototype.forEach.call(list.querySelectorAll("[data-ptsinput]"), function(input){
+      input.oninput = function(){
+        var ri=+this.getAttribute("data-ri"), qi=+this.getAttribute("data-qi"), sc=getScoring(ri,qi), kind=this.getAttribute("data-ptsinput");
+        var val = Math.max(0, parseInt(this.value)||0);
+        if(kind==="standard") sc.points = val;
+        if(kind==="full") sc.fullPoints = val;
+        if(kind==="partial") sc.partialPoints = val;
+        save(); render();
       };
     });
     Array.prototype.forEach.call(list.querySelectorAll("[data-add-question]"),function(button){
